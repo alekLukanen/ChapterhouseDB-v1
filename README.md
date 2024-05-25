@@ -1,2 +1,2 @@
 # chapterhouseDB
-A self-managed streaming data warehouse build on Parquet and DuckDB
+A self-managed streaming data warehouse built on Parquet and DuckDB

@@ -1,0 +1,21 @@
+syntax = "proto3";
+package chapterhouseDB;
+
+option go_package = "tests/serializers";
+
+message Data {
+  string name = 1;
+  int64 size = 2;
+}
+
+message String {
+  string value = 1;
+}
+
+message Integer {
+  int64 value = 1;
+}
+
+message Float {
+  double value = 1;
+}

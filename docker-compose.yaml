@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  keydb:
+    image: eqalpha/keydb:latest
+    container_name: keydb
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - keydb-data:/data
+    command: ["keydb-server", "/etc/keydb/keydb.conf"]
+
+volumes:
+  keydb-data:
+    driver: local
