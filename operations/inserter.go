@@ -13,6 +13,11 @@ import (
 	"github.com/apache/arrow/go/v16/arrow/memory"
 )
 
+type IInserter interface {
+	GetPartition(ctx context.Context, tableName string, batchCount int, batchDelay time.Duration) (elements.Partition, storage.ILock, arrow.Record, error)
+	InsertTuples(ctx context.Context, tableName, sourceName string, tuples arrow.Record) error
+}
+
 type InserterOptions struct {
 	PartitionLockDuration time.Duration
 }
@@ -215,8 +220,4 @@ func (obj *Inserter) InsertTuples(ctx context.Context, tableName, sourceName str
 	}
 
 	return nil
-}
-
-func (obj *Inserter) Insert(ctx context.Context, partition elements.Partition, currentRowsQuery string, newRows arrow.Record) {
-	obj.logger.Info("Inserting new rows for partition")
 }

@@ -21,6 +21,20 @@ type ILock interface {
 	UnlockContext(context.Context) (bool, error)
 }
 
+type IKeyStorage interface {
+	AddItemsToTablePartition(context.Context, elements.Partition, [][]byte) (int64, error)
+
+	GetTablePartitionItems(context.Context, elements.Partition, int) ([]string, error)
+	GetTablePartitions(context.Context, string, uint64, int64) ([]elements.Partition, error)
+
+	GetTablePartitionTimestamp(context.Context, elements.Partition) (time.Time, error)
+	SetTablePartitionTimestamp(context.Context, elements.Partition) (bool, error)
+	DeleteTablePartitionTimestamp(context.Context, elements.Partition) (bool, error)
+
+	ClaimPartition(context.Context, elements.Partition, time.Duration) (ILock, error)
+	ReleasePartitionLock(context.Context, ILock) (bool, error)
+}
+
 type KeyStorageOptions struct {
 	Address   string
 	Password  string

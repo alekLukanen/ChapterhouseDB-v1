@@ -18,6 +18,7 @@ type IValidatable interface {
 type ISubscription interface {
 	SourceName() string
 	Columns() []Column
+	Transformer() Transformer
 	IValidatable
 }
 type Table struct {

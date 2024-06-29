@@ -8,7 +8,10 @@ import (
 )
 
 type ITableRegistry interface {
+	AddTables(tables ...*elements.Table) error
 	GetTable(tableName string) (*elements.Table, error)
+	TableExists(tableName string) bool
+	Tables() []*elements.Table
 }
 
 type TableRegistry struct {

@@ -9,4 +9,4 @@ import (
 
 type PartitionFunc func(*memory.GoAllocator, arrow.Record, string, IPartitionOptions) (arrow.Array, error)
 
-type Transformer func(ctx context.Context, allocator memory.GoAllocator, tuples *arrow.Record) (*arrow.Record, error)
+type Transformer func(ctx context.Context, allocator *memory.GoAllocator, tuples arrow.Record) (*arrow.Record, error)

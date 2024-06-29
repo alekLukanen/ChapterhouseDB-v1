@@ -16,6 +16,13 @@ const (
 	ObjectStorageAuthTypeStatic = "static"
 )
 
+type IObjectStorage interface {
+	Upload(context.Context, string, string, []byte) error
+	Download(context.Context, string, string) ([]byte, error)
+	Delete(context.Context, string, string) error
+	ListObjects(context.Context, string, string) ([]string, error)
+}
+
 type ObjectStorageOptions struct {
 	Endpoint     string
 	Region       string

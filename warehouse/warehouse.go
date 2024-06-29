@@ -14,13 +14,13 @@ import (
 
 type Warehouse struct {
 	logger        *slog.Logger
-	keyStorage    *storage.KeyStorage
-	objectStorage *storage.ObjectStorage
+	keyStorage    storage.IKeyStorage
+	objectStorage storage.IObjectStorage
 	allocator     *memory.GoAllocator
 
 	name          string
-	tableRegistry *operations.TableRegistry
-	inserter      *operations.Inserter
+	tableRegistry operations.ITableRegistry
+	inserter      operations.IInserter
 }
 
 func NewWarehouse(
@@ -81,16 +81,18 @@ func (obj *Warehouse) Run(ctx context.Context) {
 /*
 * Used to process the next partitionn for a table in the warehouse.
 * Steps:
-* 1. Get a partition for a table
-* 2. Get the current and new rows using the partition
-*    tuple record as input. The current rows function
-*    will scan the partition's parquet files for items
-*    effected by the tuples. The new rows function will
-*    run some kind of query and produce an arrow record
-*    or a parquet file. If the table is a source table a diff
-*    merge will be performed on just the partition keys and
+* 1. Get a partition for a table subscription
+* 2. Pass the partition data arrow Record to the subscriptions
+*    transformer function. This will pass back an unorder record
+*    which will then need to be ordered.
+* 3. Sort the record in ascending order.
+* 4. Once the records ascending order is found get the partition's
+*    tables from object storage and merge the new/updated/deleted records into existing data.
+*    The merge rows function will scan the partition's parquet
+*    files for items effected by the tuples. The merge process will
+*    be performed on just the partition keys and
 *    will compare all other columns to see if this unique
-*    row has changed.
+*    row has changed. This process is essentially k-way merge sort.
 *    For now pull down all parquet files for the partition and then perform
 *    the merge. Any row not effected by the tuples will be
 *    written back to a new parquet file. Any row that is effected
@@ -99,26 +101,28 @@ func (obj *Warehouse) Run(ctx context.Context) {
 *    row hasn't changed then only mark its _processed_ts
 *    not its _updated_ts. Include a _processed_count column
 *    to keep track of how many times a row has been processed.
-* 3. Push the new parquet files to the object storage. The file name
+* 5. Push the new parquet files to the object storage. The file name
 *    should include an incremented version count and a total file
 *    count so the system can handle crash recovery.
-* 4. Delete the old parquet files for the partition.
-* 5. For any row that has changed signal to all subscribed
+* 6. Delete the old parquet files for the partition.
+* 7. For any row that has changed signal to all subscribed
 *    tables that the row has changed by batching the row
 *    in that dependent tables partition batches with the
 *    requested partition keys.
-* 6. Release the lock on the partition
-* 7. Release the arrow record from the memory allocator
+* 8. Release the lock on the partition
+* 9. Release the arrow record from the memory allocator
  */
 func (obj *Warehouse) ProcessNextTablePartition(ctx context.Context) (bool, error) {
 	var partition elements.Partition
 	var err error
 	var lock storage.ILock
 	var record arrow.Record
+	var table *elements.Table
 
-	for idx, table := range obj.tableRegistry.Tables() {
+	// 1. Get a partition for a table subscription
+	for idx, tab := range obj.tableRegistry.Tables() {
 
-		obj.logger.Info("Processing table", slog.Any("table", table.TableName()), slog.Int("index", idx))
+		obj.logger.Info("Processing table", slog.Any("table", tab.TableName()), slog.Int("index", idx))
 
 		tableOptions := table.Options()
 		partition, lock, record, err = obj.inserter.GetPartition(
@@ -128,6 +132,8 @@ func (obj *Warehouse) ProcessNextTablePartition(ctx context.Context) (bool, erro
 			obj.logger.Error("unable to read items", slog.Any("error", err))
 			return false, err
 		}
+
+		table = tab
 
 		break
 
@@ -140,6 +146,22 @@ func (obj *Warehouse) ProcessNextTablePartition(ctx context.Context) (bool, erro
 		slog.Any("lock", lock),
 		slog.Any("record", record),
 	)
+
+	subscription, err := table.GetSubscriptionBySourceName(partition.SubscriptionSourceName)
+	if err != nil {
+		return false, err
+	}
+
+	// 2. Transform the partition data basec on the subscription
+	transformedData, err := subscription.Transformer()(ctx, obj.allocator, record)
+	if err != nil {
+		return false, err
+	}
+
+	// 3. Sort the record in ascending order
+	// The order will be based on the combination of the
+	// partition keys for the table:
+	//   ("partition_column1", "partition_column2",...)
 
 	return true, nil
 }
