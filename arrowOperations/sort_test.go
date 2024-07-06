@@ -1,1 +1,60 @@
 package arrowops
+
+import (
+	"testing"
+
+	"github.com/apache/arrow/go/v16/arrow"
+	"github.com/apache/arrow/go/v16/arrow/array"
+	"github.com/apache/arrow/go/v16/arrow/memory"
+)
+
+func TestSortRecord(t *testing.T) {
+
+	mem := memory.NewGoAllocator()
+
+	rb1 := array.NewRecordBuilder(mem, arrow.NewSchema(
+		[]arrow.Field{
+			{Name: "a", Type: arrow.PrimitiveTypes.Uint32},
+			{Name: "b", Type: arrow.PrimitiveTypes.Float32},
+			{Name: "c", Type: arrow.BinaryTypes.String},
+		}, nil))
+	defer rb1.Release()
+
+	rb1.Field(0).(*array.Uint32Builder).AppendValues([]uint32{4, 4, 3, 2, 1}, nil)
+	rb1.Field(1).(*array.Float32Builder).AppendValues([]float32{1.0, 2.0, 3.0, 2.0, 1.0}, nil)
+	rb1.Field(2).(*array.StringBuilder).AppendValues([]string{"s1", "s2", "s3", "s4", "s5"}, nil)
+
+	r1 := rb1.NewRecord()
+	defer r1.Release()
+
+	rb2 := array.NewRecordBuilder(mem, arrow.NewSchema(
+		[]arrow.Field{
+			{Name: "a", Type: arrow.PrimitiveTypes.Uint32},
+			{Name: "b", Type: arrow.PrimitiveTypes.Float32},
+			{Name: "c", Type: arrow.BinaryTypes.String},
+		}, nil))
+	defer rb2.Release()
+
+	rb2.Field(0).(*array.Uint32Builder).AppendValues([]uint32{1, 2, 3, 4, 4}, nil)
+	rb2.Field(1).(*array.Float32Builder).AppendValues([]float32{1.0, 2.0, 3.0, 1.0, 2.0}, nil)
+	rb2.Field(2).(*array.StringBuilder).AppendValues([]string{"s5", "s4", "s3", "s1", "s2"}, nil)
+
+	expectedRecord := rb2.NewRecord()
+	defer expectedRecord.Release()
+
+	sortedRecord, err := SortRecord(mem, r1, []string{"a", "b"})
+	if err != nil {
+		t.Fatalf("received error while sorting record '%s'", err)
+	}
+
+	t.Log(sortedRecord)
+
+	if eq, ifErr := RecordsEqual(expectedRecord, sortedRecord); ifErr != nil {
+		t.Fatalf("received error while comparing records: %s", ifErr)
+	} else if !eq {
+		t.Log("expectedRecord: ", expectedRecord)
+		t.Log("sortedRecord: ", sortedRecord)
+		t.Fatalf("expected records to be equal")
+	}
+
+}

@@ -93,12 +93,6 @@ func ArraysEqual(a, b arrow.Array) (bool, error) {
 	}
 }
 
-type valueArray[T comparable] interface {
-	IsNull(i int) bool
-	Value(i int) T
-	Len() int
-}
-
 func nativeArrayEqual[T comparable, E valueArray[T]](a, b E) bool {
 	for i := 0; i < a.Len(); i++ {
 		if a.IsNull(i) != b.IsNull(i) {
