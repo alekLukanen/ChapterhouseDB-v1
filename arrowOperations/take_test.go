@@ -1,6 +1,7 @@
 package arrowops
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/apache/arrow/go/v16/arrow"
@@ -9,32 +10,40 @@ import (
 )
 
 func BenchmarkTakeRecord(b *testing.B) {
-	mem := memory.NewGoAllocator()
 
-	size := 1_000_000
+	for _, size := range TEST_SIZES {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				b.StopTimer()
+				mem := memory.NewGoAllocator()
+				// create large records to compare
+				r1 := mockData(mem, size, "descending")
+				defer r1.Release()
 
-	// create large records to compare
-	r1 := mockData(mem, 1_000_000)
-	defer r1.Release()
+				r2 := mockData(mem, size, "descending")
+				defer r2.Release()
 
-	r2 := mockData(mem, 1_000_000)
-	defer r2.Release()
+				// create indices every 10th row
+				indicesBuilder := array.NewUint32Builder(mem)
+				defer indicesBuilder.Release()
+				for i := uint32(0); i < uint32(r1.NumRows()); i += 10 {
+					indicesBuilder.Append(i)
+				}
 
-	// create indices every 10th row
-	indicesBuilder := array.NewUint32Builder(mem)
-	defer indicesBuilder.Release()
-	for i := uint32(0); i < uint32(r1.NumRows()); i += 10 {
-		indicesBuilder.Append(i)
+				b.StartTimer()
+
+				if val, ifErr := TakeRecord(mem, r1, indicesBuilder.NewUint32Array()); ifErr != nil {
+					b.Fatalf("received error while taking rows '%s'", ifErr)
+				} else if val == nil || val.NumRows() != int64(size/10) {
+					b.Fatalf("expected taken record to have %d rows", size/10)
+				} else {
+					val.Release()
+					r1.Release()
+					r2.Release()
+				}
+			}
+		})
 	}
-
-	b.ResetTimer()
-
-	if val, ifErr := TakeRecord(mem, r1, indicesBuilder.NewUint32Array()); ifErr != nil {
-		b.Fatalf("received error while taking rows '%s'", ifErr)
-	} else if val == nil || val.NumRows() != int64(size/10) {
-		b.Fatalf("expected taken record to have %d rows", size/10)
-	}
-
 }
 
 func TestTakeRecord(t *testing.T) {

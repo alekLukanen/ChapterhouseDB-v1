@@ -3,7 +3,6 @@ package arrowops
 import (
 	"bytes"
 	"cmp"
-	"fmt"
 	"slices"
 
 	"github.com/apache/arrow/go/v16/arrow"
@@ -35,21 +34,26 @@ func SortRecord(mem *memory.GoAllocator, record arrow.Record, columns []string) 
 		}
 		columnIndex := columnIndexes[0]
 
-		var previousArray arrow.Array
-		if idx > 0 {
-			previousArray = scratchRecord.Column(record.Schema().FieldIndices(columns[idx-1])[0])
+		var currentRecord arrow.Record
+		if idx == 0 {
+			currentRecord = record
+		} else {
+			currentRecord = scratchRecord
 		}
 
-		fmt.Println("previousArray: ", previousArray)
+		var previousArray arrow.Array
+		if idx > 0 {
+			previousArray = currentRecord.Column(currentRecord.Schema().FieldIndices(columns[idx-1])[0])
+		}
 
-		sortedIndices, err := RankedSort(mem, previousArray, record.Column(columnIndex))
+		sortedIndices, err := RankedSort(mem, previousArray, currentRecord.Column(columnIndex))
 		if err != nil {
 			freeMemory()
 			return nil, err
 		}
 		defer sortedIndices.Release()
 
-		proposedRecord, err := TakeRecord(mem, record, sortedIndices)
+		proposedRecord, err := TakeRecord(mem, currentRecord, sortedIndices)
 		if err != nil {
 			freeMemory()
 			return nil, err
@@ -73,8 +77,6 @@ func RankedSort(mem *memory.GoAllocator, previousArray, currentArray arrow.Array
 		ranks = ZeroUint32Array(mem, currentArray.Len())
 	}
 	defer ranks.Release()
-
-	fmt.Println("ranks: ", ranks)
 
 	indicesBuilder := array.NewUint32Builder(mem)
 	defer indicesBuilder.Release()
@@ -228,6 +230,7 @@ func nativeRankArray[E comparable, T valueArray[E]](mem *memory.GoAllocator, arr
 			currentRank++
 		}
 		ranks[i] = uint32(currentRank)
+		previousValue = arr.Value(i)
 	}
 	builder := array.NewUint32Builder(mem)
 	builder.AppendValues(ranks, nil)

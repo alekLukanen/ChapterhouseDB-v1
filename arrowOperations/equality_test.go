@@ -1,6 +1,8 @@
 package arrowops
 
 import (
+	"fmt"
+	"math/rand"
 	"strconv"
 	"testing"
 
@@ -9,7 +11,7 @@ import (
 	"github.com/apache/arrow/go/v16/arrow/memory"
 )
 
-func mockData(mem *memory.GoAllocator, size int) arrow.Record {
+func mockData(mem *memory.GoAllocator, size int, method string) arrow.Record {
 	rb1 := array.NewRecordBuilder(mem, arrow.NewSchema(
 		[]arrow.Field{
 			{Name: "a", Type: arrow.PrimitiveTypes.Uint32},
@@ -23,10 +25,28 @@ func mockData(mem *memory.GoAllocator, size int) arrow.Record {
 	aValues := make([]uint32, size)
 	bValues := make([]float32, size)
 	cValues := make([]string, size)
-	for i := 0; i < size; i++ {
-		aValues[i] = uint32(i)
-		bValues[i] = float32(i)
-		cValues[i] = strconv.Itoa(i)
+
+	if method == "ascending" {
+		for i := 0; i < size; i++ {
+			aValues[i] = uint32(i)
+			bValues[i] = float32(i)
+			cValues[i] = strconv.Itoa(i)
+		}
+	} else if method == "descending" {
+		for i := 0; i < size; i++ {
+			aValues[i] = uint32(size - 1 - i)
+			bValues[i] = float32(size - 1 - i)
+			cValues[i] = strconv.Itoa(size - 1 - i)
+		}
+	} else if method == "random" {
+		for i := 0; i < size; i++ {
+			val := rand.Intn(size)
+			aValues[i] = uint32(val)
+			bValues[i] = float32(val)
+			cValues[i] = strconv.Itoa(val)
+		}
+	} else {
+		panic("invalid method")
 	}
 
 	rb1.Field(0).(*array.Uint32Builder).AppendValues(aValues, nil)
@@ -37,21 +57,30 @@ func mockData(mem *memory.GoAllocator, size int) arrow.Record {
 }
 
 func BenchmarkRecordsEqual(b *testing.B) {
-	mem := memory.NewGoAllocator()
+	for _, size := range TEST_SIZES {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				mem := memory.NewGoAllocator()
+				b.StopTimer()
+				// create large records to compare
+				r1 := mockData(mem, 1_000_000, "ascending")
+				defer r1.Release()
 
-	// create large records to compare
-	r1 := mockData(mem, 1_000_000)
-	defer r1.Release()
+				r2 := mockData(mem, 1_000_000, "ascending")
+				defer r2.Release()
 
-	r2 := mockData(mem, 1_000_000)
-	defer r2.Release()
+				b.StartTimer()
 
-	b.ResetTimer()
-
-	if equal, ifErr := RecordsEqual(r1, r2); ifErr != nil {
-		b.Fatalf("received error while comparing records: %s", ifErr)
-	} else if !equal {
-		b.Fatalf("expected records to be equal")
+				if equal, ifErr := RecordsEqual(r1, r2); ifErr != nil {
+					b.Fatalf("received error while comparing records: %s", ifErr)
+				} else if !equal {
+					b.Fatalf("expected records to be equal")
+				} else {
+					r1.Release()
+					r2.Release()
+				}
+			}
+		})
 	}
 
 }

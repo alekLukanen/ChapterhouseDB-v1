@@ -1,12 +1,81 @@
 package arrowops
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/apache/arrow/go/v16/arrow"
 	"github.com/apache/arrow/go/v16/arrow/array"
 	"github.com/apache/arrow/go/v16/arrow/memory"
 )
+
+func BenchmarkSortRecordWithSingleColumnAndDescendingData(b *testing.B) {
+	for _, size := range TEST_SIZES {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				b.StopTimer()
+				mem := memory.NewGoAllocator()
+				// create large records to compare
+				r1 := mockData(mem, size, "descending")
+				defer r1.Release()
+				b.StartTimer()
+				if val, ifErr := SortRecord(mem, r1, []string{"a"}); ifErr != nil {
+					b.Fatalf("received error while sorting record '%s'", ifErr)
+				} else if val == nil || val.NumRows() != int64(size) {
+					b.Fatalf("expected sorted record to have %d rows", size)
+				} else {
+					val.Release()
+					r1.Release()
+				}
+			}
+		})
+	}
+}
+
+func BenchmarkSortRecordWithSingleColumnAndRandomData(b *testing.B) {
+	for _, size := range TEST_SIZES {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				b.StopTimer()
+				mem := memory.NewGoAllocator()
+				// create large records to compare
+				r1 := mockData(mem, size, "random")
+				defer r1.Release()
+				b.StartTimer()
+				if val, ifErr := SortRecord(mem, r1, []string{"a"}); ifErr != nil {
+					b.Fatalf("received error while sorting record '%s'", ifErr)
+				} else if val == nil || val.NumRows() != int64(size) {
+					b.Fatalf("expected sorted record to have %d rows", size)
+				} else {
+					val.Release()
+					r1.Release()
+				}
+			}
+		})
+	}
+}
+
+func TestSortRecordWithSingleColumnAndDescendingData(t *testing.T) {
+	mem := memory.NewGoAllocator()
+	size := 1_000_000
+	// create large records to compare
+	r1 := mockData(mem, size, "descending")
+	defer r1.Release()
+	r2 := mockData(mem, size, "ascending")
+	defer r2.Release()
+
+	sortedRecord, err := SortRecord(mem, r1, []string{"a"})
+	if err != nil {
+		t.Fatalf("received error while sorting record '%s'", err)
+	}
+	defer sortedRecord.Release()
+
+	if eq, ifErr := RecordsEqual(r2, sortedRecord); ifErr != nil {
+		t.Fatalf("received error while comparing records: %s", ifErr)
+	} else if !eq {
+		t.Fatalf("expected records to be equal")
+	}
+}
 
 func TestSortRecord(t *testing.T) {
 
@@ -46,12 +115,12 @@ func TestSortRecord(t *testing.T) {
 	if err != nil {
 		t.Fatalf("received error while sorting record '%s'", err)
 	}
-
-	t.Log(sortedRecord)
+	defer sortedRecord.Release()
 
 	if eq, ifErr := RecordsEqual(expectedRecord, sortedRecord); ifErr != nil {
 		t.Fatalf("received error while comparing records: %s", ifErr)
 	} else if !eq {
+		t.Log("record: ", r1)
 		t.Log("expectedRecord: ", expectedRecord)
 		t.Log("sortedRecord: ", sortedRecord)
 		t.Fatalf("expected records to be equal")
