@@ -1,0 +1,330 @@
+=== RUN   TestRecordsEqual
+--- PASS: TestRecordsEqual (0.00s)
+=== RUN   TestSortRecordWithSingleColumnAndDescendingData
+--- PASS: TestSortRecordWithSingleColumnAndDescendingData (0.24s)
+=== RUN   TestSortRecord
+--- PASS: TestSortRecord (0.00s)
+=== RUN   TestTakeRecord
+--- PASS: TestTakeRecord (0.00s)
+=== RUN   TestRecordsEqual
+--- PASS: TestRecordsEqual (0.00s)
+=== RUN   TestSortRecordWithSingleColumnAndDescendingData
+--- PASS: TestSortRecordWithSingleColumnAndDescendingData (0.23s)
+=== RUN   TestSortRecord
+--- PASS: TestSortRecord (0.00s)
+=== RUN   TestTakeRecord
+--- PASS: TestTakeRecord (0.00s)
+=== RUN   TestRecordsEqual
+--- PASS: TestRecordsEqual (0.00s)
+=== RUN   TestSortRecordWithSingleColumnAndDescendingData
+--- PASS: TestSortRecordWithSingleColumnAndDescendingData (0.23s)
+=== RUN   TestSortRecord
+--- PASS: TestSortRecord (0.00s)
+=== RUN   TestTakeRecord
+--- PASS: TestTakeRecord (0.00s)
+=== RUN   TestRecordsEqual
+--- PASS: TestRecordsEqual (0.00s)
+=== RUN   TestSortRecordWithSingleColumnAndDescendingData
+--- PASS: TestSortRecordWithSingleColumnAndDescendingData (0.21s)
+=== RUN   TestSortRecord
+--- PASS: TestSortRecord (0.00s)
+=== RUN   TestTakeRecord
+--- PASS: TestTakeRecord (0.00s)
+=== RUN   TestRecordsEqual
+--- PASS: TestRecordsEqual (0.00s)
+=== RUN   TestSortRecordWithSingleColumnAndDescendingData
+--- PASS: TestSortRecordWithSingleColumnAndDescendingData (0.20s)
+=== RUN   TestSortRecord
+--- PASS: TestSortRecord (0.00s)
+=== RUN   TestTakeRecord
+--- PASS: TestTakeRecord (0.00s)
+=== RUN   TestRecordsEqual
+--- PASS: TestRecordsEqual (0.00s)
+=== RUN   TestSortRecordWithSingleColumnAndDescendingData
+--- PASS: TestSortRecordWithSingleColumnAndDescendingData (0.22s)
+=== RUN   TestSortRecord
+--- PASS: TestSortRecord (0.00s)
+=== RUN   TestTakeRecord
+--- PASS: TestTakeRecord (0.00s)
+=== RUN   TestRecordsEqual
+--- PASS: TestRecordsEqual (0.00s)
+=== RUN   TestSortRecordWithSingleColumnAndDescendingData
+--- PASS: TestSortRecordWithSingleColumnAndDescendingData (0.21s)
+=== RUN   TestSortRecord
+--- PASS: TestSortRecord (0.00s)
+=== RUN   TestTakeRecord
+--- PASS: TestTakeRecord (0.00s)
+=== RUN   TestRecordsEqual
+--- PASS: TestRecordsEqual (0.00s)
+=== RUN   TestSortRecordWithSingleColumnAndDescendingData
+--- PASS: TestSortRecordWithSingleColumnAndDescendingData (0.22s)
+=== RUN   TestSortRecord
+--- PASS: TestSortRecord (0.00s)
+=== RUN   TestTakeRecord
+--- PASS: TestTakeRecord (0.00s)
+=== RUN   TestRecordsEqual
+--- PASS: TestRecordsEqual (0.00s)
+=== RUN   TestSortRecordWithSingleColumnAndDescendingData
+--- PASS: TestSortRecordWithSingleColumnAndDescendingData (0.20s)
+=== RUN   TestSortRecord
+--- PASS: TestSortRecord (0.00s)
+=== RUN   TestTakeRecord
+--- PASS: TestTakeRecord (0.00s)
+=== RUN   TestRecordsEqual
+--- PASS: TestRecordsEqual (0.00s)
+=== RUN   TestSortRecordWithSingleColumnAndDescendingData
+--- PASS: TestSortRecordWithSingleColumnAndDescendingData (0.21s)
+=== RUN   TestSortRecord
+--- PASS: TestSortRecord (0.00s)
+=== RUN   TestTakeRecord
+--- PASS: TestTakeRecord (0.00s)
+goos: linux
+goarch: amd64
+pkg: github.com/alekLukanen/chapterhouseDB/arrowOperations
+cpu: Intel(R) Core(TM) i5-6500 CPU @ 3.20GHz
+BenchmarkRecordsEqual
+BenchmarkRecordsEqual/size=10000
+BenchmarkRecordsEqual/size=10000                     	       1	  35978840 ns/op	     160 B/op	       9 allocs/op
+BenchmarkRecordsEqual/size=10000                     	       1	  35667574 ns/op	     160 B/op	       9 allocs/op
+BenchmarkRecordsEqual/size=10000                     	       1	  35129102 ns/op	     160 B/op	       9 allocs/op
+BenchmarkRecordsEqual/size=10000                     	       1	  35282673 ns/op	     160 B/op	       9 allocs/op
+BenchmarkRecordsEqual/size=10000                     	       1	  35680652 ns/op	     160 B/op	       9 allocs/op
+BenchmarkRecordsEqual/size=10000                     	       1	  36843206 ns/op	     160 B/op	       9 allocs/op
+BenchmarkRecordsEqual/size=10000                     	       1	  36139333 ns/op	     160 B/op	       9 allocs/op
+BenchmarkRecordsEqual/size=10000                     	       1	  36046126 ns/op	     160 B/op	       9 allocs/op
+BenchmarkRecordsEqual/size=10000                     	       1	  35589054 ns/op	     160 B/op	       9 allocs/op
+BenchmarkRecordsEqual/size=10000                     	       1	  35535088 ns/op	     160 B/op	       9 allocs/op
+BenchmarkRecordsEqual/size=100000
+BenchmarkRecordsEqual/size=100000                    	       1	  37025181 ns/op	     160 B/op	       9 allocs/op
+BenchmarkRecordsEqual/size=100000                    	       1	  35929292 ns/op	     160 B/op	       9 allocs/op
+BenchmarkRecordsEqual/size=100000                    	       1	  36267768 ns/op	     160 B/op	       9 allocs/op
+BenchmarkRecordsEqual/size=100000                    	       1	  35999609 ns/op	     160 B/op	       9 allocs/op
+BenchmarkRecordsEqual/size=100000                    	       1	  35772142 ns/op	     160 B/op	       9 allocs/op
+BenchmarkRecordsEqual/size=100000                    	       1	  36016410 ns/op	     160 B/op	       9 allocs/op
+BenchmarkRecordsEqual/size=100000                    	       1	  36358907 ns/op	     160 B/op	       9 allocs/op
+BenchmarkRecordsEqual/size=100000                    	       1	  36069137 ns/op	     160 B/op	       9 allocs/op
+BenchmarkRecordsEqual/size=100000                    	       1	  36549166 ns/op	     160 B/op	       9 allocs/op
+BenchmarkRecordsEqual/size=100000                    	       1	  36147237 ns/op	     160 B/op	       9 allocs/op
+BenchmarkRecordsEqual/size=1000000
+BenchmarkRecordsEqual/size=1000000                   	       1	  36049773 ns/op	     160 B/op	       9 allocs/op
+BenchmarkRecordsEqual/size=1000000                   	       1	  36777491 ns/op	     160 B/op	       9 allocs/op
+BenchmarkRecordsEqual/size=1000000                   	       1	  35779947 ns/op	     160 B/op	       9 allocs/op
+BenchmarkRecordsEqual/size=1000000                   	       1	  36160861 ns/op	     160 B/op	       9 allocs/op
+BenchmarkRecordsEqual/size=1000000                   	       1	  35524950 ns/op	     160 B/op	       9 allocs/op
+BenchmarkRecordsEqual/size=1000000                   	       1	  36383721 ns/op	     160 B/op	       9 allocs/op
+BenchmarkRecordsEqual/size=1000000                   	       1	  36525135 ns/op	     160 B/op	       9 allocs/op
+BenchmarkRecordsEqual/size=1000000                   	       1	  36326917 ns/op	     160 B/op	       9 allocs/op
+BenchmarkRecordsEqual/size=1000000                   	       1	  36193894 ns/op	     160 B/op	       9 allocs/op
+BenchmarkRecordsEqual/size=1000000                   	       1	  35928019 ns/op	     160 B/op	       9 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=10000
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=10000         	       1	    477341 ns/op	  672664 B/op	      69 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=10000         	       1	    500557 ns/op	  672664 B/op	      69 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=10000         	       1	    506820 ns/op	  672664 B/op	      69 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=10000         	       1	    558976 ns/op	  672664 B/op	      69 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=10000         	       1	    494476 ns/op	  672664 B/op	      69 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=10000         	       1	    487460 ns/op	  672664 B/op	      69 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=10000         	       1	    530419 ns/op	  672664 B/op	      69 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=10000         	       1	    453510 ns/op	  672664 B/op	      69 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=10000         	       1	    458666 ns/op	  672664 B/op	      69 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=10000         	       1	    457866 ns/op	  672664 B/op	      69 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=100000
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=100000        	       1	   5724152 ns/op	 5586840 B/op	      72 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=100000        	       1	   6073881 ns/op	 5586840 B/op	      72 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=100000        	       1	   6308489 ns/op	 5586840 B/op	      72 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=100000        	       1	   6138373 ns/op	 5586840 B/op	      72 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=100000        	       1	   6275324 ns/op	 5586840 B/op	      72 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=100000        	       1	   6061887 ns/op	 5586840 B/op	      72 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=100000        	       1	   6674274 ns/op	 5586840 B/op	      72 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=100000        	       1	   6918573 ns/op	 5586840 B/op	      72 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=100000        	       1	   6484484 ns/op	 5586840 B/op	      72 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=100000        	       1	   6577314 ns/op	 5586840 B/op	      72 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=1000000
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=1000000       	       1	  74998434 ns/op	58170776 B/op	      76 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=1000000       	       1	  62626240 ns/op	58170776 B/op	      76 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=1000000       	       1	  81283240 ns/op	58170776 B/op	      76 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=1000000       	       1	  61623351 ns/op	58170776 B/op	      76 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=1000000       	       1	  61159133 ns/op	58170776 B/op	      76 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=1000000       	       1	  82484815 ns/op	58170776 B/op	      76 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=1000000       	       1	  56939759 ns/op	58170776 B/op	      76 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=1000000       	       1	  62871493 ns/op	58170776 B/op	      76 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=1000000       	       1	  83424764 ns/op	58170776 B/op	      76 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=1000000       	       1	  62360528 ns/op	58170776 B/op	      76 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=10000
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=10000             	       1	   1988849 ns/op	  672664 B/op	      69 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=10000             	       1	   1602341 ns/op	  672664 B/op	      69 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=10000             	       1	   1607237 ns/op	  672664 B/op	      69 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=10000             	       1	   1662166 ns/op	  672664 B/op	      69 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=10000             	       1	   1599998 ns/op	  672664 B/op	      69 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=10000             	       1	   1619529 ns/op	  672664 B/op	      69 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=10000             	       1	   1588709 ns/op	  672664 B/op	      69 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=10000             	       1	   1554994 ns/op	  672664 B/op	      69 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=10000             	       1	   1696758 ns/op	  672664 B/op	      69 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=10000             	       1	   1672172 ns/op	  672664 B/op	      69 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=100000
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=100000            	       1	  21819011 ns/op	 5586840 B/op	      72 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=100000            	       1	  21535334 ns/op	 5586840 B/op	      72 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=100000            	       1	  23206734 ns/op	 5586840 B/op	      72 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=100000            	       1	  20678326 ns/op	 5586840 B/op	      72 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=100000            	       1	  21830179 ns/op	 5586840 B/op	      72 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=100000            	       1	  21474125 ns/op	 5586840 B/op	      72 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=100000            	       1	  23440421 ns/op	 5586840 B/op	      72 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=100000            	       1	  22854444 ns/op	 5586840 B/op	      72 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=100000            	       1	  21061557 ns/op	 5586840 B/op	      72 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=100000            	       1	  20909455 ns/op	 5586840 B/op	      72 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=1000000
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=1000000           	       1	 281800022 ns/op	58170776 B/op	      76 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=1000000           	       1	 307973108 ns/op	58170776 B/op	      76 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=1000000           	       1	 290580848 ns/op	58170776 B/op	      76 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=1000000           	       1	 308541508 ns/op	58170776 B/op	      76 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=1000000           	       1	 311586339 ns/op	58170776 B/op	      76 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=1000000           	       1	 285236801 ns/op	58170840 B/op	      77 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=1000000           	       1	 287064127 ns/op	58170776 B/op	      76 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=1000000           	       1	 307203588 ns/op	58170776 B/op	      76 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=1000000           	       1	 309454052 ns/op	58170776 B/op	      76 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=1000000           	       1	 304975392 ns/op	58170776 B/op	      76 allocs/op
+BenchmarkTakeRecord
+BenchmarkTakeRecord/size=10000
+BenchmarkTakeRecord/size=10000                                          	       1	     42138 ns/op	   26984 B/op	      49 allocs/op
+BenchmarkTakeRecord/size=10000                                          	       1	     55916 ns/op	   26984 B/op	      49 allocs/op
+BenchmarkTakeRecord/size=10000                                          	       1	     40943 ns/op	   26984 B/op	      49 allocs/op
+BenchmarkTakeRecord/size=10000                                          	       1	     41276 ns/op	   26984 B/op	      49 allocs/op
+BenchmarkTakeRecord/size=10000                                          	       1	     41556 ns/op	   26984 B/op	      49 allocs/op
+BenchmarkTakeRecord/size=10000                                          	       1	     41030 ns/op	   26984 B/op	      49 allocs/op
+BenchmarkTakeRecord/size=10000                                          	       1	     40454 ns/op	   26984 B/op	      49 allocs/op
+BenchmarkTakeRecord/size=10000                                          	       1	     40463 ns/op	   26984 B/op	      49 allocs/op
+BenchmarkTakeRecord/size=10000                                          	       1	     40613 ns/op	   26984 B/op	      49 allocs/op
+BenchmarkTakeRecord/size=10000                                          	       1	     40639 ns/op	   26984 B/op	      49 allocs/op
+BenchmarkTakeRecord/size=100000
+BenchmarkTakeRecord/size=100000                                         	       1	    466227 ns/op	  382504 B/op	      53 allocs/op
+BenchmarkTakeRecord/size=100000                                         	       1	    412115 ns/op	  382504 B/op	      53 allocs/op
+BenchmarkTakeRecord/size=100000                                         	       1	    400713 ns/op	  382504 B/op	      53 allocs/op
+BenchmarkTakeRecord/size=100000                                         	       1	    495477 ns/op	  382504 B/op	      53 allocs/op
+BenchmarkTakeRecord/size=100000                                         	       1	    432266 ns/op	  382504 B/op	      53 allocs/op
+BenchmarkTakeRecord/size=100000                                         	       1	    448315 ns/op	  382504 B/op	      53 allocs/op
+BenchmarkTakeRecord/size=100000                                         	       1	    526541 ns/op	  382504 B/op	      53 allocs/op
+BenchmarkTakeRecord/size=100000                                         	       1	    409305 ns/op	  382504 B/op	      53 allocs/op
+BenchmarkTakeRecord/size=100000                                         	       1	    461518 ns/op	  382504 B/op	      53 allocs/op
+BenchmarkTakeRecord/size=100000                                         	       1	    407386 ns/op	  382504 B/op	      53 allocs/op
+BenchmarkTakeRecord/size=1000000
+BenchmarkTakeRecord/size=1000000                                        	       1	   4002153 ns/op	 3805992 B/op	      57 allocs/op
+BenchmarkTakeRecord/size=1000000                                        	       1	   4406319 ns/op	 3805992 B/op	      57 allocs/op
+BenchmarkTakeRecord/size=1000000                                        	       1	   4594864 ns/op	 3805992 B/op	      57 allocs/op
+BenchmarkTakeRecord/size=1000000                                        	       1	   4166064 ns/op	 3805992 B/op	      57 allocs/op
+BenchmarkTakeRecord/size=1000000                                        	       1	   4332541 ns/op	 3805992 B/op	      57 allocs/op
+BenchmarkTakeRecord/size=1000000                                        	       1	   5440454 ns/op	 3805992 B/op	      57 allocs/op
+BenchmarkTakeRecord/size=1000000                                        	       1	   4373541 ns/op	 3805992 B/op	      57 allocs/op
+BenchmarkTakeRecord/size=1000000                                        	       1	   4289370 ns/op	 3805992 B/op	      57 allocs/op
+BenchmarkTakeRecord/size=1000000                                        	       1	   5484809 ns/op	 3805992 B/op	      57 allocs/op
+BenchmarkTakeRecord/size=1000000                                        	       1	   4600862 ns/op	 3805992 B/op	      57 allocs/op
+PASS
+ok  	github.com/alekLukanen/chapterhouseDB/arrowOperations	15.531s
+?   	github.com/alekLukanen/chapterhouseDB/cmd/app	[no test files]
+?   	github.com/alekLukanen/chapterhouseDB/cmd/benchmark	[no test files]
+?   	github.com/alekLukanen/chapterhouseDB/cmd/scratch	[no test files]
+?   	github.com/alekLukanen/chapterhouseDB/elements	[no test files]
+?   	github.com/alekLukanen/chapterhouseDB/operations	[no test files]
+?   	github.com/alekLukanen/chapterhouseDB/partitionFuncs	[no test files]
+?   	github.com/alekLukanen/chapterhouseDB/runners	[no test files]
+?   	github.com/alekLukanen/chapterhouseDB/storage	[no test files]
+=== RUN   TestProtobufTupleSerializer
+    tuple_serializer_benchmarks_test.go:32: [10 3 97 98 99]
+--- PASS: TestProtobufTupleSerializer (0.00s)
+=== RUN   TestProtobufTupleSerializer
+    tuple_serializer_benchmarks_test.go:32: [10 3 97 98 99]
+--- PASS: TestProtobufTupleSerializer (0.00s)
+=== RUN   TestProtobufTupleSerializer
+    tuple_serializer_benchmarks_test.go:32: [10 3 97 98 99]
+--- PASS: TestProtobufTupleSerializer (0.00s)
+=== RUN   TestProtobufTupleSerializer
+    tuple_serializer_benchmarks_test.go:32: [10 3 97 98 99]
+--- PASS: TestProtobufTupleSerializer (0.00s)
+=== RUN   TestProtobufTupleSerializer
+    tuple_serializer_benchmarks_test.go:32: [10 3 97 98 99]
+--- PASS: TestProtobufTupleSerializer (0.00s)
+=== RUN   TestProtobufTupleSerializer
+    tuple_serializer_benchmarks_test.go:32: [10 3 97 98 99]
+--- PASS: TestProtobufTupleSerializer (0.00s)
+=== RUN   TestProtobufTupleSerializer
+    tuple_serializer_benchmarks_test.go:32: [10 3 97 98 99]
+--- PASS: TestProtobufTupleSerializer (0.00s)
+=== RUN   TestProtobufTupleSerializer
+    tuple_serializer_benchmarks_test.go:32: [10 3 97 98 99]
+--- PASS: TestProtobufTupleSerializer (0.00s)
+=== RUN   TestProtobufTupleSerializer
+    tuple_serializer_benchmarks_test.go:32: [10 3 97 98 99]
+--- PASS: TestProtobufTupleSerializer (0.00s)
+=== RUN   TestProtobufTupleSerializer
+    tuple_serializer_benchmarks_test.go:32: [10 3 97 98 99]
+--- PASS: TestProtobufTupleSerializer (0.00s)
+goos: linux
+goarch: amd64
+pkg: github.com/alekLukanen/chapterhouseDB/tests
+cpu: Intel(R) Core(TM) i5-6500 CPU @ 3.20GHz
+BenchmarkProtobufMarshal
+    tuple_serializer_benchmarks_test.go:61: 10
+    tuple_serializer_benchmarks_test.go:62: 19
+BenchmarkProtobufMarshal 	       1	 435802511 ns/op	179965096 B/op	 4000068 allocs/op
+    tuple_serializer_benchmarks_test.go:61: 10
+    tuple_serializer_benchmarks_test.go:62: 19
+BenchmarkProtobufMarshal 	       1	 430702779 ns/op	179962072 B/op	 4000024 allocs/op
+    tuple_serializer_benchmarks_test.go:61: 10
+    tuple_serializer_benchmarks_test.go:62: 19
+BenchmarkProtobufMarshal 	       1	 434809211 ns/op	179962072 B/op	 4000024 allocs/op
+    tuple_serializer_benchmarks_test.go:61: 10
+    tuple_serializer_benchmarks_test.go:62: 19
+BenchmarkProtobufMarshal 	       1	 435727199 ns/op	179962072 B/op	 4000024 allocs/op
+    tuple_serializer_benchmarks_test.go:61: 10
+    tuple_serializer_benchmarks_test.go:62: 19
+BenchmarkProtobufMarshal 	       1	 426764402 ns/op	179962072 B/op	 4000024 allocs/op
+    tuple_serializer_benchmarks_test.go:61: 10
+    tuple_serializer_benchmarks_test.go:62: 19
+BenchmarkProtobufMarshal 	       1	 432155095 ns/op	179962072 B/op	 4000024 allocs/op
+    tuple_serializer_benchmarks_test.go:61: 10
+    tuple_serializer_benchmarks_test.go:62: 19
+BenchmarkProtobufMarshal 	       1	 435107093 ns/op	179962088 B/op	 4000024 allocs/op
+    tuple_serializer_benchmarks_test.go:61: 10
+    tuple_serializer_benchmarks_test.go:62: 19
+BenchmarkProtobufMarshal 	       1	 393054859 ns/op	179961848 B/op	 4000022 allocs/op
+    tuple_serializer_benchmarks_test.go:61: 10
+    tuple_serializer_benchmarks_test.go:62: 19
+BenchmarkProtobufMarshal 	       1	 433304969 ns/op	179962072 B/op	 4000024 allocs/op
+    tuple_serializer_benchmarks_test.go:61: 10
+    tuple_serializer_benchmarks_test.go:62: 19
+BenchmarkProtobufMarshal 	       1	 384280584 ns/op	179961848 B/op	 4000022 allocs/op
+BenchmarkAvroMarshal
+    tuple_serializer_benchmarks_test.go:104: 10
+    tuple_serializer_benchmarks_test.go:105: 17
+BenchmarkAvroMarshal     	       1	 298938912 ns/op	100802680 B/op	 4899769 allocs/op
+    tuple_serializer_benchmarks_test.go:104: 10
+    tuple_serializer_benchmarks_test.go:105: 17
+BenchmarkAvroMarshal     	       1	 304827984 ns/op	100802696 B/op	 4899769 allocs/op
+    tuple_serializer_benchmarks_test.go:104: 10
+    tuple_serializer_benchmarks_test.go:105: 17
+BenchmarkAvroMarshal     	       1	 298904978 ns/op	100802680 B/op	 4899769 allocs/op
+    tuple_serializer_benchmarks_test.go:104: 10
+    tuple_serializer_benchmarks_test.go:105: 17
+BenchmarkAvroMarshal     	       1	 305155015 ns/op	100802696 B/op	 4899769 allocs/op
+    tuple_serializer_benchmarks_test.go:104: 10
+    tuple_serializer_benchmarks_test.go:105: 17
+BenchmarkAvroMarshal     	       1	 292184157 ns/op	100802680 B/op	 4899769 allocs/op
+    tuple_serializer_benchmarks_test.go:104: 10
+    tuple_serializer_benchmarks_test.go:105: 17
+BenchmarkAvroMarshal     	       1	 300952903 ns/op	100802696 B/op	 4899769 allocs/op
+    tuple_serializer_benchmarks_test.go:104: 10
+    tuple_serializer_benchmarks_test.go:105: 17
+BenchmarkAvroMarshal     	       1	 298515834 ns/op	100802680 B/op	 4899769 allocs/op
+    tuple_serializer_benchmarks_test.go:104: 10
+    tuple_serializer_benchmarks_test.go:105: 17
+BenchmarkAvroMarshal     	       1	 303563721 ns/op	100802696 B/op	 4899769 allocs/op
+    tuple_serializer_benchmarks_test.go:104: 10
+    tuple_serializer_benchmarks_test.go:105: 17
+BenchmarkAvroMarshal     	       1	 299498056 ns/op	100802680 B/op	 4899769 allocs/op
+    tuple_serializer_benchmarks_test.go:104: 10
+    tuple_serializer_benchmarks_test.go:105: 17
+BenchmarkAvroMarshal     	       1	 304280624 ns/op	100802680 B/op	 4899769 allocs/op
+PASS
+ok  	github.com/alekLukanen/chapterhouseDB/tests	10.565s
+?   	github.com/alekLukanen/chapterhouseDB/tests/serializers	[no test files]
+?   	github.com/alekLukanen/chapterhouseDB/warehouse	[no test files]
