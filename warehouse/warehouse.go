@@ -157,6 +157,7 @@ func (obj *Warehouse) ProcessNextTablePartition(ctx context.Context) (bool, erro
 	if err != nil {
 		return false, err
 	}
+	obj.logger.Info("transformed data", slog.Any("numrows", transformedData.NumRows()))
 
 	// 3. Sort the record in ascending order
 	// The order will be based on the combination of the
