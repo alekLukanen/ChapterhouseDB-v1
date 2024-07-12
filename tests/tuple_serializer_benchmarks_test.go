@@ -10,6 +10,8 @@ import (
 	"github.com/alekLukanen/chapterhouseDB/tests/serializers"
 )
 
+var TEST_SIZES [1]int = [1]int{1_000_000}
+
 func BuildData(size int) ([]int64, []string) {
 	intData := make([]int64, size)
 	stringData := make([]string, size)
@@ -34,32 +36,32 @@ func TestProtobufTupleSerializer(t *testing.T) {
 
 func BenchmarkProtobufMarshal(b *testing.B) {
 
-	size := 1_000_000
-	intData, stringData := BuildData(size)
+	for _, size := range TEST_SIZES {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			for iter := 0; iter < b.N; iter++ {
+				b.StopTimer()
+				intData, stringData := BuildData(size)
+				data := make([][][]byte, size)
+				b.StartTimer()
+				for i := range size {
+					intMsg := serializers.Integer{Value: intData[i]}
+					stringMsg := serializers.String{Value: stringData[i]}
 
-	b.ResetTimer()
+					intMsgData, err := proto.Marshal(&intMsg)
+					if err != nil {
+						b.Error(err)
+					}
 
-	data := make([][2][]byte, size)
-	for i := range size {
-		intMsg := serializers.Integer{Value: intData[i]}
-		stringMsg := serializers.String{Value: stringData[i]}
+					strMsgData, err := proto.Marshal(&stringMsg)
+					if err != nil {
+						b.Error(err)
+					}
 
-		intMsgData, err := proto.Marshal(&intMsg)
-		if err != nil {
-			b.Error(err)
-		}
-
-		strMsgData, err := proto.Marshal(&stringMsg)
-		if err != nil {
-			b.Error(err)
-		}
-
-		data[i] = [2][]byte{intMsgData, strMsgData}
-
+					data[i] = [][]byte{intMsgData, strMsgData}
+				}
+			}
+		})
 	}
-
-	b.Log(len(data[0][0]) + len(data[0][1]))
-	b.Log(len(data[len(data)-1][0]) + len(data[len(data)-1][1]))
 
 }
 
@@ -80,28 +82,29 @@ func BenchmarkAvroMarshal(b *testing.B) {
 		b.Fatal(err)
 	}
 
-	size := 1_000_000
-	intData, stringData := BuildData(size)
+	for _, size := range TEST_SIZES {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			for iter := 0; iter < b.N; iter++ {
+				b.StopTimer()
+				intData, stringData := BuildData(size)
+				data := make([][]byte, size)
+				b.StartTimer()
+				dataMap := make(map[string]interface{})
+				for i := range size {
 
-	b.ResetTimer()
+					dataMap["string"] = stringData[i]
+					dataMap["integer"] = intData[i]
 
-	data := make([][]byte, size)
-	dataMap := make(map[string]interface{})
-	for i := range size {
+					msgData, err := codec.BinaryFromNative(nil, dataMap)
+					if err != nil {
+						b.Error(err)
+					}
 
-		dataMap["string"] = stringData[i]
-		dataMap["integer"] = intData[i]
+					data[i] = msgData
 
-		msgData, err := codec.BinaryFromNative(nil, dataMap)
-		if err != nil {
-			b.Error(err)
-		}
-
-		data[i] = msgData
-
+				}
+			}
+		})
 	}
-
-	b.Log(len(data[0]))
-	b.Log(len(data[len(data)-1]))
 
 }
