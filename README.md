@@ -28,7 +28,9 @@ go test -v -bench=. -cpu=1 -benchtime=10x -count=10 -benchmem ./... > benchmarkR
 benchstat benchmarkResults/initial.txt benchmarkResults/proposed.txt
 ```
 
-## Potential Issues
+## Potential Features
 
 * Need to add an `_event_ts` on each row to support ignoring late data. The
 event will still be written to history but not to the main state table.
+* Add a JSON file for each partition which contains a list of the files in the 
+partition along with basic file meta data.
