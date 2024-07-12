@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"time"
 
+	arrowops "github.com/alekLukanen/chapterhouseDB/arrowOps"
 	"github.com/alekLukanen/chapterhouseDB/elements"
 	"github.com/alekLukanen/chapterhouseDB/operations"
 	"github.com/alekLukanen/chapterhouseDB/storage"
@@ -79,7 +80,7 @@ func (obj *Warehouse) Run(ctx context.Context) {
 }
 
 /*
-* Used to process the next partitionn for a table in the warehouse.
+* Used to process the next partition for a table in the warehouse.
 * Steps:
 * 1. Get a partition for a table subscription
 * 2. Pass the partition data arrow Record to the subscriptions
@@ -92,7 +93,7 @@ func (obj *Warehouse) Run(ctx context.Context) {
 *    files for items effected by the tuples. The merge process will
 *    be performed on just the partition keys and
 *    will compare all other columns to see if this unique
-*    row has changed. This process is essentially k-way merge sort.
+*    row has changed. This process is essentially 2-way merge sort.
 *    For now pull down all parquet files for the partition and then perform
 *    the merge. Any row not effected by the tuples will be
 *    written back to a new parquet file. Any row that is effected
@@ -100,10 +101,19 @@ func (obj *Warehouse) Run(ctx context.Context) {
 *    the row, if it exists. Only write the new rows and if the
 *    row hasn't changed then only mark its _processed_ts
 *    not its _updated_ts. Include a _processed_count column
-*    to keep track of how many times a row has been processed.
+*    to keep track of how many times a row has been processed and
+*    a _updated_count column to indicate how many times it has been
+*    updated.
 * 5. Push the new parquet files to the object storage. The file name
 *    should include an incremented version count and a total file
-*    count so the system can handle crash recovery.
+*    count so the system can handle crash recovery. If the total
+*    files count for that version does not match the number of file
+*    in object storage then there has been a failure and the system
+*    will need to be manually recovered. In the future this recovery
+*    process will be automated by using a KeyDB list of in process
+*    items for the partition. On crash and then restart the system
+*    will check that list for any items that have not been removed
+*    and process those again.
 * 6. Delete the old parquet files for the partition.
 * 7. For any row that has changed signal to all subscribed
 *    tables that the row has changed by batching the row
@@ -163,6 +173,18 @@ func (obj *Warehouse) ProcessNextTablePartition(ctx context.Context) (bool, erro
 	// The order will be based on the combination of the
 	// partition keys for the table:
 	//   ("partition_column1", "partition_column2",...)
+	columnPartitions := table.ColumnPartitions()
+	columnNames := make([]string, len(columnPartitions))
+	for i, col := range columnPartitions {
+		columnNames[i] = col.Name()
+	}
+	sortedData, err := arrowops.SortRecord(obj.allocator, transformedData, columnNames)
+	if err != nil {
+		return false, err
+	}
+	obj.logger.Info("sortedData", slog.Any("numrows", sortedData.NumRows()))
+
+	// 4. Merge the new data with the existing
 
 	return true, nil
 }
