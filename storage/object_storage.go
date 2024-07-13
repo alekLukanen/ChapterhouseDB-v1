@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"log/slog"
+	"os"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -18,7 +19,9 @@ const (
 
 type IObjectStorage interface {
 	Upload(context.Context, string, string, []byte) error
+	UploadFile(context.Context, string, string, string) error
 	Download(context.Context, string, string) ([]byte, error)
+	DownloadFile(context.Context, string, string, string) error
 	Delete(context.Context, string, string) error
 	ListObjects(context.Context, string, string) ([]string, error)
 }
@@ -102,6 +105,23 @@ func (obj *ObjectStorage) Upload(ctx context.Context, bucket, key string, body [
 	return err
 }
 
+func (obj *ObjectStorage) UploadFile(ctx context.Context, bucket, key, filePath string) error {
+	obj.logger.Info("uploading file", slog.String("bucket", bucket), slog.String("key", key), slog.String("filePath", filePath))
+	fileReader, err := os.Open(filePath)
+	if err != nil {
+		return err
+	}
+	defer fileReader.Close()
+
+	uploader := manager.NewUploader(obj.client)
+	_, err = uploader.Upload(ctx, &s3.PutObjectInput{
+		Bucket: &bucket,
+		Key:    &key,
+		Body:   fileReader,
+	})
+	return err
+}
+
 func (obj *ObjectStorage) Download(ctx context.Context, bucket, key string) ([]byte, error) {
 	obj.logger.Info("downloading object", slog.String("bucket", bucket), slog.String("key", key))
 
@@ -112,6 +132,21 @@ func (obj *ObjectStorage) Download(ctx context.Context, bucket, key string) ([]b
 		Key:    &key,
 	})
 	return buf.Bytes(), err
+}
+
+func (obj *ObjectStorage) DownloadFile(ctx context.Context, bucket, key, filePath string) error {
+	obj.logger.Info("downloading file", slog.String("bucket", bucket), slog.String("key", key), slog.String("filePath", filePath))
+	downloader := manager.NewDownloader(obj.client)
+	fileWriter, err := os.Create(filePath)
+	if err != nil {
+		return err
+	}
+	defer fileWriter.Close()
+	_, err = downloader.Download(ctx, fileWriter, &s3.GetObjectInput{
+		Bucket: &bucket,
+		Key:    &key,
+	})
+	return err
 }
 
 func (obj *ObjectStorage) Delete(ctx context.Context, bucket, key string) error {
