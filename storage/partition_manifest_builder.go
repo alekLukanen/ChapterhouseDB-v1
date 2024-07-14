@@ -1,36 +1,30 @@
-package operations
+package storage
 
 import (
 	"fmt"
-
-	"github.com/alekLukanen/chapterhouseDB/storage"
 )
 
-type PartitionManifestFile struct {
-	filePath string
-	storage.ManifestObject
-}
-
 type PartitionManifestBuilder struct {
-	manifest *storage.PartitionManifest
+	manifest *PartitionManifest
 	files    []string
 }
 
 func NewPartitionManifestBuilder(tableName string, partitionKey string, version int) *PartitionManifestBuilder {
 	return &PartitionManifestBuilder{
-		manifest: &storage.PartitionManifest{
+		manifest: &PartitionManifest{
+			Id:           fmt.Sprintf("part-%s", version),
 			TableName:    tableName,
 			PartitionKey: partitionKey,
 			Version:      version,
-			Objects:      []storage.ManifestObject{},
+			Objects:      []ManifestObject{},
 		},
 		files: []string{},
 	}
 }
 
 func (obj *PartitionManifestBuilder) AddFile(filePath string, index int, size int) {
-	key := fmt.Sprintf("/table-state/part-data/%s/%s/d_%s_%s.parquet", obj.manifest.TableName, obj.manifest.PartitionKey, obj.manifest.Version, index)
-	obj.manifest.Objects = append(obj.manifest.Objects, storage.ManifestObject{
+	key := fmt.Sprintf("table-state/part-data/%s/%s/d_%s_%s.parquet", obj.manifest.TableName, obj.manifest.PartitionKey, obj.manifest.Version, index)
+	obj.manifest.Objects = append(obj.manifest.Objects, ManifestObject{
 		Key:   key,
 		Index: index,
 		Size:  size,
@@ -38,7 +32,7 @@ func (obj *PartitionManifestBuilder) AddFile(filePath string, index int, size in
 	obj.files = append(obj.files, filePath)
 }
 
-func (obj *PartitionManifestBuilder) Manifest() *storage.PartitionManifest {
+func (obj *PartitionManifestBuilder) Manifest() *PartitionManifest {
 	return obj.manifest
 }
 

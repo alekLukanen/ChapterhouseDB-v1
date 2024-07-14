@@ -27,6 +27,7 @@ func (obj *ManifestObject) Validate() error {
 }
 
 type PartitionManifest struct {
+	Id           string           `json:"id"`
 	TableName    string           `json:"table_name"`
 	PartitionKey string           `json:"partition_key"`
 	Version      int              `json:"version"`
@@ -59,6 +60,9 @@ func (obj *PartitionManifest) SortObjects() {
 }
 
 func (obj *PartitionManifest) Validate() error {
+	if obj.Id == "" {
+		return fmt.Errorf("%w: id is required", ErrManifestInvalid)
+	}
 	if obj.TableName == "" {
 		return fmt.Errorf("%w: table name is required", ErrManifestInvalid)
 	}
