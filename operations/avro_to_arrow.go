@@ -10,7 +10,7 @@ import (
 	"github.com/apache/arrow/go/v16/arrow/memory"
 	"github.com/linkedin/goavro/v2"
 
-	"github.com/alekLukanen/chapterhouseDB/elements"
+	"github.com/alekLukanen/ChapterhouseDB/elements"
 )
 
 func AvroToArrow(allocator *memory.GoAllocator, table *elements.Table, subscriptionSourceName string, tuples []string) (arrow.Record, error) {

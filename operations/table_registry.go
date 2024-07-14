@@ -4,7 +4,7 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/alekLukanen/chapterhouseDB/elements"
+	"github.com/alekLukanen/ChapterhouseDB/elements"
 )
 
 type ITableRegistry interface {

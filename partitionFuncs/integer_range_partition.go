@@ -3,7 +3,7 @@ package partitionFuncs
 import (
 	"fmt"
 
-	"github.com/alekLukanen/chapterhouseDB/elements"
+	"github.com/alekLukanen/ChapterhouseDB/elements"
 	"github.com/apache/arrow/go/v16/arrow"
 	"github.com/apache/arrow/go/v16/arrow/array"
 	"github.com/apache/arrow/go/v16/arrow/memory"

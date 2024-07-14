@@ -5,7 +5,7 @@ import (
 	"github.com/apache/arrow/go/v16/arrow/array"
 	"github.com/apache/arrow/go/v16/arrow/memory"
 
-	"github.com/alekLukanen/chapterhouseDB/elements"
+	"github.com/alekLukanen/ChapterhouseDB/elements"
 )
 
 /*

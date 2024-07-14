@@ -80,7 +80,7 @@
 --- PASS: TestTakeRecord (0.00s)
 goos: linux
 goarch: amd64
-pkg: github.com/alekLukanen/chapterhouseDB/arrowOperations
+pkg: github.com/alekLukanen/ChapterhouseDB/arrowOperations
 cpu: Intel(R) Core(TM) i5-6500 CPU @ 3.20GHz
 BenchmarkRecordsEqual
 BenchmarkRecordsEqual/size=10000
@@ -219,15 +219,15 @@ BenchmarkTakeRecord/size=1000000                                        	       
 BenchmarkTakeRecord/size=1000000                                        	       1	   4568537 ns/op	 3805992 B/op	      57 allocs/op
 BenchmarkTakeRecord/size=1000000                                        	       1	   4752060 ns/op	 3805992 B/op	      57 allocs/op
 PASS
-ok  	github.com/alekLukanen/chapterhouseDB/arrowOperations	15.850s
-?   	github.com/alekLukanen/chapterhouseDB/cmd/app	[no test files]
-?   	github.com/alekLukanen/chapterhouseDB/cmd/benchmark	[no test files]
-?   	github.com/alekLukanen/chapterhouseDB/cmd/scratch	[no test files]
-?   	github.com/alekLukanen/chapterhouseDB/elements	[no test files]
-?   	github.com/alekLukanen/chapterhouseDB/operations	[no test files]
-?   	github.com/alekLukanen/chapterhouseDB/partitionFuncs	[no test files]
-?   	github.com/alekLukanen/chapterhouseDB/runners	[no test files]
-?   	github.com/alekLukanen/chapterhouseDB/storage	[no test files]
+ok  	github.com/alekLukanen/ChapterhouseDB/arrowOperations	15.850s
+?   	github.com/alekLukanen/ChapterhouseDB/cmd/app	[no test files]
+?   	github.com/alekLukanen/ChapterhouseDB/cmd/benchmark	[no test files]
+?   	github.com/alekLukanen/ChapterhouseDB/cmd/scratch	[no test files]
+?   	github.com/alekLukanen/ChapterhouseDB/elements	[no test files]
+?   	github.com/alekLukanen/ChapterhouseDB/operations	[no test files]
+?   	github.com/alekLukanen/ChapterhouseDB/partitionFuncs	[no test files]
+?   	github.com/alekLukanen/ChapterhouseDB/runners	[no test files]
+?   	github.com/alekLukanen/ChapterhouseDB/storage	[no test files]
 === RUN   TestProtobufTupleSerializer
     tuple_serializer_benchmarks_test.go:32: [10 3 97 98 99]
 --- PASS: TestProtobufTupleSerializer (0.00s)
@@ -260,7 +260,7 @@ ok  	github.com/alekLukanen/chapterhouseDB/arrowOperations	15.850s
 --- PASS: TestProtobufTupleSerializer (0.00s)
 goos: linux
 goarch: amd64
-pkg: github.com/alekLukanen/chapterhouseDB/tests
+pkg: github.com/alekLukanen/ChapterhouseDB/tests
 cpu: Intel(R) Core(TM) i5-6500 CPU @ 3.20GHz
 BenchmarkProtobufMarshal
     tuple_serializer_benchmarks_test.go:61: 10
@@ -325,6 +325,6 @@ BenchmarkAvroMarshal     	       1	 302398844 ns/op	100802680 B/op	 4899769 allo
     tuple_serializer_benchmarks_test.go:105: 17
 BenchmarkAvroMarshal     	       1	 287096244 ns/op	100802680 B/op	 4899769 allocs/op
 PASS
-ok  	github.com/alekLukanen/chapterhouseDB/tests	10.544s
-?   	github.com/alekLukanen/chapterhouseDB/tests/serializers	[no test files]
-?   	github.com/alekLukanen/chapterhouseDB/warehouse	[no test files]
+ok  	github.com/alekLukanen/ChapterhouseDB/tests	10.544s
+?   	github.com/alekLukanen/ChapterhouseDB/tests/serializers	[no test files]
+?   	github.com/alekLukanen/ChapterhouseDB/warehouse	[no test files]

@@ -7,20 +7,21 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/apache/arrow/go/v16/arrow"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 
-	"github.com/alekLukanen/chapterhouseDB/elements"
-	"github.com/apache/arrow/go/v16/arrow"
+	"github.com/alekLukanen/ChapterhouseDB/arrowOps"
+	"github.com/alekLukanen/ChapterhouseDB/elements"
 )
 
-type ObjectStorageManagerOptions struct {
+type ManifestStorageOptions struct {
 	MaxFiles    int
 	MaxSizeInMB int
 	BucketName  string
 	KeyPrefix   string
 }
 
-type ObjectStorageManager struct {
+type ManifestStorage struct {
 	logger *slog.Logger
 
 	IObjectStorage
@@ -31,13 +32,13 @@ type ObjectStorageManager struct {
 	keyPrefix   string
 }
 
-func NewObjectStorageManager(
+func NewManifestStorage(
 	ctx context.Context,
 	logger *slog.Logger,
 	objectStorage IObjectStorage,
-	options ObjectStorageManagerOptions,
-) *ObjectStorageManager {
-	return &ObjectStorageManager{
+	options ManifestStorageOptions,
+) *ManifestStorage {
+	return &ManifestStorage{
 		logger:         logger,
 		IObjectStorage: objectStorage,
 		maxFiles:       options.MaxFiles,
@@ -47,7 +48,7 @@ func NewObjectStorageManager(
 	}
 }
 
-func (obj *ObjectStorageManager) GetPartitionManifest(ctx context.Context, partition elements.Partition) (*PartitionManifest, error) {
+func (obj *ManifestStorage) GetPartitionManifest(ctx context.Context, partition elements.Partition) (*PartitionManifest, error) {
 
 	// get the json manifest file
 	manifestData, err := obj.Download(ctx, obj.bucketName, fmt.Sprintf("%s/table-state/part-data/%s/%s/manifest.json", obj.keyPrefix, partition.TableName, partition.Key))
@@ -63,7 +64,7 @@ func (obj *ObjectStorageManager) GetPartitionManifest(ctx context.Context, parti
 	return manifest, nil
 }
 
-func (obj *ObjectStorageManager) GetPartitionManifestFile(ctx context.Context, manifest *PartitionManifest, index int, filePath string) error {
+func (obj *ManifestStorage) GetPartitionManifestFile(ctx context.Context, manifest *PartitionManifest, index int, filePath string) error {
 
 	manifestObject := manifest.Objects[index]
 	err := obj.DownloadFile(ctx, obj.bucketName, fmt.Sprintf("%s/%s", obj.keyPrefix, manifestObject.Key), filePath)
@@ -74,7 +75,13 @@ func (obj *ObjectStorageManager) GetPartitionManifestFile(ctx context.Context, m
 	return nil
 }
 
-func (obj *ObjectStorageManager) ReplacePartitionManifest(ctx context.Context, partition elements.Partition, previousManifest *PartitionManifest, manifest *PartitionManifest, filePaths []string) error {
+func (obj *ManifestStorage) ReplacePartitionManifest(
+	ctx context.Context,
+	partition elements.Partition,
+	previousManifest *PartitionManifest,
+	manifest *PartitionManifest,
+	filePaths []string,
+) error {
 	// upload the individual files
 	for i, filePath := range filePaths {
 		err := obj.UploadFile(ctx, obj.bucketName, fmt.Sprintf("%s/%s", obj.keyPrefix, manifest.Objects[i].Key), filePath)
@@ -126,7 +133,12 @@ func (obj *ObjectStorageManager) ReplacePartitionManifest(ctx context.Context, p
 	return nil
 }
 
-func (obj *ObjectStorageManager) MergePartitionRecordIntoManifest(ctx context.Context, partition elements.Partition, record arrow.Record) error {
+func (obj *ManifestStorage) MergePartitionRecordIntoManifest(
+	ctx context.Context,
+	partition elements.Partition,
+	record arrow.Record,
+	options PartitionManifestOptions,
+) error {
 	// get the manifest
 	hasManifest := true
 	manifest, err := obj.GetPartitionManifest(ctx, partition)
@@ -155,6 +167,16 @@ func (obj *ObjectStorageManager) MergePartitionRecordIntoManifest(ctx context.Co
 	manifestBuilder := NewPartitionManifestBuilder(partition.TableName, partition.Key, manifest.Version+1)
 	for idx, manifestObj := range manifestObjects {
 		// download the file
+		filePath := fmt.Sprintf("%s/%d", tmpDir, idx)
+		err = obj.DownloadFile(ctx, obj.bucketName, fmt.Sprintf("%s/%s", obj.keyPrefix, manifestObj.Key), filePath)
+		if err != nil {
+			return err
+		}
 
+		// load the parquet file into a record
+		records, err := arrowops.ReadParquetFile(ctx, obj.allocator, filePath)
+		if err != nil {
+			return err
+		}
 	}
 }

@@ -7,6 +7,12 @@ import (
 	"slices"
 )
 
+type PartitionManifestOptions struct {
+	MaxObjects        int
+	MaxObjectSizeInMB int
+	MaxObjectRows     int
+}
+
 type ManifestObject struct {
 	Key   string `json:"key"`
 	Index int    `json:"index"`

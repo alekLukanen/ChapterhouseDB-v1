@@ -10,10 +10,10 @@ import (
 	"github.com/apache/arrow/go/v16/arrow/array"
 	"github.com/apache/arrow/go/v16/arrow/memory"
 
-	"github.com/alekLukanen/chapterhouseDB/elements"
-	"github.com/alekLukanen/chapterhouseDB/operations"
-	"github.com/alekLukanen/chapterhouseDB/partitionFuncs"
-	"github.com/alekLukanen/chapterhouseDB/storage"
+	"github.com/alekLukanen/ChapterhouseDB/elements"
+	"github.com/alekLukanen/ChapterhouseDB/operations"
+	"github.com/alekLukanen/ChapterhouseDB/partitionFuncs"
+	"github.com/alekLukanen/ChapterhouseDB/storage"
 )
 
 func main() {
