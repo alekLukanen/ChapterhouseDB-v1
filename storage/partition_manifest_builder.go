@@ -12,7 +12,7 @@ type PartitionManifestBuilder struct {
 func NewPartitionManifestBuilder(tableName string, partitionKey string, version int) *PartitionManifestBuilder {
 	return &PartitionManifestBuilder{
 		manifest: &PartitionManifest{
-			Id:           fmt.Sprintf("part-%s", version),
+			Id:           fmt.Sprintf("part-%d", version),
 			TableName:    tableName,
 			PartitionKey: partitionKey,
 			Version:      version,
@@ -23,7 +23,7 @@ func NewPartitionManifestBuilder(tableName string, partitionKey string, version 
 }
 
 func (obj *PartitionManifestBuilder) AddFile(filePath string, index int, size int) {
-	key := fmt.Sprintf("table-state/part-data/%s/%s/d_%s_%s.parquet", obj.manifest.TableName, obj.manifest.PartitionKey, obj.manifest.Version, index)
+	key := fmt.Sprintf("table-state/part-data/%s/%s/d_%d_%d.parquet", obj.manifest.TableName, obj.manifest.PartitionKey, obj.manifest.Version, index)
 	obj.manifest.Objects = append(obj.manifest.Objects, ManifestObject{
 		Key:   key,
 		Index: index,

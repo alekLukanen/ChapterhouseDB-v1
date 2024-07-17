@@ -8,9 +8,10 @@ import (
 	"os"
 
 	"github.com/apache/arrow/go/v16/arrow"
+	"github.com/apache/arrow/go/v16/arrow/memory"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 
-	"github.com/alekLukanen/ChapterhouseDB/arrowOps"
+	arrowops "github.com/alekLukanen/ChapterhouseDB/arrowOps"
 	"github.com/alekLukanen/ChapterhouseDB/elements"
 )
 
@@ -23,6 +24,7 @@ type ManifestStorageOptions struct {
 
 type ManifestStorage struct {
 	logger *slog.Logger
+	mem    *memory.GoAllocator
 
 	IObjectStorage
 
@@ -35,11 +37,13 @@ type ManifestStorage struct {
 func NewManifestStorage(
 	ctx context.Context,
 	logger *slog.Logger,
+	mem *memory.GoAllocator,
 	objectStorage IObjectStorage,
 	options ManifestStorageOptions,
 ) *ManifestStorage {
 	return &ManifestStorage{
 		logger:         logger,
+		mem:            mem,
 		IObjectStorage: objectStorage,
 		maxFiles:       options.MaxFiles,
 		maxSizeInMB:    options.MaxSizeInMB,
@@ -164,7 +168,7 @@ func (obj *ManifestStorage) MergePartitionRecordIntoManifest(
 	if err != nil {
 		return err
 	}
-	manifestBuilder := NewPartitionManifestBuilder(partition.TableName, partition.Key, manifest.Version+1)
+	_ = NewPartitionManifestBuilder(partition.TableName, partition.Key, manifest.Version+1)
 	for idx, manifestObj := range manifestObjects {
 		// download the file
 		filePath := fmt.Sprintf("%s/%d", tmpDir, idx)
@@ -174,9 +178,11 @@ func (obj *ManifestStorage) MergePartitionRecordIntoManifest(
 		}
 
 		// load the parquet file into a record
-		records, err := arrowops.ReadParquetFile(ctx, obj.allocator, filePath)
+		_, err := arrowops.ReadParquetFile(ctx, obj.mem, filePath)
 		if err != nil {
 			return err
 		}
 	}
+
+	return nil
 }
