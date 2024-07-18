@@ -2,6 +2,9 @@ package arrowops
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"path"
 
 	"github.com/apache/arrow/go/v16/arrow"
 	"github.com/apache/arrow/go/v16/arrow/memory"
@@ -27,14 +30,35 @@ type ParquetRecordMergeSortBuilder struct {
 	mem                    *memory.GoAllocator
 	recordMergeSortBuilder *RecordMergeSortBuilder
 	filePaths              []string
+	workingDir             string
+
+	maxRowsPerRecord int
 }
 
-func NewParquetRecordMergeSortBuilder(record arrow.Record, filePaths []string, maxRowsPerRecord int) *ParquetRecordMergeSortBuilder {
+func NewParquetRecordMergeSortBuilder(mem *memory.GoAllocator, record arrow.Record, filePaths []string, workingDir string, maxRowsPerRecord int) *ParquetRecordMergeSortBuilder {
 	return &ParquetRecordMergeSortBuilder{
+		mem:                    mem,
 		recordMergeSortBuilder: NewRecordMergeSortBuilder(record, maxRowsPerRecord),
+		filePaths:              filePaths,
+		workingDir:             workingDir,
+		maxRowsPerRecord:       maxRowsPerRecord,
 	}
 }
 func (obj *ParquetRecordMergeSortBuilder) Build(ctx context.Context) ([]string, error) {
+
+	newFilePaths := make([]string, 0)
+	var fileIndexId int
+
+	addFile := func(record arrow.Record) error {
+		filePath := path.Join(obj.workingDir, fmt.Sprintf("file_%d.parquet", fileIndexId))
+		err := WriteRecordToParquetFile(ctx, obj.mem, record, filePath)
+		if err != nil {
+			return err
+		}
+		newFilePaths = append(newFilePaths, filePath)
+		fileIndexId++
+		return nil
+	}
 
 	for _, filePath := range obj.filePaths {
 
@@ -49,9 +73,36 @@ func (obj *ParquetRecordMergeSortBuilder) Build(ctx context.Context) ([]string, 
 
 		obj.recordMergeSortBuilder.AddExistingRecords(records)
 
+		for {
+			nextRecord, err := obj.recordMergeSortBuilder.BuildNextRecord()
+			if errors.Is(err, ErrRecordNotComplete) {
+				break
+			} else if err != nil {
+				return nil, err
+			}
+
+			err = addFile(nextRecord)
+			if err != nil {
+				nextRecord.Release()
+				return nil, err
+			}
+
+			nextRecord.Release()
+		}
+
 	}
 
-	return nil, nil
+	lastRecord, err := obj.recordMergeSortBuilder.BuildLastRecord()
+	if errors.Is(err, ErrNoDataLeft) {
+		return newFilePaths, nil
+	} else if err != nil {
+		return nil, err
+	}
+
+	addFile(lastRecord)
+	lastRecord.Release()
+
+	return newFilePaths, nil
 
 }
 

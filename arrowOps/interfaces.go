@@ -5,6 +5,7 @@ import (
 )
 
 type orderableArray[E cmp.Ordered] interface {
+	IsNull(i int) bool
 	Value(i int) E
 	Len() int
 }

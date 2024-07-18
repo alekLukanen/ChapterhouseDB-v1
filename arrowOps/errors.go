@@ -5,4 +5,7 @@ import "errors"
 var (
 	ErrUnsupportedDataType = errors.New("unsupported data type")
 	ErrColumnNotFound      = errors.New("column not found")
+	ErrRecordNotComplete   = errors.New("record not complete")
+	ErrNoDataLeft          = errors.New("no data left")
+	ErrSchemasNotEqual     = errors.New("schemas not equal")
 )
