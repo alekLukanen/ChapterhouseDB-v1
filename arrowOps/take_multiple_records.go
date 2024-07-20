@@ -20,12 +20,21 @@ func TakeMultipleRecords(mem *memory.GoAllocator, records []arrow.Record, indice
 
 	// validate the indices record
 	if indices.NumCols() != 2 {
-		return nil, fmt.Errorf("%w: indices must have 2 columns, got %d", ErrColumnNotFound, indices.NumCols())
+		return nil, fmt.Errorf(
+			"%w| indices must have 2 columns, got %d", 
+			ErrColumnNotFound, 
+			indices.NumCols(),
+		)
 	}
 	for idx := int64(0); idx < indices.NumCols(); idx++ {
 		column := indices.Column(int(idx))
 		if column.DataType().ID() != arrow.UINT32 {
-			return nil, fmt.Errorf("%w: expected UINT32 column, got %s for column index %d", ErrUnsupportedDataType, column.DataType().Name(), idx)
+			return nil, fmt.Errorf(
+				"%w| expected UINT32 column, got %s for column index %d", 
+				ErrUnsupportedDataType, 
+				column.DataType().Name(), 
+				idx,
+			)
 		}
 	}
 
@@ -50,5 +59,9 @@ func TakeMultipleRecords(mem *memory.GoAllocator, records []arrow.Record, indice
 		takenRecords[recordIdx] = takenRecord
 	}
 
-	return nil, nil
+	resultRecord, err := ConcatenateRecords(mem, records...)
+	if err != nil {
+		return nil, fmt.Errorf("%w| failed to concatenate taken records", err)
+	}
+	return resultRecord, nil
 }

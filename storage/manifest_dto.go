@@ -21,13 +21,13 @@ type ManifestObject struct {
 
 func (obj *ManifestObject) Validate() error {
 	if obj.Key == "" {
-		return fmt.Errorf("%w: key is required", ErrManifestInvalid)
+		return fmt.Errorf("%w| key is required", ErrManifestInvalid)
 	}
 	if obj.Index < 0 {
-		return fmt.Errorf("%w: index must be positive", ErrManifestInvalid)
+		return fmt.Errorf("%w| index must be positive", ErrManifestInvalid)
 	}
 	if obj.Size < 0 {
-		return fmt.Errorf("%w: size must be positive", ErrManifestInvalid)
+		return fmt.Errorf("%w| size must be positive", ErrManifestInvalid)
 	}
 	return nil
 }
@@ -67,24 +67,24 @@ func (obj *PartitionManifest) SortObjects() {
 
 func (obj *PartitionManifest) Validate() error {
 	if obj.Id == "" {
-		return fmt.Errorf("%w: id is required", ErrManifestInvalid)
+		return fmt.Errorf("%w| id is required", ErrManifestInvalid)
 	}
 	if obj.TableName == "" {
-		return fmt.Errorf("%w: table name is required", ErrManifestInvalid)
+		return fmt.Errorf("%w| table name is required", ErrManifestInvalid)
 	}
 	if obj.PartitionKey == "" {
-		return fmt.Errorf("%w: partition key is required", ErrManifestInvalid)
+		return fmt.Errorf("%w| partition key is required", ErrManifestInvalid)
 	}
 	if obj.Version < 0 {
-		return fmt.Errorf("%w: version must be positive", ErrManifestInvalid)
+		return fmt.Errorf("%w| version must be positive", ErrManifestInvalid)
 	}
 
 	for idx, obj := range obj.Objects {
 		if ifErr := obj.Validate(); ifErr != nil {
-			return fmt.Errorf("%w: object at index %d is invalid: %v", ErrManifestInvalid, idx, ifErr)
+			return fmt.Errorf("%w| object at index %d is invalid: %v", ErrManifestInvalid, idx, ifErr)
 		}
 		if idx != obj.Index {
-			return fmt.Errorf("%w: object at index %d has invalid index %d", ErrManifestInvalid, idx, obj.Index)
+			return fmt.Errorf("%w| object at index %d has invalid index %d", ErrManifestInvalid, idx, obj.Index)
 		}
 	}
 
