@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"path"
 
 	"github.com/apache/arrow/go/v16/arrow"
@@ -13,7 +14,7 @@ import (
 type progressRecord struct {
 	record   arrow.Record
 	retained bool
-	index    int32
+	index    uint32
 }
 
 func newProgressRecord(record arrow.Record, retain bool) *progressRecord {
@@ -27,6 +28,7 @@ func (obj *progressRecord) Release() {
 }
 
 type ParquetRecordMergeSortBuilder struct {
+	logger                 *slog.Logger
 	mem                    *memory.GoAllocator
 	recordMergeSortBuilder *RecordMergeSortBuilder
 	filePaths              []string
@@ -35,10 +37,11 @@ type ParquetRecordMergeSortBuilder struct {
 	maxRowsPerRecord int
 }
 
-func NewParquetRecordMergeSortBuilder(mem *memory.GoAllocator, record arrow.Record, filePaths []string, workingDir string, maxRowsPerRecord int) *ParquetRecordMergeSortBuilder {
+func NewParquetRecordMergeSortBuilder(logger *slog.Logger, mem *memory.GoAllocator, record arrow.Record, filePaths []string, workingDir string, primaryColumns []string, compareColumns []string, maxRowsPerRecord int) *ParquetRecordMergeSortBuilder {
 	return &ParquetRecordMergeSortBuilder{
+		logger:                 logger,
 		mem:                    mem,
-		recordMergeSortBuilder: NewRecordMergeSortBuilder(record, maxRowsPerRecord),
+		recordMergeSortBuilder: NewRecordMergeSortBuilder(logger, record, primaryColumns, compareColumns, maxRowsPerRecord),
 		filePaths:              filePaths,
 		workingDir:             workingDir,
 		maxRowsPerRecord:       maxRowsPerRecord,
@@ -107,30 +110,72 @@ func (obj *ParquetRecordMergeSortBuilder) Build(ctx context.Context) ([]string, 
 }
 
 type RecordMergeSortBuilder struct {
+	logger *slog.Logger
+
 	sampleRecord    progressRecord
 	progressRecords []*progressRecord
 
+	sampleOrder [][2]uint32
+	sampleIndex int
+
 	maxRowsPerRecord int
+	primaryColumns   []string
+	compareColumns   []string
 }
 
-func NewRecordMergeSortBuilder(record arrow.Record, maxRowsPerRecord int) *RecordMergeSortBuilder {
+func NewRecordMergeSortBuilder(logger *slog.Logger, record arrow.Record, primaryColumns []string, compareColumns []string, maxRowsPerRecord int) *RecordMergeSortBuilder {
 	return &RecordMergeSortBuilder{
+		logger:           logger,
 		sampleRecord:     *newProgressRecord(record, true),
 		progressRecords:  make([]*progressRecord, 0),
+		sampleOrder:      make([][2]uint32, maxRowsPerRecord),
 		maxRowsPerRecord: maxRowsPerRecord,
+		primaryColumns:   primaryColumns,
+		compareColumns:   compareColumns,
 	}
 }
 
-func (obj *RecordMergeSortBuilder) AddExistingRecords(records []arrow.Record) {
+func (obj *RecordMergeSortBuilder) AddExistingRecords(records []arrow.Record) error {
 	for _, record := range records {
-		obj.progressRecords = append(obj.progressRecords, newProgressRecord(record, false))
+		if !RecordSchemasEqual(obj.sampleRecord.record, record) {
+			obj.progressRecords = append(obj.progressRecords, newProgressRecord(record, false))
+		}
 	}
+	return nil
 }
 
 /*
 * Builds the next full record using the records provided.
  */
 func (obj *RecordMergeSortBuilder) BuildNextRecord() (arrow.Record, error) {
+
+	if obj.sampleIndex == obj.maxRowsPerRecord-1 {
+		// TODO: build the record since we are out of room
+	}
+
+	if len(obj.progressRecords) == 0 {
+		return nil, ErrRecordNotComplete
+	}
+
+	for idx, pRecord := range obj.progressRecords {
+		obj.logger.Info("Processing progress record", slog.Int("index", idx), slog.Any("record", pRecord.record), slog.Any("rowIndex", pRecord.index))
+
+		for int64(pRecord.index) < pRecord.record.NumRows() {
+
+			cmpRowDirection, err := CompareRecordRows(
+				pRecord.record,
+				obj.sampleRecord.record,
+				pRecord.index,
+				obj.sampleRecord.index,
+				obj.primaryColumns...,
+			)
+			if err != nil {
+				return nil, err
+			}
+
+		}
+
+	}
 	return nil, nil
 }
 
