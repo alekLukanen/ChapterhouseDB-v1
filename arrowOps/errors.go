@@ -8,4 +8,6 @@ var (
 	ErrRecordNotComplete   = errors.New("record not complete")
 	ErrNoDataLeft          = errors.New("no data left")
 	ErrSchemasNotEqual     = errors.New("schemas not equal")
+	ErrDataTypesNotEqual   = errors.New("data types not equal")
+	ErrNoDataSupplied      = errors.New("no data supplied")
 )

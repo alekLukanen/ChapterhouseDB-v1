@@ -115,8 +115,8 @@ type RecordMergeSortBuilder struct {
 	sampleRecord    progressRecord
 	progressRecords []*progressRecord
 
-	sampleOrder [][2]uint32
-	sampleIndex int
+	takeOrder [][2]uint32
+	takeIndex int
 
 	maxRowsPerRecord int
 	primaryColumns   []string
@@ -128,7 +128,8 @@ func NewRecordMergeSortBuilder(logger *slog.Logger, record arrow.Record, primary
 		logger:           logger,
 		sampleRecord:     *newProgressRecord(record, true),
 		progressRecords:  make([]*progressRecord, 0),
-		sampleOrder:      make([][2]uint32, maxRowsPerRecord),
+		takeOrder:        make([][2]uint32, maxRowsPerRecord),
+		takeIndex:        0,
 		maxRowsPerRecord: maxRowsPerRecord,
 		primaryColumns:   primaryColumns,
 		compareColumns:   compareColumns,
@@ -149,7 +150,7 @@ func (obj *RecordMergeSortBuilder) AddExistingRecords(records []arrow.Record) er
  */
 func (obj *RecordMergeSortBuilder) BuildNextRecord() (arrow.Record, error) {
 
-	if obj.sampleIndex == obj.maxRowsPerRecord-1 {
+	if obj.takeIndex == obj.maxRowsPerRecord-1 {
 		// TODO: build the record since we are out of room
 	}
 
@@ -173,6 +174,34 @@ func (obj *RecordMergeSortBuilder) BuildNextRecord() (arrow.Record, error) {
 				return nil, err
 			}
 
+			if cmpRowDirection == 0 {
+				cmpRowDirection, err = CompareRecordRows(
+					pRecord.record,
+					obj.sampleRecord.record,
+					pRecord.index,
+					obj.sampleRecord.index,
+					obj.compareColumns...,
+				)
+				if err != nil {
+					return nil, err
+				}
+
+			} else if cmpRowDirection < 0 {
+				// Add the record to the sample order
+				obj.takeOrder[obj.takeIndex] = [2]uint32{uint32(idx), pRecord.index}
+				obj.takeIndex++
+				pRecord.index++
+			} else {
+				obj.takeOrder[obj.takeIndex] = [2]uint32{uint32(idx), obj.sampleRecord.index}
+				obj.takeIndex++
+				obj.sampleRecord.index++
+			}
+
+			if obj.takeIndex == obj.maxRowsPerRecord {
+				// TODO: build the record since we are out of space
+				return nil, nil
+			}
+
 		}
 
 	}
@@ -185,4 +214,13 @@ func (obj *RecordMergeSortBuilder) BuildLastRecord() (arrow.Record, error) {
 
 func (obj *RecordMergeSortBuilder) HasRecords() bool {
 	return false
+}
+
+/*
+* Using the current records and the take order, build the record.
+* Once the record has been built then reset the take order
+* and take index.
+ */
+func (obj *RecordMergeSortBuilder) TakeRecord() (arrow.Record, error) {
+	return nil, nil
 }

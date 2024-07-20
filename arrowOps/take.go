@@ -7,13 +7,12 @@ import (
 )
 
 func TakeRecord(mem *memory.GoAllocator, record arrow.Record, indices *array.Uint32) (arrow.Record, error) {
+	record.Retain()
+	defer record.Release()
+
 	fields := make([]arrow.Array, record.NumCols())
 	for i := int64(0); i < record.NumCols(); i++ {
-		column := record.Column(int(i))
-		if column == nil {
-			return nil, ErrColumnNotFound
-		}
-		fields[i] = column
+		fields[i] = record.Column(int(i))
 	}
 	takenFields := make([]arrow.Array, record.NumCols())
 	for i := 0; i < int(record.NumCols()); i++ {
