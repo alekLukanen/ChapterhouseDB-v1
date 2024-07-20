@@ -71,9 +71,7 @@ func BenchmarkRecordsEqual(b *testing.B) {
 
 				b.StartTimer()
 
-				if equal, ifErr := RecordsEqual(r1, r2); ifErr != nil {
-					b.Fatalf("received error while comparing records: %s", ifErr)
-				} else if !equal {
+				if !array.RecordEqual(r1, r2) {
 					b.Fatalf("expected records to be equal")
 				} else {
 					r1.Release()
@@ -118,12 +116,7 @@ func TestRecordsEqual(t *testing.T) {
 	expectedRecord := rb2.NewRecord()
 	defer expectedRecord.Release()
 	// compare records
-	equal, err := RecordsEqual(record, expectedRecord)
-	if err != nil {
-		t.Errorf("RecordsEqual() error = %v, wantErr %v", err, nil)
-		return
-	}
-	if !equal {
+	if !array.RecordEqual(record, expectedRecord) {
 		t.Logf("record: %v", record)
 		t.Logf("expectedRecord: %v", expectedRecord)
 		t.Errorf("expected records to be equal")

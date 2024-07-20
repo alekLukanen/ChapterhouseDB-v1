@@ -98,9 +98,7 @@ func TestTakeRecord(t *testing.T) {
 	}
 	defer takenRecord.Release()
 
-	if eq, ifErr := RecordsEqual(expectedRecord, takenRecord); ifErr != nil {
-		t.Errorf("received error while comparing records: %s", ifErr)
-	} else if !eq {
+	if !array.RecordEqual(expectedRecord, takenRecord) {
 		t.Errorf("TakeRecord() = %v, want %v", takenRecord, expectedRecord)
 	}
 

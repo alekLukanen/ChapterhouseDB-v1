@@ -70,9 +70,7 @@ func TestSortRecordWithSingleColumnAndDescendingData(t *testing.T) {
 	}
 	defer sortedRecord.Release()
 
-	if eq, ifErr := RecordsEqual(r2, sortedRecord); ifErr != nil {
-		t.Fatalf("received error while comparing records: %s", ifErr)
-	} else if !eq {
+	if !array.RecordEqual(r2, sortedRecord) {
 		t.Fatalf("expected records to be equal")
 	}
 }
@@ -117,9 +115,7 @@ func TestSortRecord(t *testing.T) {
 	}
 	defer sortedRecord.Release()
 
-	if eq, ifErr := RecordsEqual(expectedRecord, sortedRecord); ifErr != nil {
-		t.Fatalf("received error while comparing records: %s", ifErr)
-	} else if !eq {
+	if !array.RecordEqual(expectedRecord, sortedRecord) {
 		t.Log("record: ", r1)
 		t.Log("expectedRecord: ", expectedRecord)
 		t.Log("sortedRecord: ", sortedRecord)

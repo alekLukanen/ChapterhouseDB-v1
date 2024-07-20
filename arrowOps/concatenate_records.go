@@ -41,7 +41,7 @@ func ConcatenateRecords(mem *memory.GoAllocator, records ...arrow.Record) (arrow
 	// concatenate the columns of the same index together
 	concatenatedFields := make([]arrow.Array, schema.NumFields())
 	for i := 0; i < schema.NumFields(); i++ {
-		concatenatedField, err := ConcatenateArrays(mem, fields[i]...)
+		concatenatedField, err := array.Concatenate(fields[i], mem)
 		if err != nil {
 			return nil, err
 		}
