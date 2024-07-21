@@ -1,6 +1,6 @@
 module github.com/alekLukanen/ChapterhouseDB
 
-go 1.22.3
+go 1.22.5
 
 require (
 	github.com/apache/arrow/go/v16 v16.1.0

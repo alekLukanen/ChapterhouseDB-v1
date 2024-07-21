@@ -24,8 +24,11 @@ func newProgressRecord(record arrow.Record, retain bool) *progressRecord {
 	}
 	return &progressRecord{record: record, retained: retain}
 }
-func (obj *progressRecord) Release() {
+func (obj *progressRecord) release() {
 	obj.record.Release()
+}
+func (obj *progressRecord) increment() {
+	obj.index++
 }
 
 type ParquetRecordMergeSortBuilder struct {
@@ -85,8 +88,8 @@ func (obj *ParquetRecordMergeSortBuilder) addNewFile(ctx context.Context, record
 	}
 	obj.fileIndexId++
 	return ParquetFile{
-		FilePath: filePath, 
-		NumRows: record.NumRows(),
+		FilePath: filePath,
+		NumRows:  record.NumRows(),
 	}, nil
 }
 
@@ -137,7 +140,7 @@ func (obj *ParquetRecordMergeSortBuilder) BuildLast(ctx context.Context) (Parque
 	}
 
 	pqf, err := obj.addNewFile(ctx, lastRecord)
-	if err !=  nil {
+	if err != nil {
 		return ParquetFile{}, err
 	}
 	lastRecord.Release()
@@ -186,8 +189,8 @@ func NewRecordMergeSortBuilder(logger *slog.Logger, mem *memory.GoAllocator, pro
 }
 
 func (obj *RecordMergeSortBuilder) Release() {
-	obj.processedKeyRecord.Release()
-	obj.sampleRecord.Release()
+	obj.processedKeyRecord.release()
+	obj.sampleRecord.release()
 }
 
 func (obj *RecordMergeSortBuilder) AddExistingRecords(records []arrow.Record) error {
@@ -245,21 +248,21 @@ func (obj *RecordMergeSortBuilder) BuildNextRecord() (arrow.Record, error) {
 				if cmpRowDirection == 0 {
 					obj.takeOrder[obj.takeIndex] = [2]uint32{uint32(idx), pRecord.index}
 					obj.takeIndex++
-					pRecord.index++
+					pRecord.increment()
 				} else {
 					obj.takeOrder[obj.takeIndex] = [2]uint32{uint32(idx), pRecord.index}
 					obj.takeIndex++
-					pRecord.index++
+					pRecord.increment()
 				}
 
 			} else if cmpRowDirection < 0 {
 				obj.takeOrder[obj.takeIndex] = [2]uint32{uint32(idx), pRecord.index}
 				obj.takeIndex++
-				pRecord.index++
+				pRecord.increment()
 			} else {
 				obj.takeOrder[obj.takeIndex] = [2]uint32{uint32(idx), obj.sampleRecord.index}
 				obj.takeIndex++
-				obj.sampleRecord.index++
+				obj.sampleRecord.increment()
 			}
 
 			if obj.takeIndex == obj.maxRowsPerRecord {
@@ -283,7 +286,8 @@ func (obj *RecordMergeSortBuilder) HasRecords() bool {
 /*
 * Using the current records and the take order, build the record.
 * Once the record has been built then reset the take order
-* and take index.
+* and take index. The zeroth record will always be the sample
+* record and the rest will be the progress records.
  */
 func (obj *RecordMergeSortBuilder) TakeRecord() (arrow.Record, error) {
 	rb := array.NewRecordBuilder(obj.mem, arrow.NewSchema(
@@ -293,7 +297,7 @@ func (obj *RecordMergeSortBuilder) TakeRecord() (arrow.Record, error) {
 		}, nil))
 	defer rb.Release()
 	for idx := range len(obj.takeOrder) {
-		rb.Field(0).(*array.Uint32Builder).Append(obj.takeOrder[idx][0])
+		rb.Field(0).(*array.Uint32Builder).Append(obj.takeOrder[idx][0] + 1)
 		rb.Field(1).(*array.Uint32Builder).Append(obj.takeOrder[idx][1])
 	}
 	indices := rb.NewRecord()
@@ -308,7 +312,7 @@ func (obj *RecordMergeSortBuilder) TakeRecord() (arrow.Record, error) {
 	newProgressRecords := make([]*progressRecord, 0)
 	for idx, pRec := range obj.progressRecords {
 		if idx < obj.progressRecordIndex {
-			pRec.Release()
+			pRec.release()
 		} else {
 			newProgressRecords = append(newProgressRecords, pRec)
 		}
@@ -320,9 +324,10 @@ func (obj *RecordMergeSortBuilder) TakeRecord() (arrow.Record, error) {
 }
 
 func (obj *RecordMergeSortBuilder) ProgressRecordsToRecords() []arrow.Record {
-	records := make([]arrow.Record, len(obj.progressRecords))
+	records := make([]arrow.Record, len(obj.progressRecords)+1)
+	records[0] = obj.sampleRecord.record
 	for idx, pRec := range obj.progressRecords {
-		records[idx] = pRec.record
+		records[idx+1] = pRec.record
 	}
 	return records
 }
