@@ -8,6 +8,7 @@ import (
 	"path"
 
 	"github.com/apache/arrow/go/v16/arrow"
+	"github.com/apache/arrow/go/v16/arrow/array"
 	"github.com/apache/arrow/go/v16/arrow/memory"
 )
 
@@ -41,7 +42,7 @@ func NewParquetRecordMergeSortBuilder(logger *slog.Logger, mem *memory.GoAllocat
 	return &ParquetRecordMergeSortBuilder{
 		logger:                 logger,
 		mem:                    mem,
-		recordMergeSortBuilder: NewRecordMergeSortBuilder(logger, record, primaryColumns, compareColumns, maxRowsPerRecord),
+		recordMergeSortBuilder: NewRecordMergeSortBuilder(logger, mem, record, primaryColumns, compareColumns, maxRowsPerRecord),
 		filePaths:              filePaths,
 		workingDir:             workingDir,
 		maxRowsPerRecord:       maxRowsPerRecord,
@@ -109,11 +110,20 @@ func (obj *ParquetRecordMergeSortBuilder) Build(ctx context.Context) ([]string, 
 
 }
 
+/*
+* --- IMPORTANT ---
+* This merge sort builder assumes that each row is unique by it
+* primary key columns. So no other row will have the same value
+* for the given compound primary key. It is assumed that the user
+* will perform deduplication of there records. 
+ */
 type RecordMergeSortBuilder struct {
 	logger *slog.Logger
+	mem    *memory.GoAllocator
 
-	sampleRecord    progressRecord
-	progressRecords []*progressRecord
+	sampleRecord        progressRecord
+	progressRecords     []*progressRecord
+	progressRecordIndex int
 
 	takeOrder [][2]uint32
 	takeIndex int
@@ -123,16 +133,18 @@ type RecordMergeSortBuilder struct {
 	compareColumns   []string
 }
 
-func NewRecordMergeSortBuilder(logger *slog.Logger, record arrow.Record, primaryColumns []string, compareColumns []string, maxRowsPerRecord int) *RecordMergeSortBuilder {
+func NewRecordMergeSortBuilder(logger *slog.Logger, mem *memory.GoAllocator, record arrow.Record, primaryColumns []string, compareColumns []string, maxRowsPerRecord int) *RecordMergeSortBuilder {
 	return &RecordMergeSortBuilder{
-		logger:           logger,
-		sampleRecord:     *newProgressRecord(record, true),
-		progressRecords:  make([]*progressRecord, 0),
-		takeOrder:        make([][2]uint32, maxRowsPerRecord),
-		takeIndex:        0,
-		maxRowsPerRecord: maxRowsPerRecord,
-		primaryColumns:   primaryColumns,
-		compareColumns:   compareColumns,
+		logger:              logger,
+		mem:                 mem,
+		sampleRecord:        *newProgressRecord(record, true),
+		progressRecords:     make([]*progressRecord, 0),
+		progressRecordIndex: 0,
+		takeOrder:           make([][2]uint32, maxRowsPerRecord),
+		takeIndex:           0,
+		maxRowsPerRecord:    maxRowsPerRecord,
+		primaryColumns:      primaryColumns,
+		compareColumns:      compareColumns,
 	}
 }
 
@@ -151,14 +163,14 @@ func (obj *RecordMergeSortBuilder) AddExistingRecords(records []arrow.Record) er
 func (obj *RecordMergeSortBuilder) BuildNextRecord() (arrow.Record, error) {
 
 	if obj.takeIndex == obj.maxRowsPerRecord-1 {
-		// TODO: build the record since we are out of room
+		return obj.TakeRecord()
 	}
 
 	if len(obj.progressRecords) == 0 {
 		return nil, ErrRecordNotComplete
 	}
 
-	for idx, pRecord := range obj.progressRecords {
+	for idx, pRecord := range obj.progressRecords[obj.progressRecordIndex:] {
 		obj.logger.Info("Processing progress record", slog.Int("index", idx), slog.Any("record", pRecord.record), slog.Any("rowIndex", pRecord.index))
 
 		for int64(pRecord.index) < pRecord.record.NumRows() {
@@ -175,6 +187,9 @@ func (obj *RecordMergeSortBuilder) BuildNextRecord() (arrow.Record, error) {
 			}
 
 			if cmpRowDirection == 0 {
+				// if the records are equal by key then compare them
+				// when equal then take the old row
+				// when not equal then take the new row
 				cmpRowDirection, err = CompareRecordRows(
 					pRecord.record,
 					obj.sampleRecord.record,
@@ -185,9 +200,17 @@ func (obj *RecordMergeSortBuilder) BuildNextRecord() (arrow.Record, error) {
 				if err != nil {
 					return nil, err
 				}
+				if cmpRowDirection == 0 {
+					obj.takeOrder[obj.takeIndex] = [2]uint32{uint32(idx), pRecord.index}
+					obj.takeIndex++
+					pRecord.index++
+				} else {
+					obj.takeOrder[obj.takeIndex] = [2]uint32{uint32(idx), pRecord.index}
+					obj.takeIndex++
+					pRecord.index++
+				}
 
 			} else if cmpRowDirection < 0 {
-				// Add the record to the sample order
 				obj.takeOrder[obj.takeIndex] = [2]uint32{uint32(idx), pRecord.index}
 				obj.takeIndex++
 				pRecord.index++
@@ -198,8 +221,7 @@ func (obj *RecordMergeSortBuilder) BuildNextRecord() (arrow.Record, error) {
 			}
 
 			if obj.takeIndex == obj.maxRowsPerRecord {
-				// TODO: build the record since we are out of space
-				return nil, nil
+				return obj.TakeRecord()
 			}
 
 		}
@@ -222,5 +244,43 @@ func (obj *RecordMergeSortBuilder) HasRecords() bool {
 * and take index.
  */
 func (obj *RecordMergeSortBuilder) TakeRecord() (arrow.Record, error) {
-	return nil, nil
+	rb := array.NewRecordBuilder(obj.mem, arrow.NewSchema(
+		[]arrow.Field{
+			{Name: "record", Type: arrow.PrimitiveTypes.Uint32},
+			{Name: "recordIdx", Type: arrow.PrimitiveTypes.Uint32},
+		}, nil))
+	defer rb.Release()
+	for idx := range len(obj.takeOrder) {
+		rb.Field(0).(*array.Uint32Builder).Append(obj.takeOrder[idx][0])
+		rb.Field(1).(*array.Uint32Builder).Append(obj.takeOrder[idx][1])
+	}
+	indices := rb.NewRecord()
+
+	takenRecord, err := TakeMultipleRecords(obj.mem, obj.ProgressRecordsToRecords(), indices)
+	if err != nil {
+		return nil, err
+	}
+
+	// remove any progress records which no longer need to
+	// be kept around.
+	newProgressRecords := make([]*progressRecord, 0)
+	for idx, pRec := range obj.progressRecords {
+		if idx < obj.progressRecordIndex {
+			pRec.Release()
+		} else {
+			newProgressRecords = append(newProgressRecords, pRec)
+		}
+	}
+	obj.progressRecords = newProgressRecords
+	obj.progressRecordIndex = 0
+
+	return takenRecord, nil
+}
+
+func (obj *RecordMergeSortBuilder) ProgressRecordsToRecords() []arrow.Record {
+	records := make([]arrow.Record, len(obj.progressRecords))
+	for idx, pRec := range obj.progressRecords {
+		records[idx] = pRec.record
+	}
+	return records
 }
