@@ -23,4 +23,5 @@ type arrayBuilder[T comparable] interface {
 	Append(v T)
 	AppendNull()
 	NewArray() arrow.Array
+	Release()
 }

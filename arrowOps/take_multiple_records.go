@@ -17,6 +17,10 @@ func TakeMultipleRecords(mem *memory.GoAllocator, records []arrow.Record, indice
 			record.Release()
 		}
 	}()
+	
+	if len(records) == 0 {
+		return nil, fmt.Errorf("%w| empty records slice", ErrNoDataSupplied)
+	}
 
 	// validate the indices record
 	if indices.NumCols() != 2 {
@@ -37,9 +41,16 @@ func TakeMultipleRecords(mem *memory.GoAllocator, records []arrow.Record, indice
 			)
 		}
 	}
-
 	recordSliceIndices := indices.Column(0).(*array.Uint32)
 	recordIndices := indices.Column(1).(*array.Uint32)
+	for idx := range indices.NumRows() {
+		if int(recordSliceIndices.Value(int(idx))) >= len(records) {
+			return nil, fmt.Errorf("%w| record slice index out of bounds", ErrIndexOutOfBounds)
+		}
+	}
+	if recordSliceIndices.NullN() > 0 || recordIndices.NullN() > 0 {
+		return nil, fmt.Errorf("%w| null values are not allowed in the indices record", ErrNullValuesNotAllowed)
+	}
 
 	takenRecords := make([]arrow.Record, len(records))
 	for recordIdx, record := range records {
@@ -59,7 +70,7 @@ func TakeMultipleRecords(mem *memory.GoAllocator, records []arrow.Record, indice
 		takenRecords[recordIdx] = takenRecord
 	}
 
-	resultRecord, err := ConcatenateRecords(mem, records...)
+	resultRecord, err := ConcatenateRecords(mem, takenRecords...)
 	if err != nil {
 		return nil, fmt.Errorf("%w| failed to concatenate taken records", err)
 	}

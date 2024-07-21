@@ -1,14 +1,21 @@
 package arrowops
 
 import (
+	"fmt"
+
 	"github.com/apache/arrow/go/v16/arrow"
 	"github.com/apache/arrow/go/v16/arrow/array"
+	"github.com/apache/arrow/go/v16/arrow/float16"
 	"github.com/apache/arrow/go/v16/arrow/memory"
 )
 
 func TakeRecord(mem *memory.GoAllocator, record arrow.Record, indices *array.Uint32) (arrow.Record, error) {
 	record.Retain()
 	defer record.Release()
+
+	if indices.NullN() > 0 {
+		return nil, fmt.Errorf("%w| null values are not allowed in the indices array", ErrNullValuesNotAllowed)
+	}
 
 	fields := make([]arrow.Array, record.NumCols())
 	for i := int64(0); i < record.NumCols(); i++ {
@@ -28,246 +35,98 @@ func TakeRecord(mem *memory.GoAllocator, record arrow.Record, indices *array.Uin
 func TakeArray(mem *memory.GoAllocator, arr arrow.Array, indices *array.Uint32) (arrow.Array, error) {
 	switch arr.DataType().ID() {
 	case arrow.BOOL:
-		return takeBoolArray(mem, arr.(*array.Boolean), indices), nil
+		return takeBoolArray(mem, arr.(*array.Boolean), indices)
 	case arrow.INT8:
-		return takeInt8Array(mem, arr.(*array.Int8), indices), nil
+		return takeNativeArray[int8, *array.Int8](mem, array.NewInt8Builder(mem), arr.(*array.Int8), indices)
 	case arrow.INT16:
-		return takeInt16Array(mem, arr.(*array.Int16), indices), nil
+		return takeNativeArray[int16, *array.Int16](mem, array.NewInt16Builder(mem), arr.(*array.Int16), indices)
 	case arrow.INT32:
-		return takeInt32Array(mem, arr.(*array.Int32), indices), nil
+		return takeNativeArray[int32, *array.Int32](mem, array.NewInt32Builder(mem), arr.(*array.Int32), indices)
 	case arrow.INT64:
-		return takeInt64Array(mem, arr.(*array.Int64), indices), nil
+		return takeNativeArray[int64, *array.Int64](mem, array.NewInt64Builder(mem), arr.(*array.Int64), indices)
 	case arrow.UINT8:
-		return takeUint8Array(mem, arr.(*array.Uint8), indices), nil
+		return takeNativeArray[uint8, *array.Uint8](mem, array.NewUint8Builder(mem), arr.(*array.Uint8), indices)
 	case arrow.UINT16:
-		return takeUint16Array(mem, arr.(*array.Uint16), indices), nil
+		return takeNativeArray[uint16, *array.Uint16](mem, array.NewUint16Builder(mem), arr.(*array.Uint16), indices)
 	case arrow.UINT32:
-		return takeUint32Array(mem, arr.(*array.Uint32), indices), nil
+		return takeNativeArray[uint32, *array.Uint32](mem, array.NewUint32Builder(mem), arr.(*array.Uint32), indices)
 	case arrow.UINT64:
-		return takeUint64Array(mem, arr.(*array.Uint64), indices), nil
+		return takeNativeArray[uint64, *array.Uint64](mem, array.NewUint64Builder(mem), arr.(*array.Uint64), indices)
 	case arrow.FLOAT16:
-		return takeFloat16Array(mem, arr.(*array.Float16), indices), nil
+		return takeNativeArray[float16.Num, *array.Float16](mem, array.NewFloat16Builder(mem), arr.(*array.Float16), indices)
 	case arrow.FLOAT32:
-		return takeFloat32Array(mem, arr.(*array.Float32), indices), nil
+		return takeNativeArray[float32, *array.Float32](mem, array.NewFloat32Builder(mem), arr.(*array.Float32), indices)
 	case arrow.FLOAT64:
-		return takeFloat64Array(mem, arr.(*array.Float64), indices), nil
+		return takeNativeArray[float64, *array.Float64](mem, array.NewFloat64Builder(mem), arr.(*array.Float64), indices)
 	case arrow.STRING:
-		return takeStringArray(mem, arr.(*array.String), indices), nil
+		return takeNativeArray[string, *array.String](mem, array.NewStringBuilder(mem), arr.(*array.String), indices)
 	case arrow.BINARY:
-		return takeBinaryArray(mem, arr.(*array.Binary), indices), nil
+		return takeBinaryArray(mem, arr.(*array.Binary), indices)
 	case arrow.DATE32:
-		return takeDate32Array(mem, arr.(*array.Date32), indices), nil
+		return takeNativeArray[arrow.Date32, *array.Date32](mem, array.NewDate32Builder(mem), arr.(*array.Date32), indices)
 	case arrow.DATE64:
-		return takeDate64Array(mem, arr.(*array.Date64), indices), nil
+		return takeNativeArray[arrow.Date64, *array.Date64](mem, array.NewDate64Builder(mem), arr.(*array.Date64), indices)
 	case arrow.TIMESTAMP:
-		return takeTimestampArray(mem, arr.(*array.Timestamp), indices), nil
+		return takeNativeArray[arrow.Timestamp, *array.Timestamp](
+			mem, array.NewTimestampBuilder(mem, arr.DataType().(*arrow.TimestampType)), arr.(*array.Timestamp), indices,
+		)
 	case arrow.TIME32:
-		return takeTime32Array(mem, arr.(*array.Time32), indices), nil
+		return takeNativeArray[arrow.Time32, *array.Time32](
+			mem, array.NewTime32Builder(mem, arr.DataType().(*arrow.Time32Type)), arr.(*array.Time32), indices,
+		)
 	case arrow.TIME64:
-		return takeTime64Array(mem, arr.(*array.Time64), indices), nil
+		return takeNativeArray[arrow.Time64, *array.Time64](
+			mem, array.NewTime64Builder(mem, arr.DataType().(*arrow.Time64Type)), arr.(*array.Time64), indices,
+		)
 	case arrow.DURATION:
-		return takeDurationArray(mem, arr.(*array.Duration), indices), nil
+		return takeNativeArray[arrow.Duration, *array.Duration](
+			mem, array.NewDurationBuilder(mem, arr.DataType().(*arrow.DurationType)), arr.(*array.Duration), indices,
+		)
 	default:
 		return nil, ErrUnsupportedDataType
 	}
 }
 
-func takeBoolArray(mem *memory.GoAllocator, arr *array.Boolean, indices *array.Uint32) *array.Boolean {
+func takeBoolArray(mem *memory.GoAllocator, arr *array.Boolean, indices *array.Uint32) (*array.Boolean, error) {
 	b := array.NewBooleanBuilder(mem)
 	defer b.Release()
+	arrLen := arr.Len()
 	b.Reserve(indices.Len())
 	for i := 0; i < indices.Len(); i++ {
-		b.Append(arr.Value(int(indices.Value(i))))
+		idx := int(indices.Value(i))
+		if idx >= arrLen || idx < 0 {
+			return nil, ErrIndexOutOfBounds
+		}
+		b.Append(arr.Value(idx))
 	}
-	return b.NewBooleanArray()
+	return b.NewBooleanArray(), nil
 }
 
-func takeInt8Array(mem *memory.GoAllocator, arr *array.Int8, indices *array.Uint32) *array.Int8 {
-	b := array.NewInt8Builder(mem)
+func takeNativeArray[T comparable, E valueArray[T]](mem *memory.GoAllocator, b arrayBuilder[T], arr E, indices *array.Uint32) (E, error) {
 	defer b.Release()
+	arrLen := arr.Len()
 	b.Reserve(indices.Len())
 	for i := 0; i < indices.Len(); i++ {
-		b.Append(arr.Value(int(indices.Value(i))))
+		idx := int(indices.Value(i))
+		if idx >= arrLen || idx < 0 {
+			return *new(E), fmt.Errorf("%w| record index out of bounds", ErrIndexOutOfBounds)
+		}
+		b.Append(arr.Value(idx))
 	}
-	return b.NewInt8Array()
+	return b.NewArray().(E), nil
 }
 
-func takeInt16Array(mem *memory.GoAllocator, arr *array.Int16, indices *array.Uint32) *array.Int16 {
-	b := array.NewInt16Builder(mem)
+func takeBinaryArray(mem *memory.GoAllocator, arr *array.Binary, indices *array.Uint32) (*array.Binary, error) {
+	b := array.NewBinaryBuilder(mem, arrow.BinaryTypes.Binary)
 	defer b.Release()
+	arrLen := arr.Len()
 	b.Reserve(indices.Len())
 	for i := 0; i < indices.Len(); i++ {
-		b.Append(arr.Value(int(indices.Value(i))))
+		idx := int(indices.Value(i))
+		if idx >= arrLen || idx < 0 {
+			return nil, ErrIndexOutOfBounds
+		}
+		b.Append(arr.Value(idx))
 	}
-	return b.NewInt16Array()
-}
-
-func takeInt32Array(mem *memory.GoAllocator, arr *array.Int32, indices *array.Uint32) *array.Int32 {
-	b := array.NewInt32Builder(mem)
-	defer b.Release()
-	b.Reserve(indices.Len())
-	for i := 0; i < indices.Len(); i++ {
-		b.Append(arr.Value(int(indices.Value(i))))
-	}
-	return b.NewInt32Array()
-}
-
-func takeInt64Array(mem *memory.GoAllocator, arr *array.Int64, indices *array.Uint32) *array.Int64 {
-	b := array.NewInt64Builder(mem)
-	defer b.Release()
-	b.Reserve(indices.Len())
-	for i := 0; i < indices.Len(); i++ {
-		b.Append(arr.Value(int(indices.Value(i))))
-	}
-	return b.NewInt64Array()
-}
-
-func takeUint8Array(mem *memory.GoAllocator, arr *array.Uint8, indices *array.Uint32) *array.Uint8 {
-	b := array.NewUint8Builder(mem)
-	defer b.Release()
-	b.Reserve(indices.Len())
-	for i := 0; i < indices.Len(); i++ {
-		b.Append(arr.Value(int(indices.Value(i))))
-	}
-	return b.NewUint8Array()
-}
-
-func takeUint16Array(mem *memory.GoAllocator, arr *array.Uint16, indices *array.Uint32) *array.Uint16 {
-	b := array.NewUint16Builder(mem)
-	defer b.Release()
-	b.Reserve(indices.Len())
-	for i := 0; i < indices.Len(); i++ {
-		b.Append(arr.Value(int(indices.Value(i))))
-	}
-	return b.NewUint16Array()
-}
-
-func takeUint32Array(mem *memory.GoAllocator, arr *array.Uint32, indices *array.Uint32) *array.Uint32 {
-	b := array.NewUint32Builder(mem)
-	defer b.Release()
-	b.Reserve(indices.Len())
-	for i := 0; i < indices.Len(); i++ {
-		b.Append(arr.Value(int(indices.Value(i))))
-	}
-	return b.NewUint32Array()
-}
-
-func takeUint64Array(mem *memory.GoAllocator, arr *array.Uint64, indices *array.Uint32) *array.Uint64 {
-	b := array.NewUint64Builder(mem)
-	defer b.Release()
-	b.Reserve(indices.Len())
-	for i := 0; i < indices.Len(); i++ {
-		b.Append(arr.Value(int(indices.Value(i))))
-	}
-	return b.NewUint64Array()
-}
-
-func takeFloat16Array(mem *memory.GoAllocator, arr *array.Float16, indices *array.Uint32) *array.Float16 {
-	b := array.NewFloat16Builder(mem)
-	defer b.Release()
-	b.Reserve(indices.Len())
-	for i := 0; i < indices.Len(); i++ {
-		b.Append(arr.Value(int(indices.Value(i))))
-	}
-	return b.NewFloat16Array()
-}
-
-func takeFloat32Array(mem *memory.GoAllocator, arr *array.Float32, indices *array.Uint32) *array.Float32 {
-	b := array.NewFloat32Builder(mem)
-	defer b.Release()
-	b.Reserve(indices.Len())
-	for i := 0; i < indices.Len(); i++ {
-		b.Append(arr.Value(int(indices.Value(i))))
-	}
-	return b.NewFloat32Array()
-}
-
-func takeFloat64Array(mem *memory.GoAllocator, arr *array.Float64, indices *array.Uint32) *array.Float64 {
-	b := array.NewFloat64Builder(mem)
-	defer b.Release()
-	b.Reserve(indices.Len())
-	for i := 0; i < indices.Len(); i++ {
-		b.Append(arr.Value(int(indices.Value(i))))
-	}
-	return b.NewFloat64Array()
-}
-
-func takeStringArray(mem *memory.GoAllocator, arr *array.String, indices *array.Uint32) *array.String {
-	b := array.NewStringBuilder(mem)
-	defer b.Release()
-	b.Reserve(indices.Len())
-	for i := 0; i < indices.Len(); i++ {
-		b.Append(arr.Value(int(indices.Value(i))))
-	}
-	return b.NewStringArray()
-}
-
-func takeBinaryArray(mem *memory.GoAllocator, arr *array.Binary, indices *array.Uint32) *array.Binary {
-	b := array.NewBinaryBuilder(mem, &arrow.BinaryType{})
-	defer b.Release()
-	b.Reserve(indices.Len())
-	for i := 0; i < indices.Len(); i++ {
-		b.Append(arr.Value(int(indices.Value(i))))
-	}
-	return b.NewBinaryArray()
-}
-
-func takeDate32Array(mem *memory.GoAllocator, arr *array.Date32, indices *array.Uint32) *array.Date32 {
-	b := array.NewDate32Builder(mem)
-	defer b.Release()
-	b.Reserve(indices.Len())
-	for i := 0; i < indices.Len(); i++ {
-		b.Append(arr.Value(int(indices.Value(i))))
-	}
-	return b.NewDate32Array()
-}
-
-func takeDate64Array(mem *memory.GoAllocator, arr *array.Date64, indices *array.Uint32) *array.Date64 {
-	b := array.NewDate64Builder(mem)
-	defer b.Release()
-	b.Reserve(indices.Len())
-	for i := 0; i < indices.Len(); i++ {
-		b.Append(arr.Value(int(indices.Value(i))))
-	}
-	return b.NewDate64Array()
-}
-
-func takeTimestampArray(mem *memory.GoAllocator, arr *array.Timestamp, indices *array.Uint32) *array.Timestamp {
-	b := array.NewTimestampBuilder(mem, &arrow.TimestampType{})
-	defer b.Release()
-	b.Reserve(indices.Len())
-	for i := 0; i < indices.Len(); i++ {
-		b.Append(arr.Value(int(indices.Value(i))))
-	}
-	return b.NewTimestampArray()
-}
-
-func takeTime32Array(mem *memory.GoAllocator, arr *array.Time32, indices *array.Uint32) *array.Time32 {
-	b := array.NewTime32Builder(mem, &arrow.Time32Type{})
-	defer b.Release()
-	b.Reserve(indices.Len())
-	for i := 0; i < indices.Len(); i++ {
-		b.Append(arr.Value(int(indices.Value(i))))
-	}
-	return b.NewTime32Array()
-}
-
-func takeTime64Array(mem *memory.GoAllocator, arr *array.Time64, indices *array.Uint32) *array.Time64 {
-	b := array.NewTime64Builder(mem, &arrow.Time64Type{})
-	defer b.Release()
-	b.Reserve(indices.Len())
-	for i := 0; i < indices.Len(); i++ {
-		b.Append(arr.Value(int(indices.Value(i))))
-	}
-	return b.NewTime64Array()
-}
-
-func takeDurationArray(mem *memory.GoAllocator, arr *array.Duration, indices *array.Uint32) *array.Duration {
-	b := array.NewDurationBuilder(mem, &arrow.DurationType{})
-	defer b.Release()
-	b.Reserve(indices.Len())
-	for i := 0; i < indices.Len(); i++ {
-		b.Append(arr.Value(int(indices.Value(i))))
-	}
-	return b.NewDurationArray()
+	return b.NewBinaryArray(), nil
 }
