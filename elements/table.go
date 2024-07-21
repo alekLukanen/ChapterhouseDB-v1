@@ -90,46 +90,61 @@ func (obj *Table) GetSubscriptionBySourceName(sourceName string) (ISubscription,
 	return nil, ErrSubscriptionNotFound
 }
 
-func (obj *Table) IsValid() bool {
+func (obj *Table) IsValid() error {
 	if obj.name == "" {
-		return false
+		return fmt.Errorf("%w| name invalid", ErrTableInvalid)
 	}
 
 	if len(obj.columns) == 0 {
-		return false
+		return fmt.Errorf("%w| table does not have columns", ErrTableInvalid)
 	}
 
 	for _, col := range obj.columns {
 		if !col.IsValid() {
-			return false
+			return fmt.Errorf("%w| table has invalid column", ErrTableInvalid)
 		}
+	}
+
+	// each partition column is uniq
+	uniqPartitionColumns := make(map[string]Column)
+	for _, colPart := range obj.columnPartitions {
+		col, err := obj.GetColumnByName(colPart.columnName)
+		if err != nil {
+			return fmt.Errorf("%w| partition column is not a column in the table", ErrTableInvalid)
+		}
+		uniqPartitionColumns[colPart.columnName] = col
+	}
+	if len(uniqPartitionColumns) < len(obj.columnPartitions) {
+		return fmt.Errorf("%w| duplicate partition columns", ErrTableInvalid)
 	}
 
 	for _, subGroup := range obj.subscriptionGroups {
 		if !subGroup.IsValid() {
-			return false
+			return fmt.Errorf("%w| subscription group invalid", ErrTableInvalid)
 		}
 		for _, sub := range subGroup.subscriptions {
 			subCols := sub.Columns()
 			// must have at least the same number of tuple columns as column partitions
 			if len(subCols) < len(obj.columnPartitions) {
-				return false
+				return fmt.Errorf("%w| subscription does not have all partition columns", ErrTableInvalid)
 			}
-			// iterate over the common tuple columns and partition columns
-			// all tuple columns after the partitioned columns can be any type
-			for colIdx, subCol := range subCols[:len(obj.columnPartitions)] {
-				col, err := obj.GetColumnByName(obj.columnPartitions[colIdx].columnName)
-				if err != nil {
-					return false
+			// all subscriptions must have the partition columns
+			partColNum := 0
+			for _, subCol := range subCols {
+				if colPart, ok := uniqPartitionColumns[subCol.Name]; ok {
+					if subCol.Dtype != colPart.Dtype {
+						return fmt.Errorf("%w| partition column must have the same type between subscriptions and table", ErrTableInvalid)
+					}
+					partColNum++
 				}
-				if subCol.Dtype != col.Dtype {
-					return false
-				}
+			}
+			if partColNum < len(obj.columnPartitions) {
+				return fmt.Errorf("%w| subscription does not have all partition columns", ErrTableInvalid)
 			}
 		}
 	}
 
-	return true
+	return nil
 }
 
 func (obj *Table) GetColumnByName(name string) (Column, error) {
@@ -208,7 +223,7 @@ type ExternalSubscription struct {
 	transformer    Transformer
 }
 
-func NewExternalSubscription(externalSource string, transformer Transformer, columns ...Column) *ExternalSubscription {
+func NewExternalSubscription(externalSource string, transformer Transformer, columns []Column) *ExternalSubscription {
 	return &ExternalSubscription{
 		externalSource: externalSource,
 		transformer:    transformer,
@@ -218,6 +233,9 @@ func NewExternalSubscription(externalSource string, transformer Transformer, col
 
 func (obj *ExternalSubscription) IsValid() bool {
 	if obj.externalSource == "" {
+		return false
+	}
+	if len(obj.columns) == 0 {
 		return false
 	}
 	return true

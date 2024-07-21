@@ -149,22 +149,19 @@ func (obj *Inserter) InsertTuples(ctx context.Context, tableName, sourceName str
 	// validate that the tuples are the correct format
 	columns := subscription.Columns()
 	if len(columns) != int(tuples.NumCols()) {
-		obj.logger.Info("different number of columns", slog.Int("subscription", len(columns)), slog.Int("tuples", int(tuples.NumCols())))
+		obj.logger.Info(
+			"record has incorrect number of columns", 
+			slog.Int("subscription.columns", len(columns)),
+			slog.Int("tuples", int(tuples.NumCols())),
+		)
 		return ErrTupleColumnsDifferentThanSubscription
 	}
-	for i := 0; i < tuples.Schema().NumFields(); i++ {
-		if tuples.Schema().Field(i).Type.ID() != columns[i].Dtype.ID() {
+	for _, column := range columns {
+		if !tuples.Schema().HasField(column.Name) {
 			obj.logger.Info(
-				"different types",
-				slog.String("subscription", columns[i].Dtype.ID().String()),
-				slog.String("tuples", tuples.Schema().Field(i).Type.ID().String()))
-			return ErrTupleColumnsDifferentThanSubscription
-		}
-		if tuples.Schema().Field(i).Name != columns[i].Name {
-			obj.logger.Info(
-				"different names",
-				slog.String("subscription", columns[i].Name),
-				slog.String("tuples", tuples.Schema().Field(i).Name),
+				"column not present in record",
+				slog.String("subscription.column.Name", column.Name),
+				slog.String("tuples schema", tuples.Schema().String()),
 			)
 			return ErrTupleColumnsDifferentThanSubscription
 		}
@@ -178,6 +175,9 @@ func (obj *Inserter) InsertTuples(ctx context.Context, tableName, sourceName str
 
 	// get the partition for each tuple as an arrow array
 	partitionKeyArr, err := PartitionKeys(obj.allocator, tuples, table.ColumnPartitions())
+	if err != nil {
+		return err
+	}
 	defer partitionKeyArr.Release()
 
 	// add the tuples to the batch map so the storage can

@@ -17,6 +17,79 @@ import (
 )
 
 func main() {
+
+	BuildSampleRecord()
+
+}
+
+func BuildSampleRecord() {
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	logger.Info("Running ChapterhouseDB Scratch")
+
+	ctx := context.Background()
+	tableRegistery := operations.NewTableRegistry(ctx, logger)
+	table1 := elements.NewTable("table1").
+		AddColumns(
+			elements.NewColumn("column1", &arrow.Int32Type{}),
+			elements.NewColumn("column2", &arrow.BooleanType{}),
+			elements.NewColumn("column3", &arrow.Float64Type{}),
+		).
+		AddColumnPartitions(
+			elements.NewColumnPartition(
+				"column1",
+				partitionFuncs.NewIntegerRangePartitionOptions(10, 10),
+			),
+		).
+		AddSubscriptionGroups(
+			elements.NewSubscriptionGroup(
+				"group1",
+			).
+				AddSubscriptions(
+					elements.NewExternalSubscription(
+						"externalTable1",
+						nil,
+						[]elements.Column{
+							elements.NewColumn("column1", &arrow.Int32Type{}),
+							elements.NewColumn("column2", &arrow.BooleanType{}),
+							elements.NewColumn("column3", &arrow.Float64Type{}),
+							elements.NewColumn("eventName", &arrow.StringType{}),
+						},
+					),
+				),
+		)
+
+	err := tableRegistery.AddTables(table1)
+	if err != nil {
+		logger.Error("failed to add table to registery", slog.String("error", err.Error()))
+	}
+
+	pool := memory.NewGoAllocator()
+	schema := arrow.NewSchema(
+		[]arrow.Field{
+			{Name: "column1", Type: &arrow.Int32Type{}},
+			{Name: "column2", Type: &arrow.BooleanType{}},
+			{Name: "column3", Type: &arrow.Float64Type{}},
+			{Name: "eventName", Type: &arrow.StringType{}},
+
+		}, nil,
+	)
+	recBuilder := array.NewRecordBuilder(pool, schema)
+	defer recBuilder.Release()
+
+	recBuilder.Field(0).(*array.Int32Builder).AppendValues([]int32{1, 2, 3, 4, 10, 20, 29, 35, 36, 37}, nil)
+	recBuilder.Field(1).(*array.BooleanBuilder).AppendValues([]bool{true, true, true, false, true, false, true, false, true, false}, nil)
+	recBuilder.Field(2).(*array.Float64Builder).AppendValues([]float64{1., 2., 3., 4., 10., 20., 29., 35., 36., 37.}, nil)
+	recBuilder.Field(3).(*array.StringBuilder).AppendValues([]string{"ev1", "ev1", "ev1", "ev1", "ev1", "ev1", "ev2", "ev2", "ev2", "ev2"}, nil)
+
+	rec := recBuilder.NewRecord()
+	defer rec.Release()
+
+	logger.Info("record schema", slog.Any("schema", rec.Schema().String()), slog.Int("numFields", rec.Schema().NumFields()))
+	logger.Info("record data", slog.Any("record", rec))
+
+}
+
+func InsertTuplesIntoKeyStorage() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	logger.Info("Running ChapterhouseDB Scratch")
 
@@ -54,8 +127,12 @@ func main() {
 					elements.NewExternalSubscription(
 						"externalTable1",
 						nil,
-						elements.NewColumn("column1", &arrow.Int32Type{}),
-						elements.NewColumn("column2", &arrow.BooleanType{}),
+						[]elements.Column{
+							elements.NewColumn("column1", &arrow.Int32Type{}),
+							elements.NewColumn("column2", &arrow.BooleanType{}),
+							elements.NewColumn("column3", &arrow.Float64Type{}),
+							elements.NewColumn("eventName", &arrow.StringType{}),
+						},
 					),
 				),
 		)
@@ -75,6 +152,9 @@ func main() {
 		[]arrow.Field{
 			{Name: "column1", Type: &arrow.Int32Type{}},
 			{Name: "column2", Type: &arrow.BooleanType{}},
+			{Name: "column3", Type: &arrow.Float64Type{}},
+			{Name: "eventName", Type: &arrow.StringType{}},
+
 		}, nil,
 	)
 	recBuilder := array.NewRecordBuilder(pool, schema)
@@ -82,6 +162,8 @@ func main() {
 
 	recBuilder.Field(0).(*array.Int32Builder).AppendValues([]int32{1, 2, 3, 4, 10, 20, 29, 35, 36, 37}, nil)
 	recBuilder.Field(1).(*array.BooleanBuilder).AppendValues([]bool{true, true, true, false, true, false, true, false, true, false}, nil)
+	recBuilder.Field(2).(*array.Float64Builder).AppendValues([]float64{1., 2., 3., 4., 10., 20., 29., 35., 36., 37.}, nil)
+	recBuilder.Field(3).(*array.StringBuilder).AppendValues([]string{"ev1", "ev1", "ev1", "ev1", "ev1", "ev1", "ev2", "ev2", "ev2", "ev2"}, nil)
 
 	rec := recBuilder.NewRecord()
 	defer rec.Release()

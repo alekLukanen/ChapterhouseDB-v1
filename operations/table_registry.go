@@ -29,6 +29,10 @@ func NewTableRegistry(ctx context.Context, logger *slog.Logger) *TableRegistry {
 
 func (obj *TableRegistry) AddTables(tables ...*elements.Table) error {
 	for _, table := range tables {
+		validationErr := table.IsValid()
+		if validationErr != nil {
+			return validationErr
+		}
 		if _, exists := obj.tables[table.TableName()]; exists {
 			return ErrTableAlreadyAddedToRegistry
 		}
