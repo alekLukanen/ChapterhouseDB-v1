@@ -34,3 +34,7 @@ benchstat benchmarkResults/initial.txt benchmarkResults/proposed.txt
 event will still be written to history but not to the main state table.
 * Add a JSON file for each partition which contains a list of the files in the 
 partition along with basic file meta data.
+
+## Development Notes
+* Need to pass in the ordered `record` into the merge sort process so I can prune
+any rows that may have been removed. 

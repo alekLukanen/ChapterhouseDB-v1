@@ -115,7 +115,7 @@ func (obj *ParquetRecordMergeSortBuilder) Build(ctx context.Context) ([]string, 
 * This merge sort builder assumes that each row is unique by it
 * primary key columns. So no other row will have the same value
 * for the given compound primary key. It is assumed that the user
-* will perform deduplication of there records. 
+* will perform deduplication of there records.
  */
 type RecordMergeSortBuilder struct {
 	logger *slog.Logger
