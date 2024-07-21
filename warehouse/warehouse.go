@@ -5,7 +5,6 @@ import (
 	"log/slog"
 	"time"
 
-	arrowops "github.com/alekLukanen/ChapterhouseDB/arrowOps"
 	"github.com/alekLukanen/ChapterhouseDB/elements"
 	"github.com/alekLukanen/ChapterhouseDB/operations"
 	"github.com/alekLukanen/ChapterhouseDB/storage"
@@ -86,7 +85,7 @@ func (obj *Warehouse) Run(ctx context.Context) {
 * 2. Pass the partition data arrow Record to the subscriptions
 *    transformer function. This will pass back an unorder record
 *    which will then need to be ordered.
-* 3. Sort the record in ascending order.
+* 3. Request all existing files from S3
 * 4. Once the records ascending order is found get the partition's
 *    tables from object storage and merge the new/updated/deleted records into existing data.
 *    The merge rows function will scan the partition's parquet
@@ -178,13 +177,7 @@ func (obj *Warehouse) ProcessNextTablePartition(ctx context.Context) (bool, erro
 	for i, col := range columnPartitions {
 		columnNames[i] = col.Name()
 	}
-	sortedData, err := arrowops.SortRecord(obj.allocator, transformedData, columnNames)
-	if err != nil {
-		return false, err
-	}
-	obj.logger.Info("sortedData", slog.Any("numrows", sortedData.NumRows()))
-
-	// 4. Merge the new data with the existing
-
+	obj.logger.Info("partition columns", slog.Any("columns", columnNames))
+	
 	return true, nil
 }

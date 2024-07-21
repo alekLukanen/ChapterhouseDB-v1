@@ -140,7 +140,10 @@ func (obj *ManifestStorage) ReplacePartitionManifest(
 func (obj *ManifestStorage) MergePartitionRecordIntoManifest(
 	ctx context.Context,
 	partition elements.Partition,
-	record arrow.Record,
+	processedKeyRecrod arrow.Record,
+	newRecord arrow.Record,
+	primaryColumns []string,
+	compareColumns []string,
 	options PartitionManifestOptions,
 ) error {
 	// get the manifest
@@ -168,7 +171,17 @@ func (obj *ManifestStorage) MergePartitionRecordIntoManifest(
 	if err != nil {
 		return err
 	}
-	_ = NewPartitionManifestBuilder(partition.TableName, partition.Key, manifest.Version+1)
+	parquetMergeSortBuilder, err := arrowops.NewParquetRecordMergeSortBuilder(
+		obj.logger,
+		obj.mem,
+		processedKeyRecrod,
+		newRecord,
+		tmpDir,
+		primaryColumns,
+		compareColumns,
+		options.MaxObjectRows,
+	)
+	manifestBuilder := NewPartitionManifestBuilder(partition.TableName, partition.Key, manifest.Version+1)
 	for idx, manifestObj := range manifestObjects {
 		// download the file
 		filePath := fmt.Sprintf("%s/%d", tmpDir, idx)
@@ -176,12 +189,31 @@ func (obj *ManifestStorage) MergePartitionRecordIntoManifest(
 		if err != nil {
 			return err
 		}
-
-		// load the parquet file into a record
-		_, err := arrowops.ReadParquetFile(ctx, obj.mem, filePath)
+		// add the parquet file to the merge sort builder
+		files, err := parquetMergeSortBuilder.BuildNext(ctx, filePath)
 		if err != nil {
 			return err
 		}
+		for _, pqf := range files {
+			manifestBuilder.AddFile(pqf)
+		}
+	}
+
+	lastPqf, err := parquetMergeSortBuilder.BuildLast(ctx)
+	if err != nil {
+		return err
+	}
+	manifestBuilder.AddFile(lastPqf)
+
+	err = obj.ReplacePartitionManifest(
+		ctx,
+		partition, 
+		manifest,
+		manifestBuilder.Manifest(),
+		manifestBuilder.Files(),
+	)
+	if err != nil {
+		return err
 	}
 
 	return nil

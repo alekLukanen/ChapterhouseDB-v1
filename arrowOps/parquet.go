@@ -11,6 +11,11 @@ import (
 	"github.com/apache/arrow/go/v16/parquet/pqarrow"
 )
 
+type ParquetFile struct {
+	FilePath string
+	NumRows int64
+}
+
 func WriteRecordToParquetFile(ctx context.Context, mem *memory.GoAllocator, record arrow.Record, filePath string) error {
 
 	file, err := os.Create(filePath)

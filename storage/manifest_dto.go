@@ -9,14 +9,13 @@ import (
 
 type PartitionManifestOptions struct {
 	MaxObjects        int
-	MaxObjectSizeInMB int
 	MaxObjectRows     int
 }
 
 type ManifestObject struct {
-	Key   string `json:"key"`
-	Index int    `json:"index"`
-	Size  int    `json:"size"`
+	Key     string `json:"key"`
+	Index   int    `json:"index"`
+	NumRows int64    `json:"num_rows"`
 }
 
 func (obj *ManifestObject) Validate() error {
@@ -26,8 +25,8 @@ func (obj *ManifestObject) Validate() error {
 	if obj.Index < 0 {
 		return fmt.Errorf("%w| index must be positive", ErrManifestInvalid)
 	}
-	if obj.Size < 0 {
-		return fmt.Errorf("%w| size must be positive", ErrManifestInvalid)
+	if obj.NumRows < 0 {
+		return fmt.Errorf("%w| number of rows must be positive", ErrManifestInvalid)
 	}
 	return nil
 }

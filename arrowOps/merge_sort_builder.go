@@ -32,82 +32,117 @@ type ParquetRecordMergeSortBuilder struct {
 	logger                 *slog.Logger
 	mem                    *memory.GoAllocator
 	recordMergeSortBuilder *RecordMergeSortBuilder
-	filePaths              []string
 	workingDir             string
+
+	fileIndexId  int
+	newFilePaths []string
 
 	maxRowsPerRecord int
 }
 
-func NewParquetRecordMergeSortBuilder(logger *slog.Logger, mem *memory.GoAllocator, record arrow.Record, filePaths []string, workingDir string, primaryColumns []string, compareColumns []string, maxRowsPerRecord int) *ParquetRecordMergeSortBuilder {
+func NewParquetRecordMergeSortBuilder(
+	logger *slog.Logger,
+	mem *memory.GoAllocator,
+	processedKeyRecord arrow.Record,
+	newRecord arrow.Record,
+	workingDir string,
+	primaryColumns []string,
+	compareColumns []string,
+	maxRowsPerRecord int,
+) (*ParquetRecordMergeSortBuilder, error) {
+	processedKeyRecord.Retain()
+	defer processedKeyRecord.Release()
+	newRecord.Retain()
+	defer newRecord.Release()
+
+	sortedProcssedKeyRecord, err := SortRecord(mem, processedKeyRecord, primaryColumns)
+	if err != nil {
+		return nil, fmt.Errorf("%w| failed to sort procssed key record", err)
+	}
+	sortedNewRecord, err := SortRecord(mem, newRecord, primaryColumns)
+	if err != nil {
+		return nil, fmt.Errorf("%w| failed to sort the new record", err)
+	}
+
 	return &ParquetRecordMergeSortBuilder{
 		logger:                 logger,
 		mem:                    mem,
-		recordMergeSortBuilder: NewRecordMergeSortBuilder(logger, mem, record, primaryColumns, compareColumns, maxRowsPerRecord),
-		filePaths:              filePaths,
+		recordMergeSortBuilder: NewRecordMergeSortBuilder(logger, mem, sortedProcssedKeyRecord, sortedNewRecord, primaryColumns, compareColumns, maxRowsPerRecord),
 		workingDir:             workingDir,
+		fileIndexId:            0,
+		newFilePaths:           make([]string, 0),
 		maxRowsPerRecord:       maxRowsPerRecord,
-	}
+	}, nil
 }
-func (obj *ParquetRecordMergeSortBuilder) Build(ctx context.Context) ([]string, error) {
 
-	newFilePaths := make([]string, 0)
-	var fileIndexId int
+func (obj *ParquetRecordMergeSortBuilder) addNewFile(ctx context.Context, record arrow.Record) (ParquetFile, error) {
+	record.Retain()
+	defer record.Release()
+	filePath := path.Join(obj.workingDir, fmt.Sprintf("file_%d.parquet", obj.fileIndexId))
+	err := WriteRecordToParquetFile(ctx, obj.mem, record, filePath)
+	if err != nil {
+		return ParquetFile{}, err
+	}
+	obj.fileIndexId++
+	return ParquetFile{
+		FilePath: filePath, 
+		NumRows: record.NumRows(),
+	}, nil
+}
 
-	addFile := func(record arrow.Record) error {
-		filePath := path.Join(obj.workingDir, fmt.Sprintf("file_%d.parquet", fileIndexId))
-		err := WriteRecordToParquetFile(ctx, obj.mem, record, filePath)
-		if err != nil {
-			return err
-		}
-		newFilePaths = append(newFilePaths, filePath)
-		fileIndexId++
-		return nil
+func (obj *ParquetRecordMergeSortBuilder) BuildNext(ctx context.Context, filePath string) ([]ParquetFile, error) {
+
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
 	}
 
-	for _, filePath := range obj.filePaths {
+	records, err := ReadParquetFile(ctx, obj.mem, filePath)
+	if err != nil {
+		return nil, err
+	}
+	obj.recordMergeSortBuilder.AddExistingRecords(records)
 
-		if ctx.Err() != nil {
-			return nil, ctx.Err()
-		}
-
-		records, err := ReadParquetFile(ctx, obj.mem, filePath)
-		if err != nil {
+	files := make([]ParquetFile, 0)
+	for {
+		nextRecord, err := obj.recordMergeSortBuilder.BuildNextRecord()
+		if errors.Is(err, ErrRecordNotComplete) {
+			break
+		} else if err != nil {
 			return nil, err
 		}
 
-		obj.recordMergeSortBuilder.AddExistingRecords(records)
-
-		for {
-			nextRecord, err := obj.recordMergeSortBuilder.BuildNextRecord()
-			if errors.Is(err, ErrRecordNotComplete) {
-				break
-			} else if err != nil {
-				return nil, err
-			}
-
-			err = addFile(nextRecord)
-			if err != nil {
-				nextRecord.Release()
-				return nil, err
-			}
-
+		f, err := obj.addNewFile(ctx, nextRecord)
+		if err != nil {
 			nextRecord.Release()
+			return nil, err
 		}
+		nextRecord.Release()
 
+		files = append(files, f)
+	}
+
+	return files, nil
+}
+
+func (obj *ParquetRecordMergeSortBuilder) BuildLast(ctx context.Context) (ParquetFile, error) {
+	if ctx.Err() != nil {
+		return ParquetFile{}, ctx.Err()
 	}
 
 	lastRecord, err := obj.recordMergeSortBuilder.BuildLastRecord()
 	if errors.Is(err, ErrNoDataLeft) {
-		return newFilePaths, nil
+		return ParquetFile{}, nil
 	} else if err != nil {
-		return nil, err
+		return ParquetFile{}, err
 	}
 
-	addFile(lastRecord)
+	pqf, err := obj.addNewFile(ctx, lastRecord)
+	if err !=  nil {
+		return ParquetFile{}, err
+	}
 	lastRecord.Release()
 
-	return newFilePaths, nil
-
+	return pqf, nil
 }
 
 /*
@@ -121,7 +156,8 @@ type RecordMergeSortBuilder struct {
 	logger *slog.Logger
 	mem    *memory.GoAllocator
 
-	sampleRecord        progressRecord
+	processedKeyRecord  *progressRecord
+	sampleRecord        *progressRecord
 	progressRecords     []*progressRecord
 	progressRecordIndex int
 
@@ -133,11 +169,12 @@ type RecordMergeSortBuilder struct {
 	compareColumns   []string
 }
 
-func NewRecordMergeSortBuilder(logger *slog.Logger, mem *memory.GoAllocator, record arrow.Record, primaryColumns []string, compareColumns []string, maxRowsPerRecord int) *RecordMergeSortBuilder {
+func NewRecordMergeSortBuilder(logger *slog.Logger, mem *memory.GoAllocator, processedKeyRecord arrow.Record, newRecord arrow.Record, primaryColumns []string, compareColumns []string, maxRowsPerRecord int) *RecordMergeSortBuilder {
 	return &RecordMergeSortBuilder{
 		logger:              logger,
 		mem:                 mem,
-		sampleRecord:        *newProgressRecord(record, true),
+		processedKeyRecord:  newProgressRecord(processedKeyRecord, true),
+		sampleRecord:        newProgressRecord(newRecord, true),
 		progressRecords:     make([]*progressRecord, 0),
 		progressRecordIndex: 0,
 		takeOrder:           make([][2]uint32, maxRowsPerRecord),
@@ -146,6 +183,11 @@ func NewRecordMergeSortBuilder(logger *slog.Logger, mem *memory.GoAllocator, rec
 		primaryColumns:      primaryColumns,
 		compareColumns:      compareColumns,
 	}
+}
+
+func (obj *RecordMergeSortBuilder) Release() {
+	obj.processedKeyRecord.Release()
+	obj.sampleRecord.Release()
 }
 
 func (obj *RecordMergeSortBuilder) AddExistingRecords(records []arrow.Record) error {
