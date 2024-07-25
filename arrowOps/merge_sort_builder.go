@@ -103,7 +103,7 @@ func (obj *ParquetRecordMergeSortBuilder) BuildNext(ctx context.Context, filePat
 	if err != nil {
 		return nil, err
 	}
-	obj.recordMergeSortBuilder.AddExistingRecords(records)
+	obj.recordMergeSortBuilder.AddMainLineRecords(records)
 
 	files := make([]ParquetFile, 0)
 	for {
@@ -161,8 +161,8 @@ type RecordMergeSortBuilder struct {
 
 	processedKeyRecord  *progressRecord
 	sampleRecord        *progressRecord
-	progressRecords     []*progressRecord
-	progressRecordIndex int
+	mainLineRecords     []*progressRecord
+	mainLineRecordIndex int
 
 	takeOrder [][2]uint32
 	takeIndex int
@@ -178,8 +178,8 @@ func NewRecordMergeSortBuilder(logger *slog.Logger, mem *memory.GoAllocator, pro
 		mem:                 mem,
 		processedKeyRecord:  newProgressRecord(processedKeyRecord, true),
 		sampleRecord:        newProgressRecord(newRecord, true),
-		progressRecords:     make([]*progressRecord, 0),
-		progressRecordIndex: 0,
+		mainLineRecords:     make([]*progressRecord, 0),
+		mainLineRecordIndex: 0,
 		takeOrder:           make([][2]uint32, maxRowsPerRecord),
 		takeIndex:           0,
 		maxRowsPerRecord:    maxRowsPerRecord,
@@ -193,10 +193,10 @@ func (obj *RecordMergeSortBuilder) Release() {
 	obj.sampleRecord.release()
 }
 
-func (obj *RecordMergeSortBuilder) AddExistingRecords(records []arrow.Record) error {
+func (obj *RecordMergeSortBuilder) AddMainLineRecords(records []arrow.Record) error {
 	for _, record := range records {
 		if !RecordSchemasEqual(obj.sampleRecord.record, record) {
-			obj.progressRecords = append(obj.progressRecords, newProgressRecord(record, false))
+			obj.mainLineRecords = append(obj.mainLineRecords, newProgressRecord(record, false))
 		}
 	}
 	return nil
@@ -211,11 +211,11 @@ func (obj *RecordMergeSortBuilder) BuildNextRecord() (arrow.Record, error) {
 		return obj.TakeRecord()
 	}
 
-	if len(obj.progressRecords) == 0 {
+	if len(obj.mainLineRecords) == 0 {
 		return nil, ErrRecordNotComplete
 	}
 
-	for idx, pRecord := range obj.progressRecords[obj.progressRecordIndex:] {
+	for idx, pRecord := range obj.mainLineRecords[obj.mainLineRecordIndex:] {
 		obj.logger.Info("Processing progress record", slog.Int("index", idx), slog.Any("record", pRecord.record), slog.Any("rowIndex", pRecord.index))
 
 		for int64(pRecord.index) < pRecord.record.NumRows() {
@@ -283,6 +283,30 @@ func (obj *RecordMergeSortBuilder) HasRecords() bool {
 	return false
 }
 
+func (obj *RecordMergeSortBuilder) SeekProcessingKeyRecord() {
+	if len(obj.mainLineRecords) == 0 {
+		return
+	}
+
+	progressRecord := obj.mainLineRecords[0]
+	for int64(obj.processedKeyRecord.index) < obj.processedKeyRecord.record.NumRows() {
+		cmpRowDirection, err := CompareRecordRows(
+			obj.processedKeyRecord.record,
+			progressRecord.record,
+			obj.processedKeyRecord.index,
+			progressRecord.index,
+			obj.primaryColumns...,
+		)
+		if err != nil {
+			return
+		}
+		obj.processedKeyRecord.increment()
+		if cmpRowDirection == 0 || cmpRowDirection > 0 {
+			return
+		}
+	}
+}
+
 /*
 * Using the current records and the take order, build the record.
 * Once the record has been built then reset the take order
@@ -310,23 +334,23 @@ func (obj *RecordMergeSortBuilder) TakeRecord() (arrow.Record, error) {
 	// remove any progress records which no longer need to
 	// be kept around.
 	newProgressRecords := make([]*progressRecord, 0)
-	for idx, pRec := range obj.progressRecords {
-		if idx < obj.progressRecordIndex {
+	for idx, pRec := range obj.mainLineRecords {
+		if idx < obj.mainLineRecordIndex {
 			pRec.release()
 		} else {
 			newProgressRecords = append(newProgressRecords, pRec)
 		}
 	}
-	obj.progressRecords = newProgressRecords
-	obj.progressRecordIndex = 0
+	obj.mainLineRecords = newProgressRecords
+	obj.mainLineRecordIndex = 0
 
 	return takenRecord, nil
 }
 
 func (obj *RecordMergeSortBuilder) ProgressRecordsToRecords() []arrow.Record {
-	records := make([]arrow.Record, len(obj.progressRecords)+1)
+	records := make([]arrow.Record, len(obj.mainLineRecords)+1)
 	records[0] = obj.sampleRecord.record
-	for idx, pRec := range obj.progressRecords {
+	for idx, pRec := range obj.mainLineRecords {
 		records[idx+1] = pRec.record
 	}
 	return records
