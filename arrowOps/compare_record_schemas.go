@@ -19,25 +19,18 @@ func RecordSchemasEqual(record1 arrow.Record, record2 arrow.Record, fields ...st
 
 func SchemaSubSetEqual(schema1 *arrow.Schema, schema2 *arrow.Schema, fields ...string) bool {
 
-	for i := 0; i < schema1.NumFields(); i++ {
-		if i >= schema2.NumFields() {
+	for _, field := range fields {
+		rec1Fields, rec1HasFields := schema1.FieldsByName(field)
+		rec2Fields, rec2HasFields := schema2.FieldsByName(field)
+		if !rec1HasFields || !rec2HasFields {
 			return false
 		}
-
-		record1Field := schema1.Field(i)
-		record2Field := schema2.Field(i)
-		includeField := false
-		for _, f := range fields {
-			if record1Field.Name == f {
-				includeField = true
-				break
+		for _, rec1Field := range rec1Fields {
+			for _, rec2Field := range rec2Fields {
+				if !rec1Field.Equal(rec2Field) {
+					return false
+				}
 			}
-		}
-		if !includeField {
-			continue
-		}
-		if !record1Field.Equal(record2Field) {
-			return false
 		}
 
 	}

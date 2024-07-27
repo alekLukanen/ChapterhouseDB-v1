@@ -35,7 +35,7 @@ func CompareRecordRows(record1, record2 arrow.Record, index1, index2 int, fields
 
 func compareRecordRowsUsingSubset(record1, record2 arrow.Record, index1, index2 int, fields ...string) (int, error) {
 	if !RecordSchemasEqual(record1, record2, fields...) {
-		return 0, fmt.Errorf("%w| records have different schemas", ErrSchemasNotEqual)
+		return 0, FErrSchemasNotEqual(record1, record2, fields...)
 	}
 	for _, field := range fields {
 		column1Idxs := record1.Schema().FieldIndices(field)
