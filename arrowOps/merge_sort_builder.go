@@ -156,6 +156,7 @@ type takeInfo struct {
 	recordIndex    uint32
 	recordRowIndex uint32
 	updated        bool
+	isSampleRecord bool
 }
 
 /*
@@ -174,7 +175,7 @@ type RecordMergeSortBuilder struct {
 	mainLineRecords     []*progressRecord
 	mainLineRecordIndex int
 
-	takeInfo  []takeInfo
+	takeInfo  []*takeInfo
 	takeIndex int
 
 	maxRowsPerRecord int
@@ -190,7 +191,7 @@ func NewRecordMergeSortBuilder(logger *slog.Logger, mem *memory.GoAllocator, pro
 		sampleRecord:        newProgressRecord(newRecord, true),
 		mainLineRecords:     make([]*progressRecord, 0),
 		mainLineRecordIndex: 0,
-		takeInfo:            make([]takeInfo, maxRowsPerRecord),
+		takeInfo:            make([]*takeInfo, maxRowsPerRecord),
 		takeIndex:           0,
 		maxRowsPerRecord:    maxRowsPerRecord,
 		primaryColumns:      primaryColumns,
@@ -239,9 +240,10 @@ func (obj *RecordMergeSortBuilder) BuildNextRecord() (arrow.Record, error) {
 	}
 
 	for idx, pRecord := range obj.mainLineRecords[obj.mainLineRecordIndex:] {
-		obj.logger.Info("Processing progress record", slog.Int("index", idx), slog.Any("rowIndex", pRecord.index))
+		obj.logger.Info("Processing progress record", slog.Int("index", idx), slog.Any("rowIndex", pRecord.index), slog.Bool("done", pRecord.done))
 
 		for !pRecord.done {
+			obj.logger.Info("takeInfo", slog.Any("takeInfo", obj.takeInfo), slog.Int("takeIndex", obj.takeIndex))
 
 			rowProcessed := false
 			if !obj.processedKeyRecord.done {
@@ -268,13 +270,7 @@ func (obj *RecordMergeSortBuilder) BuildNextRecord() (arrow.Record, error) {
 			if !rowProcessed {
 				// ROW NOT PROCESSED ///////////////////
 
-				obj.takeInfo[obj.takeIndex] = takeInfo{
-					recordIndex:    uint32(idx),
-					recordRowIndex: pRecord.index,
-					updated:        true,
-				}
-				obj.takeIndex++
-				pRecord.increment()
+				obj.addTakeInfo(idx, pRecord, true)
 
 			} else {
 				// ROW PROCESSED //////////////////////
@@ -307,23 +303,11 @@ func (obj *RecordMergeSortBuilder) BuildNextRecord() (arrow.Record, error) {
 					}
 					if cmpRowDirection == 0 {
 						// ROWS WAS NOT UPDATED ////////////////////////
-						obj.takeInfo[obj.takeIndex] = takeInfo{
-							recordIndex:    uint32(idx),
-							recordRowIndex: pRecord.index,
-							updated:        false,
-						}
-						obj.takeIndex++
-						pRecord.increment()
+						obj.addTakeInfo(idx, pRecord, false)
 						obj.sampleRecord.increment()
 					} else {
 						// ROW WAS UPDATED ////////////////////////////
-						obj.takeInfo[obj.takeIndex] = takeInfo{
-							recordIndex:    uint32(idx),
-							recordRowIndex: obj.sampleRecord.index,
-							updated:        true,
-						}
-						obj.takeIndex++
-						obj.sampleRecord.increment()
+						obj.addTakeInfo(idx, obj.sampleRecord, true)
 					}
 
 				} else if cmpRowDirection < 0 {
@@ -331,13 +315,7 @@ func (obj *RecordMergeSortBuilder) BuildNextRecord() (arrow.Record, error) {
 					pRecord.increment()
 				} else {
 					// ROW IS NET NEW ////////////////////////////////////////
-					obj.takeInfo[obj.takeIndex] = takeInfo{
-						recordIndex:    uint32(idx),
-						recordRowIndex: obj.sampleRecord.index,
-						updated:        true,
-					}
-					obj.takeIndex++
-					obj.sampleRecord.increment()
+					obj.addTakeInfo(idx, obj.sampleRecord, false)
 				}
 
 			}
@@ -350,20 +328,30 @@ func (obj *RecordMergeSortBuilder) BuildNextRecord() (arrow.Record, error) {
 
 		obj.mainLineRecordIndex = idx
 	}
-	return nil, ErrRecordNotComplete
+
+	return obj.buildNextRecordFromSampleRecord(false)
+}
+
+func (obj *RecordMergeSortBuilder) addTakeInfo(idx int, record *progressRecord, updated bool) {
+	obj.takeInfo[obj.takeIndex] = &takeInfo{
+		recordIndex:    uint32(idx),
+		recordRowIndex: record.index,
+		updated:        updated,
+		isSampleRecord: record == obj.sampleRecord,
+	}
+	obj.takeIndex++
+	record.increment()
 }
 
 func (obj *RecordMergeSortBuilder) BuildLastRecord() (arrow.Record, error) {
+	return obj.buildNextRecordFromSampleRecord(true)
+}
 
+func (obj *RecordMergeSortBuilder) buildNextRecordFromSampleRecord(allowPartialFill bool) (arrow.Record, error) {
+	obj.logger.Info("buildNextRecordFromSampleRecord", slog.Bool("allowPartialFill", allowPartialFill))
 	for !obj.processedKeyRecord.done {
 
-		obj.takeInfo[obj.takeIndex] = takeInfo{
-			recordIndex:    0,
-			recordRowIndex: obj.processedKeyRecord.index,
-			updated:        false,
-		}
-		obj.takeIndex++
-		obj.processedKeyRecord.increment()
+		obj.addTakeInfo(0, obj.sampleRecord, true)
 
 		if obj.takeIndex == obj.maxRowsPerRecord {
 			return obj.TakeRecord()
@@ -371,7 +359,11 @@ func (obj *RecordMergeSortBuilder) BuildLastRecord() (arrow.Record, error) {
 
 	}
 
-	return nil, ErrNoDataLeft
+	if allowPartialFill {
+		return obj.TakeRecord()
+	} else {
+		return nil, ErrRecordNotComplete
+	}
 }
 
 func (obj *RecordMergeSortBuilder) HasRecords() bool {
@@ -416,10 +408,15 @@ func (obj *RecordMergeSortBuilder) TakeRecord() (arrow.Record, error) {
 		}, nil))
 	defer rb.Release()
 	for _, tf := range obj.takeInfo {
-		rb.Field(0).(*array.Uint32Builder).Append(tf.recordIndex + 1)
+		if tf.isSampleRecord {
+			rb.Field(0).(*array.Uint32Builder).Append(0)
+		} else {
+			rb.Field(0).(*array.Uint32Builder).Append(tf.recordIndex + 1)
+		}
 		rb.Field(1).(*array.Uint32Builder).Append(tf.recordRowIndex)
 	}
 	indices := rb.NewRecord()
+	defer indices.Release()
 
 	takenRecord, err := TakeMultipleRecords(obj.mem, obj.ProgressRecordsToRecords(), indices)
 	if err != nil {
@@ -440,7 +437,7 @@ func (obj *RecordMergeSortBuilder) TakeRecord() (arrow.Record, error) {
 	obj.mainLineRecordIndex = 0
 
 	// reset the take info
-	obj.takeInfo = make([]takeInfo, obj.maxRowsPerRecord)
+	obj.takeInfo = make([]*takeInfo, obj.maxRowsPerRecord)
 	obj.takeIndex = 0
 
 	return takenRecord, nil

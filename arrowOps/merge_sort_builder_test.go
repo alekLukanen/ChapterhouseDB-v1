@@ -1,7 +1,6 @@
 package arrowops
 
 import (
-	"errors"
 	"log/slog"
 	"os"
 	"testing"
@@ -75,6 +74,8 @@ func TestMergeSortBuilder(t *testing.T) {
 
 	rec1 := bldr1.NewRecord()
 	rec2 := bldr2.NewRecord()
+	defer rec1.Release()
+	defer rec2.Release()
 	////////////////////////////////////////////////////////
 
 	// build key record ////////////////////////////////////
@@ -83,6 +84,7 @@ func TestMergeSortBuilder(t *testing.T) {
 	bldr3.Field(0).(*array.Uint32Builder).AppendValues([]uint32{2, 3, 4}, nil)
 
 	keyRec := bldr3.NewRecord()
+	defer keyRec.Release()
 	////////////////////////////////////////////////////////
 
 	// build expected records //////////////////////////////
@@ -125,7 +127,9 @@ func TestMergeSortBuilder(t *testing.T) {
 		}, nil)
 
 	expectedRec1 := bldr4.NewRecord()
-	//expectedRec2 := bldr5.NewRecord()
+	expectedRec2 := bldr5.NewRecord()
+	defer expectedRec1.Release()
+	defer expectedRec2.Release()
 	//////////////////////////////////////////////////////////
 
 	// Create a MergeSortBuilder
@@ -138,22 +142,26 @@ func TestMergeSortBuilder(t *testing.T) {
 	}
 
 	// build first record //////////////////////////////////
-	newRecord, err := builder.BuildNextRecord()
+	newRec1, err := builder.BuildNextRecord()
 	if err != nil {
 		t.Fatalf("failed to build next record: %s", err)
 	}
-
-	if !RecordsEqual(newRecord, expectedRec1, "a", "b", "c") {
-		t.Log("newRecord: ", newRecord)
+	if !RecordsEqual(newRec1, expectedRec1, "a", "b", "c") {
+		t.Log("newRecord: ", newRec1)
 		t.Log("expectedRec1: ", expectedRec1)
 		t.Errorf("expected records to be equal")
 	}
 	///////////////////////////////////////////////////////
 
 	// build second record ////////////////////////////////
-	newRecord, err = builder.BuildNextRecord()
-	if !errors.Is(err, ErrRecordNotComplete) {
-		t.Fatalf("expected error '%s' but received '%s'", ErrRecordNotComplete, err)
+	newRec2, err := builder.BuildNextRecord()
+	if err != nil {
+		t.Fatalf("unexpected error '%s'", err)
+	}
+	if !RecordsEqual(newRec2, expectedRec2, "a", "b", "c") {
+		t.Log("newRecord: ", newRec2)
+		t.Log("expectedRec2: ", expectedRec2)
+		t.Errorf("expected records to be equal")
 	}
 	///////////////////////////////////////////////////////
 
