@@ -223,8 +223,8 @@ func (obj *RecordMergeSortBuilder) BuildNextRecord() (arrow.Record, error) {
 			cmpRowDirection, err := CompareRecordRows(
 				pRecord.record,
 				obj.sampleRecord.record,
-				pRecord.index,
-				obj.sampleRecord.index,
+				int(pRecord.index),
+				int(obj.sampleRecord.index),
 				obj.primaryColumns...,
 			)
 			if err != nil {
@@ -238,8 +238,8 @@ func (obj *RecordMergeSortBuilder) BuildNextRecord() (arrow.Record, error) {
 				cmpRowDirection, err = CompareRecordRows(
 					pRecord.record,
 					obj.sampleRecord.record,
-					pRecord.index,
-					obj.sampleRecord.index,
+					int(pRecord.index),
+					int(obj.sampleRecord.index),
 					obj.compareColumns...,
 				)
 				if err != nil {
@@ -293,8 +293,8 @@ func (obj *RecordMergeSortBuilder) SeekProcessingKeyRecord() {
 		cmpRowDirection, err := CompareRecordRows(
 			obj.processedKeyRecord.record,
 			progressRecord.record,
-			obj.processedKeyRecord.index,
-			progressRecord.index,
+			int(obj.processedKeyRecord.index),
+			int(progressRecord.index),
 			obj.primaryColumns...,
 		)
 		if err != nil {

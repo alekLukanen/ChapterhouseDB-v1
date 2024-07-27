@@ -7,14 +7,15 @@ import (
 
 	"github.com/apache/arrow/go/v16/arrow"
 	"github.com/apache/arrow/go/v16/arrow/array"
-	"github.com/apache/arrow/go/v16/arrow/float16"
 )
 
 /*
 * Determines if the row at index1 in record1 is less/equal/greater than
 * the row at index2 in record2. If the column list is empty
 * than all rows will be compared else only the columns in the
-* list will be compared.
+* list will be compared. It's assumed that each record only has
+* one column with the same name or that each column with the same name
+* has the same values.
  */
 func CompareRecordRows(record1, record2 arrow.Record, index1, index2 int, fields ...string) (int, error) {
 
@@ -32,18 +33,51 @@ func CompareRecordRows(record1, record2 arrow.Record, index1, index2 int, fields
 
 }
 
+func compareRecordRowsUsingSubset(record1, record2 arrow.Record, index1, index2 int, fields ...string) (int, error) {
+	if !RecordSchemasEqual(record1, record2, fields...) {
+		return 0, fmt.Errorf("%w| records have different schemas", ErrSchemasNotEqual)
+	}
+	for _, field := range fields {
+		column1Idxs := record1.Schema().FieldIndices(field)
+		column2Idxs := record2.Schema().FieldIndices(field)
+		for _, column1Idx := range column1Idxs {
+			for _, column2Idx := range column2Idxs {
+				column1 := record1.Column(column1Idx)
+				column2 := record2.Column(column2Idx)
+				compareValue, err := compareArrayValues(column1, column2, index1, index2)
+				if err != nil {
+					return 0, err
+				}
+				if compareValue != 0 {
+					return compareValue, nil
+				}
+			}
+		}
+	}
+	return 0, nil
+}
+
+/*
+* Determines if the row at index1 in record1 is less/equal/greater than
+* the row at index2 in record2. All columns are used in the comparison
+* and the order of comparison is based on the column order in the first record.
+ */
 func compareRecordRowsUsingAllFields(record1, record2 arrow.Record, index1, index2 int) (int, error) {
-	if RecordSchemasEqual(record1, record2) {
+	if !RecordSchemasEqual(record1, record2) {
 		return 0, fmt.Errorf("%w| records have different number of columns", ErrSchemasNotEqual)
 	}
 	for i := 0; i < int(record1.NumCols()); i++ {
 		column1 := record1.Column(i)
-		record2ColumnIdxs := record2.Schema().FieldIndices(column1.Name())
-
-		if column1.DataType().ID() != column2.DataType().ID() {
-			return 0, fmt.Errorf(
-				"%w| column data types do not match at index %d", ErrUnsupportedDataType, i,
-			)
+		record2ColumnIdxs := record2.Schema().FieldIndices(record1.ColumnName(i))
+		for _, record2ColumnIdx := range record2ColumnIdxs {
+			column2 := record2.Column(record2ColumnIdx)
+			compareValue, err := compareArrayValues(column1, column2, index1, index2)
+			if err != nil {
+				return 0, err
+			}
+			if compareValue != 0 {
+				return compareValue, nil
+			}
 		}
 	}
 	return 0, nil
