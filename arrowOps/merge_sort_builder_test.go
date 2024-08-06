@@ -133,7 +133,10 @@ func TestMergeSortBuilder(t *testing.T) {
 	//////////////////////////////////////////////////////////
 
 	// Create a MergeSortBuilder
-	builder := NewRecordMergeSortBuilder(logger, mem, keyRec, rec2, []string{"a"}, []string{"a", "b", "c"}, 2)
+	builder, err := NewRecordMergeSortBuilder(logger, mem, keyRec, rec2, []string{"a"}, []string{"a", "b", "c"}, 2)
+	if err != nil {
+		t.Errorf("failed to construct record merge sort builder")
+	}
 	defer builder.Release()
 
 	err = builder.AddMainLineRecords([]arrow.Record{rec1})
@@ -166,5 +169,9 @@ func TestMergeSortBuilder(t *testing.T) {
 	///////////////////////////////////////////////////////
 
 	// build last record //////////////////////
+
+}
+
+func TestValidateSampleRecord(t *testing.T) {
 
 }
