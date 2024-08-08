@@ -1,0 +1,996 @@
+=== RUN   TestRetainFollowedByRelease
+--- PASS: TestRetainFollowedByRelease (0.00s)
+=== RUN   TestRelease
+    allocator_test.go:30: panic occured but was the wrong error: runtime error: invalid memory address or nil pointer dereference
+--- PASS: TestRelease (0.00s)
+=== RUN   TestCompareRecordRows
+=== RUN   TestCompareRecordRows/case_0:basic_record
+=== RUN   TestCompareRecordRows/case_1:record_with_null_values
+--- PASS: TestCompareRecordRows (0.00s)
+    --- PASS: TestCompareRecordRows/case_0:basic_record (0.00s)
+    --- PASS: TestCompareRecordRows/case_1:record_with_null_values (0.00s)
+=== RUN   TestConcatenateRecords
+=== RUN   TestConcatenateRecords/case_0
+=== RUN   TestConcatenateRecords/case_1
+=== RUN   TestConcatenateRecords/case_2
+--- PASS: TestConcatenateRecords (0.00s)
+    --- PASS: TestConcatenateRecords/case_0 (0.00s)
+    --- PASS: TestConcatenateRecords/case_1 (0.00s)
+    --- PASS: TestConcatenateRecords/case_2 (0.00s)
+=== RUN   TestRecordsEqual
+--- PASS: TestRecordsEqual (0.00s)
+=== RUN   TestMergeSortBuilder
+{"time":"2024-08-07T20:55:50.20441814-05:00","level":"INFO","msg":"Processing progress record","index":0,"rowIndex":0,"done":false}
+{"time":"2024-08-07T20:55:50.204453476-05:00","level":"INFO","msg":"takeInfo","takeInfo":[null,null],"takeIndex":0}
+{"time":"2024-08-07T20:55:50.204478988-05:00","level":"INFO","msg":"takeInfo","takeInfo":[{},null],"takeIndex":1}
+{"time":"2024-08-07T20:55:50.204562979-05:00","level":"INFO","msg":"Processing progress record","index":0,"rowIndex":2,"done":false}
+{"time":"2024-08-07T20:55:50.20456967-05:00","level":"INFO","msg":"takeInfo","takeInfo":[null,null],"takeIndex":0}
+{"time":"2024-08-07T20:55:50.20457835-05:00","level":"INFO","msg":"buildNextRecordFromSampleRecord","allowPartialFill":false}
+--- PASS: TestMergeSortBuilder (0.00s)
+=== RUN   TestValidateSampleRecord
+=== RUN   TestValidateSampleRecord/0_valid_simple_record
+=== RUN   TestValidateSampleRecord/1_simple_record_with_duplicates
+=== RUN   TestValidateSampleRecord/2_simple_record_with_key_not_in_key_record
+--- PASS: TestValidateSampleRecord (0.00s)
+    --- PASS: TestValidateSampleRecord/0_valid_simple_record (0.00s)
+    --- PASS: TestValidateSampleRecord/1_simple_record_with_duplicates (0.00s)
+    --- PASS: TestValidateSampleRecord/2_simple_record_with_key_not_in_key_record (0.00s)
+=== RUN   TestSortRecordWithSingleColumnAndDescendingData
+--- PASS: TestSortRecordWithSingleColumnAndDescendingData (0.23s)
+=== RUN   TestSortRecord
+--- PASS: TestSortRecord (0.00s)
+=== RUN   TestTakeMultipleRecords
+=== RUN   TestTakeMultipleRecords/case_0
+=== RUN   TestTakeMultipleRecords/case_1
+=== RUN   TestTakeMultipleRecords/case_2
+=== RUN   TestTakeMultipleRecords/case_3
+=== RUN   TestTakeMultipleRecords/case_4
+--- PASS: TestTakeMultipleRecords (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_0 (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_1 (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_2 (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_3 (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_4 (0.00s)
+=== RUN   TestTakeRecord
+--- PASS: TestTakeRecord (0.00s)
+=== RUN   TestRetainFollowedByRelease
+--- PASS: TestRetainFollowedByRelease (0.00s)
+=== RUN   TestRelease
+    allocator_test.go:30: panic occured but was the wrong error: runtime error: invalid memory address or nil pointer dereference
+--- PASS: TestRelease (0.00s)
+=== RUN   TestCompareRecordRows
+=== RUN   TestCompareRecordRows/case_0:basic_record
+=== RUN   TestCompareRecordRows/case_1:record_with_null_values
+--- PASS: TestCompareRecordRows (0.00s)
+    --- PASS: TestCompareRecordRows/case_0:basic_record (0.00s)
+    --- PASS: TestCompareRecordRows/case_1:record_with_null_values (0.00s)
+=== RUN   TestConcatenateRecords
+=== RUN   TestConcatenateRecords/case_0
+=== RUN   TestConcatenateRecords/case_1
+=== RUN   TestConcatenateRecords/case_2
+--- PASS: TestConcatenateRecords (0.00s)
+    --- PASS: TestConcatenateRecords/case_0 (0.00s)
+    --- PASS: TestConcatenateRecords/case_1 (0.00s)
+    --- PASS: TestConcatenateRecords/case_2 (0.00s)
+=== RUN   TestRecordsEqual
+--- PASS: TestRecordsEqual (0.00s)
+=== RUN   TestMergeSortBuilder
+{"time":"2024-08-07T20:55:50.437509455-05:00","level":"INFO","msg":"Processing progress record","index":0,"rowIndex":0,"done":false}
+{"time":"2024-08-07T20:55:50.437520592-05:00","level":"INFO","msg":"takeInfo","takeInfo":[null,null],"takeIndex":0}
+{"time":"2024-08-07T20:55:50.437531469-05:00","level":"INFO","msg":"takeInfo","takeInfo":[{},null],"takeIndex":1}
+{"time":"2024-08-07T20:55:50.437563902-05:00","level":"INFO","msg":"Processing progress record","index":0,"rowIndex":2,"done":false}
+{"time":"2024-08-07T20:55:50.437569482-05:00","level":"INFO","msg":"takeInfo","takeInfo":[null,null],"takeIndex":0}
+{"time":"2024-08-07T20:55:50.437577646-05:00","level":"INFO","msg":"buildNextRecordFromSampleRecord","allowPartialFill":false}
+--- PASS: TestMergeSortBuilder (0.00s)
+=== RUN   TestValidateSampleRecord
+=== RUN   TestValidateSampleRecord/0_valid_simple_record
+=== RUN   TestValidateSampleRecord/1_simple_record_with_duplicates
+=== RUN   TestValidateSampleRecord/2_simple_record_with_key_not_in_key_record
+--- PASS: TestValidateSampleRecord (0.00s)
+    --- PASS: TestValidateSampleRecord/0_valid_simple_record (0.00s)
+    --- PASS: TestValidateSampleRecord/1_simple_record_with_duplicates (0.00s)
+    --- PASS: TestValidateSampleRecord/2_simple_record_with_key_not_in_key_record (0.00s)
+=== RUN   TestSortRecordWithSingleColumnAndDescendingData
+--- PASS: TestSortRecordWithSingleColumnAndDescendingData (0.22s)
+=== RUN   TestSortRecord
+--- PASS: TestSortRecord (0.00s)
+=== RUN   TestTakeMultipleRecords
+=== RUN   TestTakeMultipleRecords/case_0
+=== RUN   TestTakeMultipleRecords/case_1
+=== RUN   TestTakeMultipleRecords/case_2
+=== RUN   TestTakeMultipleRecords/case_3
+=== RUN   TestTakeMultipleRecords/case_4
+--- PASS: TestTakeMultipleRecords (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_0 (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_1 (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_2 (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_3 (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_4 (0.00s)
+=== RUN   TestTakeRecord
+--- PASS: TestTakeRecord (0.00s)
+=== RUN   TestRetainFollowedByRelease
+--- PASS: TestRetainFollowedByRelease (0.00s)
+=== RUN   TestRelease
+    allocator_test.go:30: panic occured but was the wrong error: runtime error: invalid memory address or nil pointer dereference
+--- PASS: TestRelease (0.00s)
+=== RUN   TestCompareRecordRows
+=== RUN   TestCompareRecordRows/case_0:basic_record
+=== RUN   TestCompareRecordRows/case_1:record_with_null_values
+--- PASS: TestCompareRecordRows (0.00s)
+    --- PASS: TestCompareRecordRows/case_0:basic_record (0.00s)
+    --- PASS: TestCompareRecordRows/case_1:record_with_null_values (0.00s)
+=== RUN   TestConcatenateRecords
+=== RUN   TestConcatenateRecords/case_0
+=== RUN   TestConcatenateRecords/case_1
+=== RUN   TestConcatenateRecords/case_2
+--- PASS: TestConcatenateRecords (0.00s)
+    --- PASS: TestConcatenateRecords/case_0 (0.00s)
+    --- PASS: TestConcatenateRecords/case_1 (0.00s)
+    --- PASS: TestConcatenateRecords/case_2 (0.00s)
+=== RUN   TestRecordsEqual
+--- PASS: TestRecordsEqual (0.00s)
+=== RUN   TestMergeSortBuilder
+{"time":"2024-08-07T20:55:50.656636237-05:00","level":"INFO","msg":"Processing progress record","index":0,"rowIndex":0,"done":false}
+{"time":"2024-08-07T20:55:50.656647387-05:00","level":"INFO","msg":"takeInfo","takeInfo":[null,null],"takeIndex":0}
+{"time":"2024-08-07T20:55:50.656657748-05:00","level":"INFO","msg":"takeInfo","takeInfo":[{},null],"takeIndex":1}
+{"time":"2024-08-07T20:55:50.656689323-05:00","level":"INFO","msg":"Processing progress record","index":0,"rowIndex":2,"done":false}
+{"time":"2024-08-07T20:55:50.65669467-05:00","level":"INFO","msg":"takeInfo","takeInfo":[null,null],"takeIndex":0}
+{"time":"2024-08-07T20:55:50.656702887-05:00","level":"INFO","msg":"buildNextRecordFromSampleRecord","allowPartialFill":false}
+--- PASS: TestMergeSortBuilder (0.00s)
+=== RUN   TestValidateSampleRecord
+=== RUN   TestValidateSampleRecord/0_valid_simple_record
+=== RUN   TestValidateSampleRecord/1_simple_record_with_duplicates
+=== RUN   TestValidateSampleRecord/2_simple_record_with_key_not_in_key_record
+--- PASS: TestValidateSampleRecord (0.00s)
+    --- PASS: TestValidateSampleRecord/0_valid_simple_record (0.00s)
+    --- PASS: TestValidateSampleRecord/1_simple_record_with_duplicates (0.00s)
+    --- PASS: TestValidateSampleRecord/2_simple_record_with_key_not_in_key_record (0.00s)
+=== RUN   TestSortRecordWithSingleColumnAndDescendingData
+--- PASS: TestSortRecordWithSingleColumnAndDescendingData (0.20s)
+=== RUN   TestSortRecord
+--- PASS: TestSortRecord (0.00s)
+=== RUN   TestTakeMultipleRecords
+=== RUN   TestTakeMultipleRecords/case_0
+=== RUN   TestTakeMultipleRecords/case_1
+=== RUN   TestTakeMultipleRecords/case_2
+=== RUN   TestTakeMultipleRecords/case_3
+=== RUN   TestTakeMultipleRecords/case_4
+--- PASS: TestTakeMultipleRecords (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_0 (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_1 (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_2 (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_3 (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_4 (0.00s)
+=== RUN   TestTakeRecord
+--- PASS: TestTakeRecord (0.00s)
+=== RUN   TestRetainFollowedByRelease
+--- PASS: TestRetainFollowedByRelease (0.00s)
+=== RUN   TestRelease
+    allocator_test.go:30: panic occured but was the wrong error: runtime error: invalid memory address or nil pointer dereference
+--- PASS: TestRelease (0.00s)
+=== RUN   TestCompareRecordRows
+=== RUN   TestCompareRecordRows/case_0:basic_record
+=== RUN   TestCompareRecordRows/case_1:record_with_null_values
+--- PASS: TestCompareRecordRows (0.00s)
+    --- PASS: TestCompareRecordRows/case_0:basic_record (0.00s)
+    --- PASS: TestCompareRecordRows/case_1:record_with_null_values (0.00s)
+=== RUN   TestConcatenateRecords
+=== RUN   TestConcatenateRecords/case_0
+=== RUN   TestConcatenateRecords/case_1
+=== RUN   TestConcatenateRecords/case_2
+--- PASS: TestConcatenateRecords (0.00s)
+    --- PASS: TestConcatenateRecords/case_0 (0.00s)
+    --- PASS: TestConcatenateRecords/case_1 (0.00s)
+    --- PASS: TestConcatenateRecords/case_2 (0.00s)
+=== RUN   TestRecordsEqual
+--- PASS: TestRecordsEqual (0.00s)
+=== RUN   TestMergeSortBuilder
+{"time":"2024-08-07T20:55:50.861044671-05:00","level":"INFO","msg":"Processing progress record","index":0,"rowIndex":0,"done":false}
+{"time":"2024-08-07T20:55:50.861055547-05:00","level":"INFO","msg":"takeInfo","takeInfo":[null,null],"takeIndex":0}
+{"time":"2024-08-07T20:55:50.861065771-05:00","level":"INFO","msg":"takeInfo","takeInfo":[{},null],"takeIndex":1}
+{"time":"2024-08-07T20:55:50.861097519-05:00","level":"INFO","msg":"Processing progress record","index":0,"rowIndex":2,"done":false}
+{"time":"2024-08-07T20:55:50.861102711-05:00","level":"INFO","msg":"takeInfo","takeInfo":[null,null],"takeIndex":0}
+{"time":"2024-08-07T20:55:50.861110765-05:00","level":"INFO","msg":"buildNextRecordFromSampleRecord","allowPartialFill":false}
+--- PASS: TestMergeSortBuilder (0.00s)
+=== RUN   TestValidateSampleRecord
+=== RUN   TestValidateSampleRecord/0_valid_simple_record
+=== RUN   TestValidateSampleRecord/1_simple_record_with_duplicates
+=== RUN   TestValidateSampleRecord/2_simple_record_with_key_not_in_key_record
+--- PASS: TestValidateSampleRecord (0.00s)
+    --- PASS: TestValidateSampleRecord/0_valid_simple_record (0.00s)
+    --- PASS: TestValidateSampleRecord/1_simple_record_with_duplicates (0.00s)
+    --- PASS: TestValidateSampleRecord/2_simple_record_with_key_not_in_key_record (0.00s)
+=== RUN   TestSortRecordWithSingleColumnAndDescendingData
+--- PASS: TestSortRecordWithSingleColumnAndDescendingData (0.20s)
+=== RUN   TestSortRecord
+--- PASS: TestSortRecord (0.00s)
+=== RUN   TestTakeMultipleRecords
+=== RUN   TestTakeMultipleRecords/case_0
+=== RUN   TestTakeMultipleRecords/case_1
+=== RUN   TestTakeMultipleRecords/case_2
+=== RUN   TestTakeMultipleRecords/case_3
+=== RUN   TestTakeMultipleRecords/case_4
+--- PASS: TestTakeMultipleRecords (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_0 (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_1 (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_2 (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_3 (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_4 (0.00s)
+=== RUN   TestTakeRecord
+--- PASS: TestTakeRecord (0.00s)
+=== RUN   TestRetainFollowedByRelease
+--- PASS: TestRetainFollowedByRelease (0.00s)
+=== RUN   TestRelease
+    allocator_test.go:30: panic occured but was the wrong error: runtime error: invalid memory address or nil pointer dereference
+--- PASS: TestRelease (0.00s)
+=== RUN   TestCompareRecordRows
+=== RUN   TestCompareRecordRows/case_0:basic_record
+=== RUN   TestCompareRecordRows/case_1:record_with_null_values
+--- PASS: TestCompareRecordRows (0.00s)
+    --- PASS: TestCompareRecordRows/case_0:basic_record (0.00s)
+    --- PASS: TestCompareRecordRows/case_1:record_with_null_values (0.00s)
+=== RUN   TestConcatenateRecords
+=== RUN   TestConcatenateRecords/case_0
+=== RUN   TestConcatenateRecords/case_1
+=== RUN   TestConcatenateRecords/case_2
+--- PASS: TestConcatenateRecords (0.00s)
+    --- PASS: TestConcatenateRecords/case_0 (0.00s)
+    --- PASS: TestConcatenateRecords/case_1 (0.00s)
+    --- PASS: TestConcatenateRecords/case_2 (0.00s)
+=== RUN   TestRecordsEqual
+--- PASS: TestRecordsEqual (0.00s)
+=== RUN   TestMergeSortBuilder
+{"time":"2024-08-07T20:55:51.066777051-05:00","level":"INFO","msg":"Processing progress record","index":0,"rowIndex":0,"done":false}
+{"time":"2024-08-07T20:55:51.066788227-05:00","level":"INFO","msg":"takeInfo","takeInfo":[null,null],"takeIndex":0}
+{"time":"2024-08-07T20:55:51.066806232-05:00","level":"INFO","msg":"takeInfo","takeInfo":[{},null],"takeIndex":1}
+{"time":"2024-08-07T20:55:51.066866201-05:00","level":"INFO","msg":"Processing progress record","index":0,"rowIndex":2,"done":false}
+{"time":"2024-08-07T20:55:51.066871886-05:00","level":"INFO","msg":"takeInfo","takeInfo":[null,null],"takeIndex":0}
+{"time":"2024-08-07T20:55:51.066879772-05:00","level":"INFO","msg":"buildNextRecordFromSampleRecord","allowPartialFill":false}
+--- PASS: TestMergeSortBuilder (0.00s)
+=== RUN   TestValidateSampleRecord
+=== RUN   TestValidateSampleRecord/0_valid_simple_record
+=== RUN   TestValidateSampleRecord/1_simple_record_with_duplicates
+=== RUN   TestValidateSampleRecord/2_simple_record_with_key_not_in_key_record
+--- PASS: TestValidateSampleRecord (0.00s)
+    --- PASS: TestValidateSampleRecord/0_valid_simple_record (0.00s)
+    --- PASS: TestValidateSampleRecord/1_simple_record_with_duplicates (0.00s)
+    --- PASS: TestValidateSampleRecord/2_simple_record_with_key_not_in_key_record (0.00s)
+=== RUN   TestSortRecordWithSingleColumnAndDescendingData
+--- PASS: TestSortRecordWithSingleColumnAndDescendingData (0.22s)
+=== RUN   TestSortRecord
+--- PASS: TestSortRecord (0.00s)
+=== RUN   TestTakeMultipleRecords
+=== RUN   TestTakeMultipleRecords/case_0
+=== RUN   TestTakeMultipleRecords/case_1
+=== RUN   TestTakeMultipleRecords/case_2
+=== RUN   TestTakeMultipleRecords/case_3
+=== RUN   TestTakeMultipleRecords/case_4
+--- PASS: TestTakeMultipleRecords (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_0 (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_1 (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_2 (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_3 (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_4 (0.00s)
+=== RUN   TestTakeRecord
+--- PASS: TestTakeRecord (0.00s)
+=== RUN   TestRetainFollowedByRelease
+--- PASS: TestRetainFollowedByRelease (0.00s)
+=== RUN   TestRelease
+    allocator_test.go:30: panic occured but was the wrong error: runtime error: invalid memory address or nil pointer dereference
+--- PASS: TestRelease (0.00s)
+=== RUN   TestCompareRecordRows
+=== RUN   TestCompareRecordRows/case_0:basic_record
+=== RUN   TestCompareRecordRows/case_1:record_with_null_values
+--- PASS: TestCompareRecordRows (0.00s)
+    --- PASS: TestCompareRecordRows/case_0:basic_record (0.00s)
+    --- PASS: TestCompareRecordRows/case_1:record_with_null_values (0.00s)
+=== RUN   TestConcatenateRecords
+=== RUN   TestConcatenateRecords/case_0
+=== RUN   TestConcatenateRecords/case_1
+=== RUN   TestConcatenateRecords/case_2
+--- PASS: TestConcatenateRecords (0.00s)
+    --- PASS: TestConcatenateRecords/case_0 (0.00s)
+    --- PASS: TestConcatenateRecords/case_1 (0.00s)
+    --- PASS: TestConcatenateRecords/case_2 (0.00s)
+=== RUN   TestRecordsEqual
+--- PASS: TestRecordsEqual (0.00s)
+=== RUN   TestMergeSortBuilder
+{"time":"2024-08-07T20:55:51.287584728-05:00","level":"INFO","msg":"Processing progress record","index":0,"rowIndex":0,"done":false}
+{"time":"2024-08-07T20:55:51.287595895-05:00","level":"INFO","msg":"takeInfo","takeInfo":[null,null],"takeIndex":0}
+{"time":"2024-08-07T20:55:51.287605965-05:00","level":"INFO","msg":"takeInfo","takeInfo":[{},null],"takeIndex":1}
+{"time":"2024-08-07T20:55:51.287637379-05:00","level":"INFO","msg":"Processing progress record","index":0,"rowIndex":2,"done":false}
+{"time":"2024-08-07T20:55:51.287642732-05:00","level":"INFO","msg":"takeInfo","takeInfo":[null,null],"takeIndex":0}
+{"time":"2024-08-07T20:55:51.287650634-05:00","level":"INFO","msg":"buildNextRecordFromSampleRecord","allowPartialFill":false}
+--- PASS: TestMergeSortBuilder (0.00s)
+=== RUN   TestValidateSampleRecord
+=== RUN   TestValidateSampleRecord/0_valid_simple_record
+=== RUN   TestValidateSampleRecord/1_simple_record_with_duplicates
+=== RUN   TestValidateSampleRecord/2_simple_record_with_key_not_in_key_record
+--- PASS: TestValidateSampleRecord (0.00s)
+    --- PASS: TestValidateSampleRecord/0_valid_simple_record (0.00s)
+    --- PASS: TestValidateSampleRecord/1_simple_record_with_duplicates (0.00s)
+    --- PASS: TestValidateSampleRecord/2_simple_record_with_key_not_in_key_record (0.00s)
+=== RUN   TestSortRecordWithSingleColumnAndDescendingData
+--- PASS: TestSortRecordWithSingleColumnAndDescendingData (0.21s)
+=== RUN   TestSortRecord
+--- PASS: TestSortRecord (0.00s)
+=== RUN   TestTakeMultipleRecords
+=== RUN   TestTakeMultipleRecords/case_0
+=== RUN   TestTakeMultipleRecords/case_1
+=== RUN   TestTakeMultipleRecords/case_2
+=== RUN   TestTakeMultipleRecords/case_3
+=== RUN   TestTakeMultipleRecords/case_4
+--- PASS: TestTakeMultipleRecords (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_0 (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_1 (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_2 (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_3 (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_4 (0.00s)
+=== RUN   TestTakeRecord
+--- PASS: TestTakeRecord (0.00s)
+=== RUN   TestRetainFollowedByRelease
+--- PASS: TestRetainFollowedByRelease (0.00s)
+=== RUN   TestRelease
+    allocator_test.go:30: panic occured but was the wrong error: runtime error: invalid memory address or nil pointer dereference
+--- PASS: TestRelease (0.00s)
+=== RUN   TestCompareRecordRows
+=== RUN   TestCompareRecordRows/case_0:basic_record
+=== RUN   TestCompareRecordRows/case_1:record_with_null_values
+--- PASS: TestCompareRecordRows (0.00s)
+    --- PASS: TestCompareRecordRows/case_0:basic_record (0.00s)
+    --- PASS: TestCompareRecordRows/case_1:record_with_null_values (0.00s)
+=== RUN   TestConcatenateRecords
+=== RUN   TestConcatenateRecords/case_0
+=== RUN   TestConcatenateRecords/case_1
+=== RUN   TestConcatenateRecords/case_2
+--- PASS: TestConcatenateRecords (0.00s)
+    --- PASS: TestConcatenateRecords/case_0 (0.00s)
+    --- PASS: TestConcatenateRecords/case_1 (0.00s)
+    --- PASS: TestConcatenateRecords/case_2 (0.00s)
+=== RUN   TestRecordsEqual
+--- PASS: TestRecordsEqual (0.00s)
+=== RUN   TestMergeSortBuilder
+{"time":"2024-08-07T20:55:51.501843084-05:00","level":"INFO","msg":"Processing progress record","index":0,"rowIndex":0,"done":false}
+{"time":"2024-08-07T20:55:51.501853804-05:00","level":"INFO","msg":"takeInfo","takeInfo":[null,null],"takeIndex":0}
+{"time":"2024-08-07T20:55:51.501869865-05:00","level":"INFO","msg":"takeInfo","takeInfo":[{},null],"takeIndex":1}
+{"time":"2024-08-07T20:55:51.501901741-05:00","level":"INFO","msg":"Processing progress record","index":0,"rowIndex":2,"done":false}
+{"time":"2024-08-07T20:55:51.50190696-05:00","level":"INFO","msg":"takeInfo","takeInfo":[null,null],"takeIndex":0}
+{"time":"2024-08-07T20:55:51.50191489-05:00","level":"INFO","msg":"buildNextRecordFromSampleRecord","allowPartialFill":false}
+--- PASS: TestMergeSortBuilder (0.00s)
+=== RUN   TestValidateSampleRecord
+=== RUN   TestValidateSampleRecord/0_valid_simple_record
+=== RUN   TestValidateSampleRecord/1_simple_record_with_duplicates
+=== RUN   TestValidateSampleRecord/2_simple_record_with_key_not_in_key_record
+--- PASS: TestValidateSampleRecord (0.00s)
+    --- PASS: TestValidateSampleRecord/0_valid_simple_record (0.00s)
+    --- PASS: TestValidateSampleRecord/1_simple_record_with_duplicates (0.00s)
+    --- PASS: TestValidateSampleRecord/2_simple_record_with_key_not_in_key_record (0.00s)
+=== RUN   TestSortRecordWithSingleColumnAndDescendingData
+--- PASS: TestSortRecordWithSingleColumnAndDescendingData (0.21s)
+=== RUN   TestSortRecord
+--- PASS: TestSortRecord (0.00s)
+=== RUN   TestTakeMultipleRecords
+=== RUN   TestTakeMultipleRecords/case_0
+=== RUN   TestTakeMultipleRecords/case_1
+=== RUN   TestTakeMultipleRecords/case_2
+=== RUN   TestTakeMultipleRecords/case_3
+=== RUN   TestTakeMultipleRecords/case_4
+--- PASS: TestTakeMultipleRecords (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_0 (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_1 (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_2 (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_3 (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_4 (0.00s)
+=== RUN   TestTakeRecord
+--- PASS: TestTakeRecord (0.00s)
+=== RUN   TestRetainFollowedByRelease
+--- PASS: TestRetainFollowedByRelease (0.00s)
+=== RUN   TestRelease
+    allocator_test.go:30: panic occured but was the wrong error: runtime error: invalid memory address or nil pointer dereference
+--- PASS: TestRelease (0.00s)
+=== RUN   TestCompareRecordRows
+=== RUN   TestCompareRecordRows/case_0:basic_record
+=== RUN   TestCompareRecordRows/case_1:record_with_null_values
+--- PASS: TestCompareRecordRows (0.00s)
+    --- PASS: TestCompareRecordRows/case_0:basic_record (0.00s)
+    --- PASS: TestCompareRecordRows/case_1:record_with_null_values (0.00s)
+=== RUN   TestConcatenateRecords
+=== RUN   TestConcatenateRecords/case_0
+=== RUN   TestConcatenateRecords/case_1
+=== RUN   TestConcatenateRecords/case_2
+--- PASS: TestConcatenateRecords (0.00s)
+    --- PASS: TestConcatenateRecords/case_0 (0.00s)
+    --- PASS: TestConcatenateRecords/case_1 (0.00s)
+    --- PASS: TestConcatenateRecords/case_2 (0.00s)
+=== RUN   TestRecordsEqual
+--- PASS: TestRecordsEqual (0.00s)
+=== RUN   TestMergeSortBuilder
+{"time":"2024-08-07T20:55:51.712365704-05:00","level":"INFO","msg":"Processing progress record","index":0,"rowIndex":0,"done":false}
+{"time":"2024-08-07T20:55:51.712377275-05:00","level":"INFO","msg":"takeInfo","takeInfo":[null,null],"takeIndex":0}
+{"time":"2024-08-07T20:55:51.712387459-05:00","level":"INFO","msg":"takeInfo","takeInfo":[{},null],"takeIndex":1}
+{"time":"2024-08-07T20:55:51.712418772-05:00","level":"INFO","msg":"Processing progress record","index":0,"rowIndex":2,"done":false}
+{"time":"2024-08-07T20:55:51.712424323-05:00","level":"INFO","msg":"takeInfo","takeInfo":[null,null],"takeIndex":0}
+{"time":"2024-08-07T20:55:51.71243225-05:00","level":"INFO","msg":"buildNextRecordFromSampleRecord","allowPartialFill":false}
+--- PASS: TestMergeSortBuilder (0.00s)
+=== RUN   TestValidateSampleRecord
+=== RUN   TestValidateSampleRecord/0_valid_simple_record
+=== RUN   TestValidateSampleRecord/1_simple_record_with_duplicates
+=== RUN   TestValidateSampleRecord/2_simple_record_with_key_not_in_key_record
+--- PASS: TestValidateSampleRecord (0.00s)
+    --- PASS: TestValidateSampleRecord/0_valid_simple_record (0.00s)
+    --- PASS: TestValidateSampleRecord/1_simple_record_with_duplicates (0.00s)
+    --- PASS: TestValidateSampleRecord/2_simple_record_with_key_not_in_key_record (0.00s)
+=== RUN   TestSortRecordWithSingleColumnAndDescendingData
+--- PASS: TestSortRecordWithSingleColumnAndDescendingData (0.19s)
+=== RUN   TestSortRecord
+--- PASS: TestSortRecord (0.00s)
+=== RUN   TestTakeMultipleRecords
+=== RUN   TestTakeMultipleRecords/case_0
+=== RUN   TestTakeMultipleRecords/case_1
+=== RUN   TestTakeMultipleRecords/case_2
+=== RUN   TestTakeMultipleRecords/case_3
+=== RUN   TestTakeMultipleRecords/case_4
+--- PASS: TestTakeMultipleRecords (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_0 (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_1 (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_2 (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_3 (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_4 (0.00s)
+=== RUN   TestTakeRecord
+--- PASS: TestTakeRecord (0.00s)
+=== RUN   TestRetainFollowedByRelease
+--- PASS: TestRetainFollowedByRelease (0.00s)
+=== RUN   TestRelease
+    allocator_test.go:30: panic occured but was the wrong error: runtime error: invalid memory address or nil pointer dereference
+--- PASS: TestRelease (0.00s)
+=== RUN   TestCompareRecordRows
+=== RUN   TestCompareRecordRows/case_0:basic_record
+=== RUN   TestCompareRecordRows/case_1:record_with_null_values
+--- PASS: TestCompareRecordRows (0.00s)
+    --- PASS: TestCompareRecordRows/case_0:basic_record (0.00s)
+    --- PASS: TestCompareRecordRows/case_1:record_with_null_values (0.00s)
+=== RUN   TestConcatenateRecords
+=== RUN   TestConcatenateRecords/case_0
+=== RUN   TestConcatenateRecords/case_1
+=== RUN   TestConcatenateRecords/case_2
+--- PASS: TestConcatenateRecords (0.00s)
+    --- PASS: TestConcatenateRecords/case_0 (0.00s)
+    --- PASS: TestConcatenateRecords/case_1 (0.00s)
+    --- PASS: TestConcatenateRecords/case_2 (0.00s)
+=== RUN   TestRecordsEqual
+--- PASS: TestRecordsEqual (0.00s)
+=== RUN   TestMergeSortBuilder
+{"time":"2024-08-07T20:55:51.90529935-05:00","level":"INFO","msg":"Processing progress record","index":0,"rowIndex":0,"done":false}
+{"time":"2024-08-07T20:55:51.905310203-05:00","level":"INFO","msg":"takeInfo","takeInfo":[null,null],"takeIndex":0}
+{"time":"2024-08-07T20:55:51.905320086-05:00","level":"INFO","msg":"takeInfo","takeInfo":[{},null],"takeIndex":1}
+{"time":"2024-08-07T20:55:51.905350999-05:00","level":"INFO","msg":"Processing progress record","index":0,"rowIndex":2,"done":false}
+{"time":"2024-08-07T20:55:51.905356433-05:00","level":"INFO","msg":"takeInfo","takeInfo":[null,null],"takeIndex":0}
+{"time":"2024-08-07T20:55:51.905364308-05:00","level":"INFO","msg":"buildNextRecordFromSampleRecord","allowPartialFill":false}
+--- PASS: TestMergeSortBuilder (0.00s)
+=== RUN   TestValidateSampleRecord
+=== RUN   TestValidateSampleRecord/0_valid_simple_record
+=== RUN   TestValidateSampleRecord/1_simple_record_with_duplicates
+=== RUN   TestValidateSampleRecord/2_simple_record_with_key_not_in_key_record
+--- PASS: TestValidateSampleRecord (0.00s)
+    --- PASS: TestValidateSampleRecord/0_valid_simple_record (0.00s)
+    --- PASS: TestValidateSampleRecord/1_simple_record_with_duplicates (0.00s)
+    --- PASS: TestValidateSampleRecord/2_simple_record_with_key_not_in_key_record (0.00s)
+=== RUN   TestSortRecordWithSingleColumnAndDescendingData
+--- PASS: TestSortRecordWithSingleColumnAndDescendingData (0.20s)
+=== RUN   TestSortRecord
+--- PASS: TestSortRecord (0.00s)
+=== RUN   TestTakeMultipleRecords
+=== RUN   TestTakeMultipleRecords/case_0
+=== RUN   TestTakeMultipleRecords/case_1
+=== RUN   TestTakeMultipleRecords/case_2
+=== RUN   TestTakeMultipleRecords/case_3
+=== RUN   TestTakeMultipleRecords/case_4
+--- PASS: TestTakeMultipleRecords (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_0 (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_1 (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_2 (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_3 (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_4 (0.00s)
+=== RUN   TestTakeRecord
+--- PASS: TestTakeRecord (0.00s)
+=== RUN   TestRetainFollowedByRelease
+--- PASS: TestRetainFollowedByRelease (0.00s)
+=== RUN   TestRelease
+    allocator_test.go:30: panic occured but was the wrong error: runtime error: invalid memory address or nil pointer dereference
+--- PASS: TestRelease (0.00s)
+=== RUN   TestCompareRecordRows
+=== RUN   TestCompareRecordRows/case_0:basic_record
+=== RUN   TestCompareRecordRows/case_1:record_with_null_values
+--- PASS: TestCompareRecordRows (0.00s)
+    --- PASS: TestCompareRecordRows/case_0:basic_record (0.00s)
+    --- PASS: TestCompareRecordRows/case_1:record_with_null_values (0.00s)
+=== RUN   TestConcatenateRecords
+=== RUN   TestConcatenateRecords/case_0
+=== RUN   TestConcatenateRecords/case_1
+=== RUN   TestConcatenateRecords/case_2
+--- PASS: TestConcatenateRecords (0.00s)
+    --- PASS: TestConcatenateRecords/case_0 (0.00s)
+    --- PASS: TestConcatenateRecords/case_1 (0.00s)
+    --- PASS: TestConcatenateRecords/case_2 (0.00s)
+=== RUN   TestRecordsEqual
+--- PASS: TestRecordsEqual (0.00s)
+=== RUN   TestMergeSortBuilder
+{"time":"2024-08-07T20:55:52.103257624-05:00","level":"INFO","msg":"Processing progress record","index":0,"rowIndex":0,"done":false}
+{"time":"2024-08-07T20:55:52.103268458-05:00","level":"INFO","msg":"takeInfo","takeInfo":[null,null],"takeIndex":0}
+{"time":"2024-08-07T20:55:52.103278442-05:00","level":"INFO","msg":"takeInfo","takeInfo":[{},null],"takeIndex":1}
+{"time":"2024-08-07T20:55:52.103309346-05:00","level":"INFO","msg":"Processing progress record","index":0,"rowIndex":2,"done":false}
+{"time":"2024-08-07T20:55:52.103314802-05:00","level":"INFO","msg":"takeInfo","takeInfo":[null,null],"takeIndex":0}
+{"time":"2024-08-07T20:55:52.103322539-05:00","level":"INFO","msg":"buildNextRecordFromSampleRecord","allowPartialFill":false}
+--- PASS: TestMergeSortBuilder (0.00s)
+=== RUN   TestValidateSampleRecord
+=== RUN   TestValidateSampleRecord/0_valid_simple_record
+=== RUN   TestValidateSampleRecord/1_simple_record_with_duplicates
+=== RUN   TestValidateSampleRecord/2_simple_record_with_key_not_in_key_record
+--- PASS: TestValidateSampleRecord (0.00s)
+    --- PASS: TestValidateSampleRecord/0_valid_simple_record (0.00s)
+    --- PASS: TestValidateSampleRecord/1_simple_record_with_duplicates (0.00s)
+    --- PASS: TestValidateSampleRecord/2_simple_record_with_key_not_in_key_record (0.00s)
+=== RUN   TestSortRecordWithSingleColumnAndDescendingData
+--- PASS: TestSortRecordWithSingleColumnAndDescendingData (0.20s)
+=== RUN   TestSortRecord
+--- PASS: TestSortRecord (0.00s)
+=== RUN   TestTakeMultipleRecords
+=== RUN   TestTakeMultipleRecords/case_0
+=== RUN   TestTakeMultipleRecords/case_1
+=== RUN   TestTakeMultipleRecords/case_2
+=== RUN   TestTakeMultipleRecords/case_3
+=== RUN   TestTakeMultipleRecords/case_4
+--- PASS: TestTakeMultipleRecords (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_0 (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_1 (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_2 (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_3 (0.00s)
+    --- PASS: TestTakeMultipleRecords/case_4 (0.00s)
+=== RUN   TestTakeRecord
+--- PASS: TestTakeRecord (0.00s)
+goos: linux
+goarch: amd64
+pkg: github.com/alekLukanen/ChapterhouseDB/arrowOps
+cpu: Intel(R) Core(TM) i5-6500 CPU @ 3.20GHz
+BenchmarkCompareRecordRowsOnAllColumns
+BenchmarkCompareRecordRowsOnAllColumns/size_10000
+BenchmarkCompareRecordRowsOnAllColumns/size_10000    	       1	  12474662 ns/op	 1470208 B/op	   90001 allocs/op
+BenchmarkCompareRecordRowsOnAllColumns/size_10000    	       1	  13281663 ns/op	 1470000 B/op	   90000 allocs/op
+BenchmarkCompareRecordRowsOnAllColumns/size_10000    	       1	  12859232 ns/op	 1470016 B/op	   90000 allocs/op
+BenchmarkCompareRecordRowsOnAllColumns/size_10000    	       1	  12644086 ns/op	 1470000 B/op	   90000 allocs/op
+BenchmarkCompareRecordRowsOnAllColumns/size_10000    	       1	  12551350 ns/op	 1470016 B/op	   90000 allocs/op
+BenchmarkCompareRecordRowsOnAllColumns/size_10000    	       1	  12564566 ns/op	 1470000 B/op	   90000 allocs/op
+BenchmarkCompareRecordRowsOnAllColumns/size_10000    	       1	  12463742 ns/op	 1470016 B/op	   90000 allocs/op
+BenchmarkCompareRecordRowsOnAllColumns/size_10000    	       1	  12661582 ns/op	 1470000 B/op	   90000 allocs/op
+BenchmarkCompareRecordRowsOnAllColumns/size_10000    	       1	  12919819 ns/op	 1470016 B/op	   90000 allocs/op
+BenchmarkCompareRecordRowsOnAllColumns/size_10000    	       1	  12397063 ns/op	 1470000 B/op	   90000 allocs/op
+BenchmarkCompareRecordRowsOnAllColumns/size_100000
+BenchmarkCompareRecordRowsOnAllColumns/size_100000   	       1	 118979690 ns/op	14700016 B/op	  900000 allocs/op
+BenchmarkCompareRecordRowsOnAllColumns/size_100000   	       1	 112705481 ns/op	14700016 B/op	  900000 allocs/op
+BenchmarkCompareRecordRowsOnAllColumns/size_100000   	       1	 115323575 ns/op	14700016 B/op	  900000 allocs/op
+BenchmarkCompareRecordRowsOnAllColumns/size_100000   	       1	 111360667 ns/op	14700016 B/op	  900000 allocs/op
+BenchmarkCompareRecordRowsOnAllColumns/size_100000   	       1	 112887905 ns/op	14700016 B/op	  900000 allocs/op
+BenchmarkCompareRecordRowsOnAllColumns/size_100000   	       1	 112972707 ns/op	14700016 B/op	  900000 allocs/op
+BenchmarkCompareRecordRowsOnAllColumns/size_100000   	       1	 112742428 ns/op	14700016 B/op	  900000 allocs/op
+BenchmarkCompareRecordRowsOnAllColumns/size_100000   	       1	 115279647 ns/op	14700016 B/op	  900000 allocs/op
+BenchmarkCompareRecordRowsOnAllColumns/size_100000   	       1	 112844034 ns/op	14700016 B/op	  900000 allocs/op
+BenchmarkCompareRecordRowsOnAllColumns/size_100000   	       1	 112804377 ns/op	14700016 B/op	  900000 allocs/op
+BenchmarkCompareRecordRowsOnAllColumns/size_1000000
+BenchmarkCompareRecordRowsOnAllColumns/size_1000000  	       1	1106349065 ns/op	147000048 B/op	 9000000 allocs/op
+BenchmarkCompareRecordRowsOnAllColumns/size_1000000  	       1	1104795415 ns/op	147000032 B/op	 9000000 allocs/op
+BenchmarkCompareRecordRowsOnAllColumns/size_1000000  	       1	1100649043 ns/op	147000032 B/op	 9000000 allocs/op
+BenchmarkCompareRecordRowsOnAllColumns/size_1000000  	       1	1104686516 ns/op	147000016 B/op	 9000000 allocs/op
+BenchmarkCompareRecordRowsOnAllColumns/size_1000000  	       1	1112578075 ns/op	147000032 B/op	 9000000 allocs/op
+BenchmarkCompareRecordRowsOnAllColumns/size_1000000  	       1	1111910826 ns/op	147000048 B/op	 9000000 allocs/op
+BenchmarkCompareRecordRowsOnAllColumns/size_1000000  	       1	1107140204 ns/op	147000032 B/op	 9000000 allocs/op
+BenchmarkCompareRecordRowsOnAllColumns/size_1000000  	       1	1116054376 ns/op	147000048 B/op	 9000000 allocs/op
+BenchmarkCompareRecordRowsOnAllColumns/size_1000000  	       1	1109159182 ns/op	147000032 B/op	 9000000 allocs/op
+BenchmarkCompareRecordRowsOnAllColumns/size_1000000  	       1	1106064935 ns/op	147000048 B/op	 9000000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset
+BenchmarkCompareRecordRowsWithColumnSubset/size_10000|column_a
+BenchmarkCompareRecordRowsWithColumnSubset/size_10000|column_a         	       1	  11287634 ns/op	 4980016 B/op	  110000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_10000|column_a         	       1	  11213331 ns/op	 4980016 B/op	  110000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_10000|column_a         	       1	  11896054 ns/op	 4980016 B/op	  110000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_10000|column_a         	       1	  11674836 ns/op	 4980016 B/op	  110000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_10000|column_a         	       1	  11259946 ns/op	 4980016 B/op	  110000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_10000|column_a         	       1	  11963715 ns/op	 4980016 B/op	  110000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_10000|column_a         	       1	  11230419 ns/op	 4980016 B/op	  110000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_10000|column_a         	       1	  11354886 ns/op	 4980016 B/op	  110000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_10000|column_a         	       1	  11337272 ns/op	 4980016 B/op	  110000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_10000|column_a         	       1	  12184695 ns/op	 4980016 B/op	  110000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_10000|column_b
+BenchmarkCompareRecordRowsWithColumnSubset/size_10000|column_b         	       1	  11612736 ns/op	 4980016 B/op	  110000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_10000|column_b         	       1	  11536903 ns/op	 4980016 B/op	  110000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_10000|column_b         	       1	  12127975 ns/op	 4980016 B/op	  110000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_10000|column_b         	       1	  11607119 ns/op	 4980016 B/op	  110000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_10000|column_b         	       1	  11542428 ns/op	 4980016 B/op	  110000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_10000|column_b         	       1	  11585454 ns/op	 4980016 B/op	  110000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_10000|column_b         	       1	  11805668 ns/op	 4980016 B/op	  110000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_10000|column_b         	       1	  11845120 ns/op	 4980016 B/op	  110000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_10000|column_b         	       1	  11486422 ns/op	 4980016 B/op	  110000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_10000|column_b         	       1	  12268314 ns/op	 4980016 B/op	  110000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_10000|column_c
+BenchmarkCompareRecordRowsWithColumnSubset/size_10000|column_c         	       1	  12024852 ns/op	 4980016 B/op	  110000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_10000|column_c         	       1	  12148184 ns/op	 4980016 B/op	  110000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_10000|column_c         	       1	  12027347 ns/op	 4980016 B/op	  110000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_10000|column_c         	       1	  12197855 ns/op	 4980016 B/op	  110000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_10000|column_c         	       1	  12169515 ns/op	 4980016 B/op	  110000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_10000|column_c         	       1	  12592664 ns/op	 4980016 B/op	  110000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_10000|column_c         	       1	  12074914 ns/op	 4980016 B/op	  110000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_10000|column_c         	       1	  12118670 ns/op	 4980016 B/op	  110000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_10000|column_c         	       1	  11988398 ns/op	 4980016 B/op	  110000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_10000|column_c         	       1	  12244804 ns/op	 4980016 B/op	  110000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_100000|column_a
+BenchmarkCompareRecordRowsWithColumnSubset/size_100000|column_a        	       1	 107896199 ns/op	49800048 B/op	 1100000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_100000|column_a        	       1	 113265205 ns/op	49800048 B/op	 1100000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_100000|column_a        	       1	 108349081 ns/op	49800064 B/op	 1100000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_100000|column_a        	       1	 113923607 ns/op	49800032 B/op	 1100000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_100000|column_a        	       1	 109667094 ns/op	49800032 B/op	 1100000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_100000|column_a        	       1	 115429720 ns/op	49800032 B/op	 1100000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_100000|column_a        	       1	 115167457 ns/op	49800064 B/op	 1100000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_100000|column_a        	       1	 111476435 ns/op	49800032 B/op	 1100000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_100000|column_a        	       1	 115883400 ns/op	49800048 B/op	 1100000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_100000|column_a        	       1	 114303934 ns/op	49800048 B/op	 1100000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_100000|column_b
+BenchmarkCompareRecordRowsWithColumnSubset/size_100000|column_b        	       1	 109820272 ns/op	49800048 B/op	 1100000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_100000|column_b        	       1	 116074591 ns/op	49800048 B/op	 1100000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_100000|column_b        	       1	 116578042 ns/op	49800048 B/op	 1100000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_100000|column_b        	       1	 117195077 ns/op	49800048 B/op	 1100000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_100000|column_b        	       1	 117447650 ns/op	49800048 B/op	 1100000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_100000|column_b        	       1	 118587346 ns/op	49800048 B/op	 1100000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_100000|column_b        	       1	 116696725 ns/op	49800048 B/op	 1100000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_100000|column_b        	       1	 116837263 ns/op	49800048 B/op	 1100000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_100000|column_b        	       1	 117693197 ns/op	49800048 B/op	 1100000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_100000|column_b        	       1	 118075002 ns/op	49800032 B/op	 1100000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_100000|column_c
+BenchmarkCompareRecordRowsWithColumnSubset/size_100000|column_c        	       1	 122823108 ns/op	49800032 B/op	 1100000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_100000|column_c        	       1	 118976276 ns/op	49800048 B/op	 1100000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_100000|column_c        	       1	 119824180 ns/op	49800064 B/op	 1100000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_100000|column_c        	       1	 120476459 ns/op	49800032 B/op	 1100000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_100000|column_c        	       1	 123270233 ns/op	49800064 B/op	 1100000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_100000|column_c        	       1	 120765901 ns/op	49800032 B/op	 1100000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_100000|column_c        	       1	 122120246 ns/op	49800032 B/op	 1100000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_100000|column_c        	       1	 121575316 ns/op	49800032 B/op	 1100000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_100000|column_c        	       1	 121119706 ns/op	49800032 B/op	 1100000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_100000|column_c        	       1	 120010815 ns/op	49800048 B/op	 1100000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_1000000|column_a
+BenchmarkCompareRecordRowsWithColumnSubset/size_1000000|column_a       	       1	 946311639 ns/op	498000096 B/op	11000000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_1000000|column_a       	       1	 980862654 ns/op	498000048 B/op	11000000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_1000000|column_a       	       1	 970244272 ns/op	498000096 B/op	11000000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_1000000|column_a       	       1	 955523474 ns/op	498000112 B/op	11000000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_1000000|column_a       	       1	 937080783 ns/op	498000128 B/op	11000000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_1000000|column_a       	       1	 952318386 ns/op	498000080 B/op	11000000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_1000000|column_a       	       1	 955583811 ns/op	498000080 B/op	11000000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_1000000|column_a       	       1	 954257078 ns/op	498000112 B/op	11000000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_1000000|column_a       	       1	 978208023 ns/op	498000064 B/op	11000000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_1000000|column_a       	       1	 957193931 ns/op	498000112 B/op	11000000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_1000000|column_b
+BenchmarkCompareRecordRowsWithColumnSubset/size_1000000|column_b       	       1	1009475005 ns/op	498000064 B/op	11000000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_1000000|column_b       	       1	1011155902 ns/op	498000096 B/op	11000000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_1000000|column_b       	       1	1008032870 ns/op	498000080 B/op	11000000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_1000000|column_b       	       1	1007741783 ns/op	498000096 B/op	11000000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_1000000|column_b       	       1	1011436506 ns/op	498000096 B/op	11000000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_1000000|column_b       	       1	1006246819 ns/op	498000064 B/op	11000000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_1000000|column_b       	       1	1008574065 ns/op	498000080 B/op	11000000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_1000000|column_b       	       1	1007746958 ns/op	498000096 B/op	11000000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_1000000|column_b       	       1	1010112483 ns/op	498000096 B/op	11000000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_1000000|column_b       	       1	 988819265 ns/op	498000096 B/op	11000000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_1000000|column_c
+BenchmarkCompareRecordRowsWithColumnSubset/size_1000000|column_c       	       1	1062003662 ns/op	498000064 B/op	11000000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_1000000|column_c       	       1	1049154225 ns/op	498000112 B/op	11000000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_1000000|column_c       	       1	1048164488 ns/op	498000080 B/op	11000000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_1000000|column_c       	       1	1041462595 ns/op	498000112 B/op	11000000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_1000000|column_c       	       1	1039210295 ns/op	498000080 B/op	11000000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_1000000|column_c       	       1	1036471323 ns/op	498000112 B/op	11000000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_1000000|column_c       	       1	1043223973 ns/op	498000064 B/op	11000000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_1000000|column_c       	       1	1045446216 ns/op	498000080 B/op	11000000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_1000000|column_c       	       1	1049852218 ns/op	498000096 B/op	11000000 allocs/op
+BenchmarkCompareRecordRowsWithColumnSubset/size_1000000|column_c       	       1	1046589871 ns/op	498000112 B/op	11000000 allocs/op
+BenchmarkConcatenateRecords
+BenchmarkConcatenateRecords/records=10|size=100
+BenchmarkConcatenateRecords/records=10|size=100                        	       1	     27532 ns/op	   21528 B/op	     187 allocs/op
+BenchmarkConcatenateRecords/records=10|size=100                        	       1	     24086 ns/op	   21528 B/op	     187 allocs/op
+BenchmarkConcatenateRecords/records=10|size=100                        	       1	     23816 ns/op	   21528 B/op	     187 allocs/op
+BenchmarkConcatenateRecords/records=10|size=100                        	       1	     24409 ns/op	   21528 B/op	     187 allocs/op
+BenchmarkConcatenateRecords/records=10|size=100                        	       1	     25924 ns/op	   21528 B/op	     187 allocs/op
+BenchmarkConcatenateRecords/records=10|size=100                        	       1	     24528 ns/op	   21528 B/op	     187 allocs/op
+BenchmarkConcatenateRecords/records=10|size=100                        	       1	     22976 ns/op	   21528 B/op	     187 allocs/op
+BenchmarkConcatenateRecords/records=10|size=100                        	       1	     23691 ns/op	   21528 B/op	     187 allocs/op
+BenchmarkConcatenateRecords/records=10|size=100                        	       1	     23319 ns/op	   21528 B/op	     187 allocs/op
+BenchmarkConcatenateRecords/records=10|size=100                        	       1	     23058 ns/op	   21528 B/op	     187 allocs/op
+BenchmarkConcatenateRecords/records=10|size=1000
+BenchmarkConcatenateRecords/records=10|size=1000                       	       1	    236316 ns/op	  162840 B/op	     187 allocs/op
+BenchmarkConcatenateRecords/records=10|size=1000                       	       1	     40631 ns/op	  162840 B/op	     187 allocs/op
+BenchmarkConcatenateRecords/records=10|size=1000                       	       1	     40082 ns/op	  162840 B/op	     187 allocs/op
+BenchmarkConcatenateRecords/records=10|size=1000                       	       1	     39811 ns/op	  162840 B/op	     187 allocs/op
+BenchmarkConcatenateRecords/records=10|size=1000                       	       1	     39707 ns/op	  162840 B/op	     187 allocs/op
+BenchmarkConcatenateRecords/records=10|size=1000                       	       1	     39949 ns/op	  162840 B/op	     187 allocs/op
+BenchmarkConcatenateRecords/records=10|size=1000                       	       1	     45015 ns/op	  162840 B/op	     187 allocs/op
+BenchmarkConcatenateRecords/records=10|size=1000                       	       1	     39127 ns/op	  162840 B/op	     187 allocs/op
+BenchmarkConcatenateRecords/records=10|size=1000                       	       1	     39629 ns/op	  162840 B/op	     187 allocs/op
+BenchmarkConcatenateRecords/records=10|size=1000                       	       1	     44394 ns/op	  162840 B/op	     187 allocs/op
+BenchmarkConcatenateRecords/records=10|size=10000
+BenchmarkConcatenateRecords/records=10|size=10000                      	       1	   1867034 ns/op	 1604632 B/op	     187 allocs/op
+BenchmarkConcatenateRecords/records=10|size=10000                      	       1	    724098 ns/op	 1604632 B/op	     187 allocs/op
+BenchmarkConcatenateRecords/records=10|size=10000                      	       1	    727280 ns/op	 1604632 B/op	     187 allocs/op
+BenchmarkConcatenateRecords/records=10|size=10000                      	       1	    734944 ns/op	 1604632 B/op	     187 allocs/op
+BenchmarkConcatenateRecords/records=10|size=10000                      	       1	    832220 ns/op	 1604632 B/op	     187 allocs/op
+BenchmarkConcatenateRecords/records=10|size=10000                      	       1	    717984 ns/op	 1604632 B/op	     187 allocs/op
+BenchmarkConcatenateRecords/records=10|size=10000                      	       1	    760440 ns/op	 1604632 B/op	     187 allocs/op
+BenchmarkConcatenateRecords/records=10|size=10000                      	       1	    827858 ns/op	 1604632 B/op	     187 allocs/op
+BenchmarkConcatenateRecords/records=10|size=10000                      	       1	   1354301 ns/op	 1604632 B/op	     187 allocs/op
+BenchmarkConcatenateRecords/records=10|size=10000                      	       1	    737472 ns/op	 1604632 B/op	     187 allocs/op
+BenchmarkConcatenateRecords/records=100|size=100
+BenchmarkConcatenateRecords/records=100|size=100                       	       1	    188428 ns/op	  206136 B/op	    1627 allocs/op
+BenchmarkConcatenateRecords/records=100|size=100                       	       1	    200333 ns/op	  206136 B/op	    1627 allocs/op
+BenchmarkConcatenateRecords/records=100|size=100                       	       1	    175777 ns/op	  206136 B/op	    1627 allocs/op
+BenchmarkConcatenateRecords/records=100|size=100                       	       1	    220967 ns/op	  206136 B/op	    1627 allocs/op
+BenchmarkConcatenateRecords/records=100|size=100                       	       1	    175710 ns/op	  206136 B/op	    1627 allocs/op
+BenchmarkConcatenateRecords/records=100|size=100                       	       1	    220008 ns/op	  206136 B/op	    1627 allocs/op
+BenchmarkConcatenateRecords/records=100|size=100                       	       1	    175308 ns/op	  206136 B/op	    1627 allocs/op
+BenchmarkConcatenateRecords/records=100|size=100                       	       1	    177686 ns/op	  206136 B/op	    1627 allocs/op
+BenchmarkConcatenateRecords/records=100|size=100                       	       1	    176979 ns/op	  206136 B/op	    1627 allocs/op
+BenchmarkConcatenateRecords/records=100|size=100                       	       1	    195910 ns/op	  206136 B/op	    1627 allocs/op
+BenchmarkConcatenateRecords/records=100|size=1000
+BenchmarkConcatenateRecords/records=100|size=1000                      	       1	   1785377 ns/op	 1563320 B/op	    1627 allocs/op
+BenchmarkConcatenateRecords/records=100|size=1000                      	       1	   1028491 ns/op	 1563320 B/op	    1627 allocs/op
+BenchmarkConcatenateRecords/records=100|size=1000                      	       1	   1009252 ns/op	 1563320 B/op	    1627 allocs/op
+BenchmarkConcatenateRecords/records=100|size=1000                      	       1	   1096908 ns/op	 1563320 B/op	    1627 allocs/op
+BenchmarkConcatenateRecords/records=100|size=1000                      	       1	   1093223 ns/op	 1563320 B/op	    1627 allocs/op
+BenchmarkConcatenateRecords/records=100|size=1000                      	       1	    998012 ns/op	 1563320 B/op	    1627 allocs/op
+BenchmarkConcatenateRecords/records=100|size=1000                      	       1	   1051014 ns/op	 1563320 B/op	    1627 allocs/op
+BenchmarkConcatenateRecords/records=100|size=1000                      	       1	   1008224 ns/op	 1563320 B/op	    1627 allocs/op
+BenchmarkConcatenateRecords/records=100|size=1000                      	       1	   1026188 ns/op	 1563320 B/op	    1627 allocs/op
+BenchmarkConcatenateRecords/records=100|size=1000                      	       1	   1122613 ns/op	 1563320 B/op	    1627 allocs/op
+BenchmarkConcatenateRecords/records=100|size=10000
+BenchmarkConcatenateRecords/records=100|size=10000                     	       1	  10014747 ns/op	15973048 B/op	    1627 allocs/op
+BenchmarkConcatenateRecords/records=100|size=10000                     	       1	   9244990 ns/op	15973048 B/op	    1627 allocs/op
+BenchmarkConcatenateRecords/records=100|size=10000                     	       1	   9529565 ns/op	15973048 B/op	    1627 allocs/op
+BenchmarkConcatenateRecords/records=100|size=10000                     	       1	   9364546 ns/op	15973048 B/op	    1627 allocs/op
+BenchmarkConcatenateRecords/records=100|size=10000                     	       1	  10602148 ns/op	15973048 B/op	    1627 allocs/op
+BenchmarkConcatenateRecords/records=100|size=10000                     	       1	   9785875 ns/op	15973048 B/op	    1627 allocs/op
+BenchmarkConcatenateRecords/records=100|size=10000                     	       1	  10239261 ns/op	15973048 B/op	    1627 allocs/op
+BenchmarkConcatenateRecords/records=100|size=10000                     	       1	   3379357 ns/op	15973048 B/op	    1627 allocs/op
+BenchmarkConcatenateRecords/records=100|size=10000                     	       1	  10099602 ns/op	15973048 B/op	    1627 allocs/op
+BenchmarkConcatenateRecords/records=100|size=10000                     	       1	   9825803 ns/op	15973048 B/op	    1627 allocs/op
+BenchmarkRecordsEqual
+BenchmarkRecordsEqual/size=10000
+BenchmarkRecordsEqual/size=10000                                       	       1	  29006307 ns/op	      16 B/op	       3 allocs/op
+BenchmarkRecordsEqual/size=10000                                       	       1	  29524884 ns/op	      32 B/op	       3 allocs/op
+BenchmarkRecordsEqual/size=10000                                       	       1	  28891167 ns/op	      16 B/op	       3 allocs/op
+BenchmarkRecordsEqual/size=10000                                       	       1	  28818246 ns/op	      16 B/op	       3 allocs/op
+BenchmarkRecordsEqual/size=10000                                       	       1	  29040449 ns/op	      16 B/op	       3 allocs/op
+BenchmarkRecordsEqual/size=10000                                       	       1	  29137177 ns/op	      16 B/op	       3 allocs/op
+BenchmarkRecordsEqual/size=10000                                       	       1	  28920350 ns/op	      16 B/op	       3 allocs/op
+BenchmarkRecordsEqual/size=10000                                       	       1	  28625022 ns/op	      16 B/op	       3 allocs/op
+BenchmarkRecordsEqual/size=10000                                       	       1	  29007518 ns/op	      16 B/op	       3 allocs/op
+BenchmarkRecordsEqual/size=10000                                       	       1	  29396218 ns/op	      16 B/op	       3 allocs/op
+BenchmarkRecordsEqual/size=100000
+BenchmarkRecordsEqual/size=100000                                      	       1	  29794647 ns/op	      16 B/op	       3 allocs/op
+BenchmarkRecordsEqual/size=100000                                      	       1	  28615580 ns/op	      16 B/op	       3 allocs/op
+BenchmarkRecordsEqual/size=100000                                      	       1	  29414424 ns/op	      16 B/op	       3 allocs/op
+BenchmarkRecordsEqual/size=100000                                      	       1	  28730449 ns/op	      16 B/op	       3 allocs/op
+BenchmarkRecordsEqual/size=100000                                      	       1	  29270277 ns/op	      16 B/op	       3 allocs/op
+BenchmarkRecordsEqual/size=100000                                      	       1	  29038236 ns/op	      16 B/op	       3 allocs/op
+BenchmarkRecordsEqual/size=100000                                      	       1	  28532113 ns/op	      16 B/op	       3 allocs/op
+BenchmarkRecordsEqual/size=100000                                      	       1	  28826124 ns/op	      16 B/op	       3 allocs/op
+BenchmarkRecordsEqual/size=100000                                      	       1	  29130023 ns/op	      16 B/op	       3 allocs/op
+BenchmarkRecordsEqual/size=100000                                      	       1	  28697648 ns/op	      16 B/op	       3 allocs/op
+BenchmarkRecordsEqual/size=1000000
+BenchmarkRecordsEqual/size=1000000                                     	       1	  28840263 ns/op	      16 B/op	       3 allocs/op
+BenchmarkRecordsEqual/size=1000000                                     	       1	  28734716 ns/op	      16 B/op	       3 allocs/op
+BenchmarkRecordsEqual/size=1000000                                     	       1	  29273943 ns/op	      16 B/op	       3 allocs/op
+BenchmarkRecordsEqual/size=1000000                                     	       1	  29396916 ns/op	      16 B/op	       3 allocs/op
+BenchmarkRecordsEqual/size=1000000                                     	       1	  28597920 ns/op	      16 B/op	       3 allocs/op
+BenchmarkRecordsEqual/size=1000000                                     	       1	  28757990 ns/op	      16 B/op	       3 allocs/op
+BenchmarkRecordsEqual/size=1000000                                     	       1	  29153301 ns/op	      16 B/op	       3 allocs/op
+BenchmarkRecordsEqual/size=1000000                                     	       1	  29291744 ns/op	      16 B/op	       3 allocs/op
+BenchmarkRecordsEqual/size=1000000                                     	       1	  28942455 ns/op	      16 B/op	       3 allocs/op
+BenchmarkRecordsEqual/size=1000000                                     	       1	  28829614 ns/op	      16 B/op	       3 allocs/op
+BenchmarkValidateSampleRecord
+BenchmarkValidateSampleRecord/size_10000
+BenchmarkValidateSampleRecord/size_10000                               	       1	  24027431 ns/op	 9639568 B/op	  199991 allocs/op
+BenchmarkValidateSampleRecord/size_10000                               	       1	  23438252 ns/op	 9639568 B/op	  199991 allocs/op
+BenchmarkValidateSampleRecord/size_10000                               	       1	  24007582 ns/op	 9639552 B/op	  199991 allocs/op
+BenchmarkValidateSampleRecord/size_10000                               	       1	  23839379 ns/op	 9639568 B/op	  199991 allocs/op
+BenchmarkValidateSampleRecord/size_10000                               	       1	  25169860 ns/op	 9639568 B/op	  199991 allocs/op
+BenchmarkValidateSampleRecord/size_10000                               	       1	  21744289 ns/op	 9639552 B/op	  199991 allocs/op
+BenchmarkValidateSampleRecord/size_10000                               	       1	  23793216 ns/op	 9639552 B/op	  199991 allocs/op
+BenchmarkValidateSampleRecord/size_10000                               	       1	  23662269 ns/op	 9639568 B/op	  199991 allocs/op
+BenchmarkValidateSampleRecord/size_10000                               	       1	  24726456 ns/op	 9639552 B/op	  199991 allocs/op
+BenchmarkValidateSampleRecord/size_10000                               	       1	  22852697 ns/op	 9639552 B/op	  199991 allocs/op
+BenchmarkValidateSampleRecord/size_100000
+BenchmarkValidateSampleRecord/size_100000                              	       1	 226520345 ns/op	96399648 B/op	 1999991 allocs/op
+BenchmarkValidateSampleRecord/size_100000                              	       1	 222376871 ns/op	96399632 B/op	 1999991 allocs/op
+BenchmarkValidateSampleRecord/size_100000                              	       1	 222242765 ns/op	96399648 B/op	 1999991 allocs/op
+BenchmarkValidateSampleRecord/size_100000                              	       1	 220631761 ns/op	96399632 B/op	 1999991 allocs/op
+BenchmarkValidateSampleRecord/size_100000                              	       1	 224494201 ns/op	96399648 B/op	 1999991 allocs/op
+BenchmarkValidateSampleRecord/size_100000                              	       1	 223000070 ns/op	96399616 B/op	 1999991 allocs/op
+BenchmarkValidateSampleRecord/size_100000                              	       1	 222145536 ns/op	96399632 B/op	 1999991 allocs/op
+BenchmarkValidateSampleRecord/size_100000                              	       1	 234266561 ns/op	96399648 B/op	 1999991 allocs/op
+BenchmarkValidateSampleRecord/size_100000                              	       1	 221158385 ns/op	96399648 B/op	 1999991 allocs/op
+BenchmarkValidateSampleRecord/size_100000                              	       1	 221612609 ns/op	96399648 B/op	 1999991 allocs/op
+BenchmarkValidateSampleRecord/size_1000000
+BenchmarkValidateSampleRecord/size_1000000                             	       1	1901957313 ns/op	963999776 B/op	19999991 allocs/op
+BenchmarkValidateSampleRecord/size_1000000                             	       1	1899825827 ns/op	963999760 B/op	19999991 allocs/op
+BenchmarkValidateSampleRecord/size_1000000                             	       1	1900940407 ns/op	963999776 B/op	19999991 allocs/op
+BenchmarkValidateSampleRecord/size_1000000                             	       1	1903282049 ns/op	963999776 B/op	19999991 allocs/op
+BenchmarkValidateSampleRecord/size_1000000                             	       1	1934335066 ns/op	963999792 B/op	19999991 allocs/op
+BenchmarkValidateSampleRecord/size_1000000                             	       1	1906383607 ns/op	963999760 B/op	19999991 allocs/op
+BenchmarkValidateSampleRecord/size_1000000                             	       1	1906765157 ns/op	963999760 B/op	19999991 allocs/op
+BenchmarkValidateSampleRecord/size_1000000                             	       1	1892055218 ns/op	963999792 B/op	19999991 allocs/op
+BenchmarkValidateSampleRecord/size_1000000                             	       1	1903558428 ns/op	963999744 B/op	19999991 allocs/op
+BenchmarkValidateSampleRecord/size_1000000                             	       1	1917400578 ns/op	963999776 B/op	19999991 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=10000
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=10000        	       1	    544576 ns/op	  672672 B/op	      70 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=10000        	       1	    507646 ns/op	  672672 B/op	      70 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=10000        	       1	    504032 ns/op	  672672 B/op	      70 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=10000        	       1	    580810 ns/op	  672672 B/op	      70 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=10000        	       1	    555182 ns/op	  672672 B/op	      70 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=10000        	       1	    557719 ns/op	  672672 B/op	      70 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=10000        	       1	    504953 ns/op	  672672 B/op	      70 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=10000        	       1	    534445 ns/op	  672672 B/op	      70 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=10000        	       1	    503592 ns/op	  672672 B/op	      70 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=10000        	       1	    502256 ns/op	  672672 B/op	      70 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=100000
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=100000       	       1	   9067265 ns/op	 5586848 B/op	      73 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=100000       	       1	   5125870 ns/op	 5586848 B/op	      73 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=100000       	       1	   5072662 ns/op	 5586848 B/op	      73 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=100000       	       1	   5105399 ns/op	 5586848 B/op	      73 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=100000       	       1	   5110541 ns/op	 5586848 B/op	      73 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=100000       	       1	   6323258 ns/op	 5586848 B/op	      73 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=100000       	       1	   5075689 ns/op	 5586848 B/op	      73 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=100000       	       1	   6202972 ns/op	 5586848 B/op	      73 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=100000       	       1	   5147567 ns/op	 5586848 B/op	      73 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=100000       	       1	   5182516 ns/op	 5586848 B/op	      73 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=1000000
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=1000000      	       1	  68808137 ns/op	58170784 B/op	      77 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=1000000      	       1	  63985956 ns/op	58170784 B/op	      77 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=1000000      	       1	  90039063 ns/op	58170784 B/op	      77 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=1000000      	       1	  60932322 ns/op	58170784 B/op	      77 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=1000000      	       1	  89229524 ns/op	58170784 B/op	      77 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=1000000      	       1	  61699054 ns/op	58170784 B/op	      77 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=1000000      	       1	  63191563 ns/op	58170784 B/op	      77 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=1000000      	       1	  65961348 ns/op	58170784 B/op	      77 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=1000000      	       1	  66804756 ns/op	58170784 B/op	      77 allocs/op
+BenchmarkSortRecordWithSingleColumnAndDescendingData/size=1000000      	       1	  63400709 ns/op	58170784 B/op	      77 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=10000
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=10000            	       1	   1714439 ns/op	  672672 B/op	      70 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=10000            	       1	   1878869 ns/op	  672672 B/op	      70 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=10000            	       1	   1632185 ns/op	  672672 B/op	      70 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=10000            	       1	   1685791 ns/op	  672672 B/op	      70 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=10000            	       1	   1639813 ns/op	  672672 B/op	      70 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=10000            	       1	   1627849 ns/op	  672672 B/op	      70 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=10000            	       1	   1633719 ns/op	  672672 B/op	      70 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=10000            	       1	   1598238 ns/op	  672672 B/op	      70 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=10000            	       1	   1633975 ns/op	  672672 B/op	      70 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=10000            	       1	   1627343 ns/op	  672672 B/op	      70 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=100000
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=100000           	       1	  24389515 ns/op	 5586848 B/op	      73 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=100000           	       1	  21168400 ns/op	 5586848 B/op	      73 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=100000           	       1	  21418805 ns/op	 5586848 B/op	      73 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=100000           	       1	  21554181 ns/op	 5586848 B/op	      73 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=100000           	       1	  21124311 ns/op	 5586848 B/op	      73 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=100000           	       1	  21213671 ns/op	 5586848 B/op	      73 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=100000           	       1	  21049165 ns/op	 5586848 B/op	      73 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=100000           	       1	  21008982 ns/op	 5586848 B/op	      73 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=100000           	       1	  21741492 ns/op	 5586848 B/op	      73 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=100000           	       1	  21382724 ns/op	 5586848 B/op	      73 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=1000000
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=1000000          	       1	 288611166 ns/op	58170784 B/op	      77 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=1000000          	       1	 298065598 ns/op	58170784 B/op	      77 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=1000000          	       1	 286899998 ns/op	58170784 B/op	      77 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=1000000          	       1	 296291755 ns/op	58170784 B/op	      77 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=1000000          	       1	 288250360 ns/op	58170784 B/op	      77 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=1000000          	       1	 298546377 ns/op	58170784 B/op	      77 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=1000000          	       1	 289711639 ns/op	58170784 B/op	      77 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=1000000          	       1	 310341786 ns/op	58170784 B/op	      77 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=1000000          	       1	 288508454 ns/op	58170784 B/op	      77 allocs/op
+BenchmarkSortRecordWithSingleColumnAndRandomData/size=1000000          	       1	 294941543 ns/op	58170784 B/op	      77 allocs/op
+BenchmarkTakeRecord
+BenchmarkTakeRecord/size=10000
+BenchmarkTakeRecord/size=10000                                         	       1	     49813 ns/op	   26992 B/op	      50 allocs/op
+BenchmarkTakeRecord/size=10000                                         	       1	     48763 ns/op	   26992 B/op	      50 allocs/op
+BenchmarkTakeRecord/size=10000                                         	       1	     47207 ns/op	   26992 B/op	      50 allocs/op
+BenchmarkTakeRecord/size=10000                                         	       1	     47627 ns/op	   26992 B/op	      50 allocs/op
+BenchmarkTakeRecord/size=10000                                         	       1	     47863 ns/op	   26992 B/op	      50 allocs/op
+BenchmarkTakeRecord/size=10000                                         	       1	     47756 ns/op	   26992 B/op	      50 allocs/op
+BenchmarkTakeRecord/size=10000                                         	       1	     47198 ns/op	   26992 B/op	      50 allocs/op
+BenchmarkTakeRecord/size=10000                                         	       1	     56947 ns/op	   26992 B/op	      50 allocs/op
+BenchmarkTakeRecord/size=10000                                         	       1	     60309 ns/op	   26992 B/op	      50 allocs/op
+BenchmarkTakeRecord/size=10000                                         	       1	     55703 ns/op	   26992 B/op	      50 allocs/op
+BenchmarkTakeRecord/size=100000
+BenchmarkTakeRecord/size=100000                                        	       1	    638898 ns/op	  382512 B/op	      54 allocs/op
+BenchmarkTakeRecord/size=100000                                        	       1	    451639 ns/op	  382512 B/op	      54 allocs/op
+BenchmarkTakeRecord/size=100000                                        	       1	    453062 ns/op	  382512 B/op	      54 allocs/op
+BenchmarkTakeRecord/size=100000                                        	       1	   1634980 ns/op	  382512 B/op	      54 allocs/op
+BenchmarkTakeRecord/size=100000                                        	       1	    471760 ns/op	  382512 B/op	      54 allocs/op
+BenchmarkTakeRecord/size=100000                                        	       1	   1596271 ns/op	  382512 B/op	      54 allocs/op
+BenchmarkTakeRecord/size=100000                                        	       1	    489259 ns/op	  382512 B/op	      54 allocs/op
+BenchmarkTakeRecord/size=100000                                        	       1	    474053 ns/op	  382512 B/op	      54 allocs/op
+BenchmarkTakeRecord/size=100000                                        	       1	    450315 ns/op	  382512 B/op	      54 allocs/op
+BenchmarkTakeRecord/size=100000                                        	       1	    458833 ns/op	  382512 B/op	      54 allocs/op
+BenchmarkTakeRecord/size=1000000
+BenchmarkTakeRecord/size=1000000                                       	       1	   5633760 ns/op	 3806000 B/op	      58 allocs/op
+BenchmarkTakeRecord/size=1000000                                       	       1	   4826965 ns/op	 3806000 B/op	      58 allocs/op
+BenchmarkTakeRecord/size=1000000                                       	       1	   4957871 ns/op	 3806000 B/op	      58 allocs/op
+BenchmarkTakeRecord/size=1000000                                       	       1	   4807860 ns/op	 3806000 B/op	      58 allocs/op
+BenchmarkTakeRecord/size=1000000                                       	       1	   4618210 ns/op	 3806000 B/op	      58 allocs/op
+BenchmarkTakeRecord/size=1000000                                       	       1	   4463267 ns/op	 3806000 B/op	      58 allocs/op
+BenchmarkTakeRecord/size=1000000                                       	       1	   4788563 ns/op	 3806000 B/op	      58 allocs/op
+BenchmarkTakeRecord/size=1000000                                       	       1	   4688338 ns/op	 3806000 B/op	      58 allocs/op
+BenchmarkTakeRecord/size=1000000                                       	       1	   4737588 ns/op	 3806000 B/op	      58 allocs/op
+BenchmarkTakeRecord/size=1000000                                       	       1	   4695436 ns/op	 3806000 B/op	      58 allocs/op
+PASS
+ok  	github.com/alekLukanen/ChapterhouseDB/arrowOps	92.155s
+?   	github.com/alekLukanen/ChapterhouseDB/cmd/app	[no test files]
+?   	github.com/alekLukanen/ChapterhouseDB/cmd/benchmark	[no test files]
+?   	github.com/alekLukanen/ChapterhouseDB/cmd/scratch	[no test files]
+?   	github.com/alekLukanen/ChapterhouseDB/elements	[no test files]
+?   	github.com/alekLukanen/ChapterhouseDB/operations	[no test files]
+?   	github.com/alekLukanen/ChapterhouseDB/partitionFuncs	[no test files]
+?   	github.com/alekLukanen/ChapterhouseDB/storage	[no test files]
+=== RUN   TestProtobufTupleSerializer
+    tuple_serializer_benchmarks_test.go:34: [10 3 97 98 99]
+--- PASS: TestProtobufTupleSerializer (0.00s)
+=== RUN   TestProtobufTupleSerializer
+    tuple_serializer_benchmarks_test.go:34: [10 3 97 98 99]
+--- PASS: TestProtobufTupleSerializer (0.00s)
+=== RUN   TestProtobufTupleSerializer
+    tuple_serializer_benchmarks_test.go:34: [10 3 97 98 99]
+--- PASS: TestProtobufTupleSerializer (0.00s)
+=== RUN   TestProtobufTupleSerializer
+    tuple_serializer_benchmarks_test.go:34: [10 3 97 98 99]
+--- PASS: TestProtobufTupleSerializer (0.00s)
+=== RUN   TestProtobufTupleSerializer
+    tuple_serializer_benchmarks_test.go:34: [10 3 97 98 99]
+--- PASS: TestProtobufTupleSerializer (0.00s)
+=== RUN   TestProtobufTupleSerializer
+    tuple_serializer_benchmarks_test.go:34: [10 3 97 98 99]
+--- PASS: TestProtobufTupleSerializer (0.00s)
+=== RUN   TestProtobufTupleSerializer
+    tuple_serializer_benchmarks_test.go:34: [10 3 97 98 99]
+--- PASS: TestProtobufTupleSerializer (0.00s)
+=== RUN   TestProtobufTupleSerializer
+    tuple_serializer_benchmarks_test.go:34: [10 3 97 98 99]
+--- PASS: TestProtobufTupleSerializer (0.00s)
+=== RUN   TestProtobufTupleSerializer
+    tuple_serializer_benchmarks_test.go:34: [10 3 97 98 99]
+--- PASS: TestProtobufTupleSerializer (0.00s)
+=== RUN   TestProtobufTupleSerializer
+    tuple_serializer_benchmarks_test.go:34: [10 3 97 98 99]
+--- PASS: TestProtobufTupleSerializer (0.00s)
+goos: linux
+goarch: amd64
+pkg: github.com/alekLukanen/ChapterhouseDB/tests
+cpu: Intel(R) Core(TM) i5-6500 CPU @ 3.20GHz
+BenchmarkProtobufMarshal
+BenchmarkProtobufMarshal/size=1000000
+BenchmarkProtobufMarshal/size=1000000         	       1	 443429519 ns/op	179957920 B/op	 5000043 allocs/op
+BenchmarkProtobufMarshal/size=1000000         	       1	 444054369 ns/op	179954912 B/op	 4999999 allocs/op
+BenchmarkProtobufMarshal/size=1000000         	       1	 465727130 ns/op	179954912 B/op	 4999999 allocs/op
+BenchmarkProtobufMarshal/size=1000000         	       1	 442864523 ns/op	179954912 B/op	 4999999 allocs/op
+BenchmarkProtobufMarshal/size=1000000         	       1	 447440504 ns/op	179954912 B/op	 4999999 allocs/op
+BenchmarkProtobufMarshal/size=1000000         	       1	 462758333 ns/op	179954912 B/op	 4999999 allocs/op
+BenchmarkProtobufMarshal/size=1000000         	       1	 460726630 ns/op	179954912 B/op	 4999999 allocs/op
+BenchmarkProtobufMarshal/size=1000000         	       1	 466341669 ns/op	179954912 B/op	 4999999 allocs/op
+BenchmarkProtobufMarshal/size=1000000         	       1	 444549418 ns/op	179954896 B/op	 4999999 allocs/op
+BenchmarkProtobufMarshal/size=1000000         	       1	 446792640 ns/op	179954912 B/op	 4999999 allocs/op
+BenchmarkAvroMarshal
+BenchmarkAvroMarshal/size=1000000
+BenchmarkAvroMarshal/size=1000000             	       1	 270825491 ns/op	76798288 B/op	 4899746 allocs/op
+BenchmarkAvroMarshal/size=1000000             	       1	 265584785 ns/op	76798304 B/op	 4899746 allocs/op
+BenchmarkAvroMarshal/size=1000000             	       1	 271216395 ns/op	76798288 B/op	 4899746 allocs/op
+BenchmarkAvroMarshal/size=1000000             	       1	 273486918 ns/op	76798288 B/op	 4899746 allocs/op
+BenchmarkAvroMarshal/size=1000000             	       1	 273125171 ns/op	76798304 B/op	 4899746 allocs/op
+BenchmarkAvroMarshal/size=1000000             	       1	 263377591 ns/op	76798288 B/op	 4899746 allocs/op
+BenchmarkAvroMarshal/size=1000000             	       1	 265784045 ns/op	76798288 B/op	 4899746 allocs/op
+BenchmarkAvroMarshal/size=1000000             	       1	 273539932 ns/op	76798288 B/op	 4899746 allocs/op
+BenchmarkAvroMarshal/size=1000000             	       1	 265700760 ns/op	76798288 B/op	 4899746 allocs/op
+BenchmarkAvroMarshal/size=1000000             	       1	 269605128 ns/op	76798288 B/op	 4899746 allocs/op
+PASS
+ok  	github.com/alekLukanen/ChapterhouseDB/tests	10.637s
+?   	github.com/alekLukanen/ChapterhouseDB/tests/serializers	[no test files]
+?   	github.com/alekLukanen/ChapterhouseDB/warehouse	[no test files]

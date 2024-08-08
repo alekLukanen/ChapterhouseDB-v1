@@ -1,6 +1,7 @@
 package arrowops
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -11,6 +12,39 @@ import (
 	"github.com/apache/arrow/go/v16/arrow/array"
 	"github.com/apache/arrow/go/v16/arrow/memory"
 )
+
+func BenchmarkValidateSampleRecord(b *testing.B) {
+	mem := memory.NewGoAllocator()
+
+	for _, size := range TEST_SIZES {
+		b.Run(fmt.Sprintf("size_%d", size), func(b *testing.B) {
+			for idx := 0; idx < b.N; idx++ {
+				b.StopTimer()
+				data := mockData(mem, size, "ascending")
+
+				schema := arrow.NewSchema([]arrow.Field{
+					{Name: "a", Type: arrow.PrimitiveTypes.Uint32},
+				}, nil)
+
+				keyBldr := array.NewRecordBuilder(mem, schema)
+				defer keyBldr.Release()
+				for i := 0; i < size; i++ {
+					keyBldr.Field(0).(*array.Uint32Builder).Append(uint32(i))
+				}
+				keyRec := keyBldr.NewRecord()
+				defer keyRec.Release()
+				b.StartTimer()
+
+				err := ValidateSampleRecord(keyRec, data, []string{"a"})
+				if err != nil {
+					b.Errorf("unexpected error: %s", err)
+				}
+
+			}
+		})
+	}
+
+}
 
 func TestMergeSortBuilder(t *testing.T) {
 
@@ -170,6 +204,14 @@ func TestMergeSortBuilder(t *testing.T) {
 	///////////////////////////////////////////////////////
 
 	// build last record //////////////////////
+	newRec3, err := builder.BuildLastRecord()
+	if errors.Is(err, ErrNoMoreRecords) {
+		t.Fatalf("unexpected error '%s'", err)
+	}
+	if newRec3 != nil {
+		t.Log("newRecord: ", newRec3)
+		t.Errorf("expected records to be nil")
+	}
 
 }
 

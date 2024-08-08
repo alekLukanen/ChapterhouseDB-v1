@@ -207,6 +207,7 @@ func NewRecordMergeSortBuilder(logger *slog.Logger, mem *memory.GoAllocator, pro
 		primaryColumns:                primaryColumns,
 		compareColumns:                compareColumns,
 	}, nil
+
 }
 
 func (obj *RecordMergeSortBuilder) Debug() {
@@ -410,6 +411,10 @@ func (obj *RecordMergeSortBuilder) SeekProcessingKeyRecordForMainLine() {
 * record and the rest will be the progress records.
  */
 func (obj *RecordMergeSortBuilder) TakeRecord() (arrow.Record, error) {
+	if len(obj.takeInfo) == 0 {
+		return nil, fmt.Errorf("%w| there aren't any record items to take", ErrNoMoreRecords)
+	}
+
 	rb := array.NewRecordBuilder(obj.mem, arrow.NewSchema(
 		[]arrow.Field{
 			{Name: "record", Type: arrow.PrimitiveTypes.Uint32},
