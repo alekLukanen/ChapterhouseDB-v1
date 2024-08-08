@@ -1,6 +1,7 @@
 package arrowops
 
 import (
+	"fmt"
 	"log/slog"
 	"os"
 	"testing"
@@ -173,5 +174,162 @@ func TestMergeSortBuilder(t *testing.T) {
 }
 
 func TestValidateSampleRecord(t *testing.T) {
+
+	mem := memory.NewGoAllocator()
+
+	currentTimestamp, err := arrow.TimestampFromTime(time.Now().UTC(), arrow.Millisecond)
+	if err != nil {
+		t.Errorf("failed to create timestamp: %s", err)
+	}
+
+	testCases := []struct {
+		name              string
+		processingKeyFunc func() arrow.Record
+		recordFunc        func() arrow.Record
+		primaryColumns    []string
+		expectedErr       error
+	}{
+		{
+			name: "valid_simple_record",
+			processingKeyFunc: func() arrow.Record {
+				keySchema := arrow.NewSchema([]arrow.Field{
+					{Name: "a", Type: arrow.PrimitiveTypes.Uint32},
+				}, nil)
+				bldr := array.NewRecordBuilder(mem, keySchema)
+				defer bldr.Release()
+				bldr.Field(0).(*array.Uint32Builder).AppendValues([]uint32{0, 1, 2, 3}, nil)
+				return bldr.NewRecord()
+			},
+			recordFunc: func() arrow.Record {
+				dataSchema := arrow.NewSchema([]arrow.Field{
+					{Name: "a", Type: arrow.PrimitiveTypes.Uint32},
+					{Name: "b", Type: arrow.PrimitiveTypes.Float32},
+					{Name: "c", Type: arrow.BinaryTypes.String},
+					{Name: "_updated_ts", Type: arrow.FixedWidthTypes.Timestamp_ms},
+					{Name: "_created_ts", Type: arrow.FixedWidthTypes.Timestamp_ms},
+					{Name: "_processed_ts", Type: arrow.FixedWidthTypes.Timestamp_ms},
+				}, nil)
+				bldr := array.NewRecordBuilder(mem, dataSchema)
+				defer bldr.Release()
+				bldr.Field(0).(*array.Uint32Builder).AppendValues([]uint32{0, 1, 2}, nil)
+				bldr.Field(1).(*array.Float32Builder).AppendValues([]float32{0., 1., 2.}, nil)
+				bldr.Field(2).(*array.StringBuilder).AppendValues([]string{"s0", "s1", "s2"}, nil)
+				bldr.Field(3).(*array.TimestampBuilder).AppendValues(
+					[]arrow.Timestamp{
+						currentTimestamp, currentTimestamp, currentTimestamp,
+					},
+					nil)
+				bldr.Field(4).(*array.TimestampBuilder).AppendValues(
+					[]arrow.Timestamp{
+						currentTimestamp, currentTimestamp, currentTimestamp,
+					}, nil)
+				bldr.Field(5).(*array.TimestampBuilder).AppendValues(
+					[]arrow.Timestamp{
+						currentTimestamp, currentTimestamp, currentTimestamp,
+					}, nil)
+
+				return bldr.NewRecord()
+			},
+			primaryColumns: []string{"a"},
+			expectedErr:    nil,
+		},
+		{
+			name: "simple_record_with_duplicates",
+			processingKeyFunc: func() arrow.Record {
+				keySchema := arrow.NewSchema([]arrow.Field{
+					{Name: "a", Type: arrow.PrimitiveTypes.Uint32},
+				}, nil)
+				bldr := array.NewRecordBuilder(mem, keySchema)
+				defer bldr.Release()
+				bldr.Field(0).(*array.Uint32Builder).AppendValues([]uint32{0, 1, 2, 3}, nil)
+				return bldr.NewRecord()
+			},
+			recordFunc: func() arrow.Record {
+				dataSchema := arrow.NewSchema([]arrow.Field{
+					{Name: "a", Type: arrow.PrimitiveTypes.Uint32},
+					{Name: "b", Type: arrow.PrimitiveTypes.Float32},
+					{Name: "c", Type: arrow.BinaryTypes.String},
+					{Name: "_updated_ts", Type: arrow.FixedWidthTypes.Timestamp_ms},
+					{Name: "_created_ts", Type: arrow.FixedWidthTypes.Timestamp_ms},
+					{Name: "_processed_ts", Type: arrow.FixedWidthTypes.Timestamp_ms},
+				}, nil)
+				bldr := array.NewRecordBuilder(mem, dataSchema)
+				defer bldr.Release()
+				bldr.Field(0).(*array.Uint32Builder).AppendValues([]uint32{0, 1, 1, 2}, nil)
+				bldr.Field(1).(*array.Float32Builder).AppendValues([]float32{0., 1., 1., 2.}, nil)
+				bldr.Field(2).(*array.StringBuilder).AppendValues([]string{"s0", "s1", "s1", "s2"}, nil)
+				bldr.Field(3).(*array.TimestampBuilder).AppendValues(
+					[]arrow.Timestamp{
+						currentTimestamp, currentTimestamp, currentTimestamp, currentTimestamp,
+					},
+					nil)
+				bldr.Field(4).(*array.TimestampBuilder).AppendValues(
+					[]arrow.Timestamp{
+						currentTimestamp, currentTimestamp, currentTimestamp, currentTimestamp,
+					}, nil)
+				bldr.Field(5).(*array.TimestampBuilder).AppendValues(
+					[]arrow.Timestamp{
+						currentTimestamp, currentTimestamp, currentTimestamp, currentTimestamp,
+					}, nil)
+
+				return bldr.NewRecord()
+			},
+			primaryColumns: []string{"a"},
+			expectedErr:    ErrRecordHasDuplicateRows,
+		},
+		{
+			name: "simple_record_with_key_not_in_key_record",
+			processingKeyFunc: func() arrow.Record {
+				keySchema := arrow.NewSchema([]arrow.Field{
+					{Name: "a", Type: arrow.PrimitiveTypes.Uint32},
+				}, nil)
+				bldr := array.NewRecordBuilder(mem, keySchema)
+				defer bldr.Release()
+				bldr.Field(0).(*array.Uint32Builder).AppendValues([]uint32{0, 2, 3}, nil)
+				return bldr.NewRecord()
+			},
+			recordFunc: func() arrow.Record {
+				dataSchema := arrow.NewSchema([]arrow.Field{
+					{Name: "a", Type: arrow.PrimitiveTypes.Uint32},
+					{Name: "b", Type: arrow.PrimitiveTypes.Float32},
+					{Name: "c", Type: arrow.BinaryTypes.String},
+					{Name: "_updated_ts", Type: arrow.FixedWidthTypes.Timestamp_ms},
+					{Name: "_created_ts", Type: arrow.FixedWidthTypes.Timestamp_ms},
+					{Name: "_processed_ts", Type: arrow.FixedWidthTypes.Timestamp_ms},
+				}, nil)
+				bldr := array.NewRecordBuilder(mem, dataSchema)
+				defer bldr.Release()
+				bldr.Field(0).(*array.Uint32Builder).AppendValues([]uint32{0, 1, 2}, nil)
+				bldr.Field(1).(*array.Float32Builder).AppendValues([]float32{0., 1., 2.}, nil)
+				bldr.Field(2).(*array.StringBuilder).AppendValues([]string{"s0", "s1", "s2"}, nil)
+				bldr.Field(3).(*array.TimestampBuilder).AppendValues(
+					[]arrow.Timestamp{
+						currentTimestamp, currentTimestamp, currentTimestamp,
+					},
+					nil)
+				bldr.Field(4).(*array.TimestampBuilder).AppendValues(
+					[]arrow.Timestamp{
+						currentTimestamp, currentTimestamp, currentTimestamp,
+					}, nil)
+				bldr.Field(5).(*array.TimestampBuilder).AppendValues(
+					[]arrow.Timestamp{
+						currentTimestamp, currentTimestamp, currentTimestamp,
+					}, nil)
+
+				return bldr.NewRecord()
+			},
+			primaryColumns: []string{"a"},
+			expectedErr:    ErrRecordContainsRowsNotInProcessedKey,
+		},
+	}
+
+	for idx, tc := range testCases {
+		t.Run(fmt.Sprintf("%d_%s", idx, tc.name), func(t *testing.T) {
+			err := ValidateSampleRecord(tc.processingKeyFunc(), tc.recordFunc(), tc.primaryColumns)
+			if err != tc.expectedErr {
+				t.Errorf("expected error: %s, got: %s", tc.expectedErr, err)
+			}
+		})
+	}
 
 }
