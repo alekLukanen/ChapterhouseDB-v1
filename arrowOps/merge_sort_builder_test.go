@@ -1,6 +1,7 @@
 package arrowops
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -43,6 +44,127 @@ func BenchmarkValidateSampleRecord(b *testing.B) {
 			}
 		})
 	}
+
+}
+
+func TestParquetRecordMergeSortBuilder(t *testing.T) {
+
+	ctx := context.Background()
+	mem := memory.NewGoAllocator()
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+
+	workingDir, err := os.MkdirTemp("", "test-parquet-builder")
+	if err != nil {
+		t.Errorf("failed to create temp dir with error '%s'", err)
+	}
+	defer os.RemoveAll(workingDir)
+
+	// define the schema ////////////////////////////
+	dataSchema := arrow.NewSchema([]arrow.Field{
+		{Name: "a", Type: arrow.PrimitiveTypes.Uint32},
+		{Name: "b", Type: arrow.PrimitiveTypes.Float32},
+		{Name: "c", Type: arrow.BinaryTypes.String},
+		{Name: "_updated_ts", Type: arrow.FixedWidthTypes.Timestamp_ms},
+		{Name: "_created_ts", Type: arrow.FixedWidthTypes.Timestamp_ms},
+		{Name: "_processed_ts", Type: arrow.FixedWidthTypes.Timestamp_ms},
+	}, nil)
+	keySchema := arrow.NewSchema([]arrow.Field{
+		{Name: "a", Type: arrow.PrimitiveTypes.Uint32},
+	}, nil)
+
+	currentTimestamp, err := arrow.TimestampFromTime(time.Now().UTC(), arrow.Millisecond)
+	if err != nil {
+		t.Errorf("failed to create timestamp: %s", err)
+	}
+	///////////////////////////////////////////////////
+
+	// build data records /////////////////////////////
+	bldr1 := array.NewRecordBuilder(mem, dataSchema)
+	defer bldr1.Release()
+	bldr1.Field(0).(*array.Uint32Builder).AppendValues([]uint32{0, 1, 2, 3, 10}, nil)
+	bldr1.Field(1).(*array.Float32Builder).AppendValues([]float32{0., 1., 2., 3., 10.}, nil)
+	bldr1.Field(2).(*array.StringBuilder).AppendValues([]string{"s0", "s1", "s2", "s3", "s10"}, nil)
+	bldr1.Field(3).(*array.TimestampBuilder).AppendValues(
+		[]arrow.Timestamp{
+			currentTimestamp, currentTimestamp, currentTimestamp,
+		},
+		nil)
+	bldr1.Field(4).(*array.TimestampBuilder).AppendValues(
+		[]arrow.Timestamp{
+			currentTimestamp, currentTimestamp, currentTimestamp,
+		}, nil)
+	bldr1.Field(5).(*array.TimestampBuilder).AppendValues(
+		[]arrow.Timestamp{
+			currentTimestamp, currentTimestamp, currentTimestamp,
+		}, nil)
+
+	bldr2 := array.NewRecordBuilder(mem, dataSchema)
+	defer bldr2.Release()
+	bldr2.Field(0).(*array.Uint32Builder).AppendValues([]uint32{3, 4}, nil)
+	bldr2.Field(1).(*array.Float32Builder).AppendValues([]float32{3., 4.}, nil)
+	bldr2.Field(2).(*array.StringBuilder).AppendValues([]string{"s3-modified", "s4"}, nil)
+	bldr2.Field(3).(*array.TimestampBuilder).AppendValues(
+		[]arrow.Timestamp{
+			currentTimestamp, currentTimestamp,
+		},
+		nil)
+	bldr2.Field(4).(*array.TimestampBuilder).AppendValues(
+		[]arrow.Timestamp{
+			currentTimestamp, currentTimestamp,
+		}, nil)
+	bldr2.Field(5).(*array.TimestampBuilder).AppendValues(
+		[]arrow.Timestamp{
+			currentTimestamp, currentTimestamp,
+		}, nil)
+
+	rec1 := bldr1.NewRecord()
+	rec2 := bldr2.NewRecord()
+	defer rec1.Release()
+	defer rec2.Release()
+	////////////////////////////////////////////////////////
+
+	// build key record ////////////////////////////////////
+	bldr3 := array.NewRecordBuilder(mem, keySchema)
+	defer bldr3.Release()
+	bldr3.Field(0).(*array.Uint32Builder).AppendValues([]uint32{2, 3, 4}, nil)
+
+	keyRec := bldr3.NewRecord()
+	defer keyRec.Release()
+	////////////////////////////////////////////////////////
+
+	// write rec1 to a parquet file ////////////////////////
+	file1 := fmt.Sprintf("%s/parquet1.parquet", workingDir)
+	err = WriteRecordToParquetFile(ctx, mem, rec1, file1)
+	if err != nil {
+		t.Errorf("failed to write record to parquet file: %s", err)
+	}
+	////////////////////////////////////////////////////////
+
+	builder, err := NewParquetRecordMergeSortBuilder(logger, mem, keyRec, rec2, workingDir, []string{"a"}, []string{}, 2)
+	if err != nil {
+		t.Errorf("failed to construct record merge sort builder with error '%s'", err)
+	}
+	defer builder.Release()
+
+	// build first record //////////////////////////////////
+	firstParquetFiles, err := builder.BuildNextFiles(ctx, file1)
+	if err != nil {
+		t.Errorf("failed to build next with error '%s'", err)
+	}
+	if len(firstParquetFiles) != 2 {
+		t.Errorf("expected 1 parquet file, got %d", len(firstParquetFiles))
+	}
+	/////////////////////////////////////////////////////////
+
+	// build second record //////////////////////////////////
+	lastParquetFiles, err := builder.BuildLastFiles(ctx)
+	if err != nil {
+		t.Errorf("failed to build last with error '%s'", err)
+	}
+	if len(lastParquetFiles) != 1 {
+		t.Errorf("expected 1 parquet file, got %d", len(lastParquetFiles))
+	}
+	//////////////////////////////////////////////////////////
 
 }
 

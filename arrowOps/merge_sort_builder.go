@@ -41,8 +41,7 @@ type ParquetRecordMergeSortBuilder struct {
 	recordMergeSortBuilder *RecordMergeSortBuilder
 	workingDir             string
 
-	fileIndexId  int
-	newFilePaths []string
+	fileIndexId int
 
 	maxRowsPerRecord int
 }
@@ -82,9 +81,12 @@ func NewParquetRecordMergeSortBuilder(
 		recordMergeSortBuilder: recordMergeSortBuilder,
 		workingDir:             workingDir,
 		fileIndexId:            0,
-		newFilePaths:           make([]string, 0),
 		maxRowsPerRecord:       maxRowsPerRecord,
 	}, nil
+}
+
+func (obj *ParquetRecordMergeSortBuilder) Release() {
+	obj.recordMergeSortBuilder.Release()
 }
 
 func (obj *ParquetRecordMergeSortBuilder) addNewFile(ctx context.Context, record arrow.Record) (ParquetFile, error) {
@@ -102,7 +104,7 @@ func (obj *ParquetRecordMergeSortBuilder) addNewFile(ctx context.Context, record
 	}, nil
 }
 
-func (obj *ParquetRecordMergeSortBuilder) BuildNext(ctx context.Context, filePath string) ([]ParquetFile, error) {
+func (obj *ParquetRecordMergeSortBuilder) BuildNextFiles(ctx context.Context, filePath string) ([]ParquetFile, error) {
 
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
@@ -136,23 +138,30 @@ func (obj *ParquetRecordMergeSortBuilder) BuildNext(ctx context.Context, filePat
 	return files, nil
 }
 
-func (obj *ParquetRecordMergeSortBuilder) BuildLast(ctx context.Context) (ParquetFile, error) {
+func (obj *ParquetRecordMergeSortBuilder) BuildLastFiles(ctx context.Context) ([]ParquetFile, error) {
 	if ctx.Err() != nil {
-		return ParquetFile{}, ctx.Err()
+		return nil, ctx.Err()
 	}
 
-	lastRecord, err := obj.recordMergeSortBuilder.BuildLastRecord()
-	if err != nil {
-		return ParquetFile{}, err
+	files := make([]ParquetFile, 0)
+	for {
+		lastRecord, err := obj.recordMergeSortBuilder.BuildLastRecord()
+		if errors.Is(err, ErrNoMoreRecords) {
+			break
+		} else if err != nil {
+			return nil, err
+		}
+
+		pqf, err := obj.addNewFile(ctx, lastRecord)
+		if err != nil {
+			return nil, err
+		}
+		lastRecord.Release()
+
+		files = append(files, pqf)
 	}
 
-	pqf, err := obj.addNewFile(ctx, lastRecord)
-	if err != nil {
-		return ParquetFile{}, err
-	}
-	lastRecord.Release()
-
-	return pqf, nil
+	return files, nil
 }
 
 type takeInfo struct {
