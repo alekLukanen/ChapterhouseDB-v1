@@ -190,7 +190,7 @@ func (obj *ManifestStorage) MergePartitionRecordIntoManifest(
 			return err
 		}
 		// add the parquet file to the merge sort builder
-		files, err := parquetMergeSortBuilder.BuildNext(ctx, filePath)
+		files, err := parquetMergeSortBuilder.BuildNextFiles(ctx, filePath)
 		if err != nil {
 			return err
 		}
@@ -199,11 +199,13 @@ func (obj *ManifestStorage) MergePartitionRecordIntoManifest(
 		}
 	}
 
-	lastPqf, err := parquetMergeSortBuilder.BuildLast(ctx)
+	lastPqfs, err := parquetMergeSortBuilder.BuildLastFiles(ctx)
 	if err != nil {
 		return err
 	}
-	manifestBuilder.AddFile(lastPqf)
+	for _, pqf := range lastPqfs {
+		manifestBuilder.AddFile(pqf)
+	}
 
 	err = obj.ReplacePartitionManifest(
 		ctx,
