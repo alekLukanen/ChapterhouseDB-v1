@@ -13,7 +13,7 @@ import (
 
 type ParquetFile struct {
 	FilePath string
-	NumRows int64
+	NumRows  int64
 }
 
 func WriteRecordToParquetFile(ctx context.Context, mem *memory.GoAllocator, record arrow.Record, filePath string) error {

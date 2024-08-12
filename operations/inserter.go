@@ -150,7 +150,7 @@ func (obj *Inserter) InsertTuples(ctx context.Context, tableName, sourceName str
 	columns := subscription.Columns()
 	if len(columns) != int(tuples.NumCols()) {
 		obj.logger.Info(
-			"record has incorrect number of columns", 
+			"record has incorrect number of columns",
 			slog.Int("subscription.columns", len(columns)),
 			slog.Int("tuples", int(tuples.NumCols())),
 		)

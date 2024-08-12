@@ -70,7 +70,6 @@ func BuildSampleRecord() {
 			{Name: "column2", Type: &arrow.BooleanType{}},
 			{Name: "column3", Type: &arrow.Float64Type{}},
 			{Name: "eventName", Type: &arrow.StringType{}},
-
 		}, nil,
 	)
 	recBuilder := array.NewRecordBuilder(pool, schema)
@@ -154,7 +153,6 @@ func InsertTuplesIntoKeyStorage() {
 			{Name: "column2", Type: &arrow.BooleanType{}},
 			{Name: "column3", Type: &arrow.Float64Type{}},
 			{Name: "eventName", Type: &arrow.StringType{}},
-
 		}, nil,
 	)
 	recBuilder := array.NewRecordBuilder(pool, schema)

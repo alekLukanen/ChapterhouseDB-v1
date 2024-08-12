@@ -179,7 +179,7 @@ func TestTakeMultipleRecords(t *testing.T) {
 				defer rb1.Release()
 				return rb1.NewRecord()
 			}(),
-			expectedErr:    nil,
+			expectedErr: nil,
 		},
 		{
 			records: func() []arrow.Record {
@@ -216,7 +216,7 @@ func TestTakeMultipleRecords(t *testing.T) {
 				defer rb1.Release()
 				return rb1.NewRecord()
 			}(),
-			expectedErr:    ErrNullValuesNotAllowed,
+			expectedErr: ErrNullValuesNotAllowed,
 		},
 	}
 

@@ -8,14 +8,14 @@ import (
 )
 
 type PartitionManifestOptions struct {
-	MaxObjects        int
-	MaxObjectRows     int
+	MaxObjects    int
+	MaxObjectRows int
 }
 
 type ManifestObject struct {
 	Key     string `json:"key"`
 	Index   int    `json:"index"`
-	NumRows int64    `json:"num_rows"`
+	NumRows int64  `json:"num_rows"`
 }
 
 func (obj *ManifestObject) Validate() error {

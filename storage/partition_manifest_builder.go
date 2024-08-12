@@ -27,10 +27,10 @@ func NewPartitionManifestBuilder(tableName string, partitionKey string, version 
 
 func (obj *PartitionManifestBuilder) AddFile(pqf arrowops.ParquetFile) {
 	key := fmt.Sprintf(
-		"table-state/part-data/%s/%s/d_%d_%d.parquet", 
-		obj.manifest.TableName, 
+		"table-state/part-data/%s/%s/d_%d_%d.parquet",
+		obj.manifest.TableName,
 		obj.manifest.PartitionKey,
-		obj.manifest.Version, 
+		obj.manifest.Version,
 		obj.index,
 	)
 	obj.manifest.Objects = append(obj.manifest.Objects, ManifestObject{

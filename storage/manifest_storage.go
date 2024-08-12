@@ -207,7 +207,7 @@ func (obj *ManifestStorage) MergePartitionRecordIntoManifest(
 
 	err = obj.ReplacePartitionManifest(
 		ctx,
-		partition, 
+		partition,
 		manifest,
 		manifestBuilder.Manifest(),
 		manifestBuilder.Files(),

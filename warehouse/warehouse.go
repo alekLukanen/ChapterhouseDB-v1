@@ -178,6 +178,6 @@ func (obj *Warehouse) ProcessNextTablePartition(ctx context.Context) (bool, erro
 		columnNames[i] = col.Name()
 	}
 	obj.logger.Info("partition columns", slog.Any("columns", columnNames))
-	
+
 	return true, nil
 }

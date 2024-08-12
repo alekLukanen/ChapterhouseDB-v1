@@ -86,16 +86,16 @@ func TestParquetRecordMergeSortBuilder(t *testing.T) {
 	bldr1.Field(2).(*array.StringBuilder).AppendValues([]string{"s0", "s1", "s2", "s3", "s10"}, nil)
 	bldr1.Field(3).(*array.TimestampBuilder).AppendValues(
 		[]arrow.Timestamp{
-			currentTimestamp, currentTimestamp, currentTimestamp,
+			currentTimestamp, currentTimestamp, currentTimestamp, currentTimestamp, currentTimestamp,
 		},
 		nil)
 	bldr1.Field(4).(*array.TimestampBuilder).AppendValues(
 		[]arrow.Timestamp{
-			currentTimestamp, currentTimestamp, currentTimestamp,
+			currentTimestamp, currentTimestamp, currentTimestamp, currentTimestamp, currentTimestamp,
 		}, nil)
 	bldr1.Field(5).(*array.TimestampBuilder).AppendValues(
 		[]arrow.Timestamp{
-			currentTimestamp, currentTimestamp, currentTimestamp,
+			currentTimestamp, currentTimestamp, currentTimestamp, currentTimestamp, currentTimestamp,
 		}, nil)
 
 	bldr2 := array.NewRecordBuilder(mem, dataSchema)
@@ -149,20 +149,32 @@ func TestParquetRecordMergeSortBuilder(t *testing.T) {
 	// build first record //////////////////////////////////
 	firstParquetFiles, err := builder.BuildNextFiles(ctx, file1)
 	if err != nil {
-		t.Errorf("failed to build next with error '%s'", err)
+		t.Fatalf("failed to build next with error '%s'", err)
 	}
 	if len(firstParquetFiles) != 2 {
-		t.Errorf("expected 1 parquet file, got %d", len(firstParquetFiles))
+		t.Fatalf("expected 2 parquet file, got %d", len(firstParquetFiles))
 	}
 	/////////////////////////////////////////////////////////
+
+	par1, err := ReadParquetFile(ctx, mem, firstParquetFiles[0].FilePath)
+	if err != nil {
+		t.Fatalf("failed to read parquet file with error '%s'", err)
+	}
+	par2, err := ReadParquetFile(ctx, mem, firstParquetFiles[1].FilePath)
+	if err != nil {
+		t.Fatalf("failed to read parquet file with error '%s'", err)
+	}
+
+	t.Log("par1: ", par1)
+	t.Log("par2: ", par2)
 
 	// build second record //////////////////////////////////
 	lastParquetFiles, err := builder.BuildLastFiles(ctx)
 	if err != nil {
-		t.Errorf("failed to build last with error '%s'", err)
+		t.Fatalf("failed to build last with error '%s'", err)
 	}
 	if len(lastParquetFiles) != 1 {
-		t.Errorf("expected 1 parquet file, got %d", len(lastParquetFiles))
+		t.Fatalf("expected 1 parquet file, got %d", len(lastParquetFiles))
 	}
 	//////////////////////////////////////////////////////////
 

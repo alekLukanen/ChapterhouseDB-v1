@@ -17,7 +17,7 @@ func TakeMultipleRecords(mem *memory.GoAllocator, records []arrow.Record, indice
 			record.Release()
 		}
 	}()
-	
+
 	if len(records) == 0 {
 		return nil, fmt.Errorf("%w| empty records slice", ErrNoDataSupplied)
 	}
@@ -25,8 +25,8 @@ func TakeMultipleRecords(mem *memory.GoAllocator, records []arrow.Record, indice
 	// validate the indices record
 	if indices.NumCols() != 2 {
 		return nil, fmt.Errorf(
-			"%w| indices must have 2 columns, got %d", 
-			ErrColumnNotFound, 
+			"%w| indices must have 2 columns, got %d",
+			ErrColumnNotFound,
 			indices.NumCols(),
 		)
 	}
@@ -34,9 +34,9 @@ func TakeMultipleRecords(mem *memory.GoAllocator, records []arrow.Record, indice
 		column := indices.Column(int(idx))
 		if column.DataType().ID() != arrow.UINT32 {
 			return nil, fmt.Errorf(
-				"%w| expected UINT32 column, got %s for column index %d", 
-				ErrUnsupportedDataType, 
-				column.DataType().Name(), 
+				"%w| expected UINT32 column, got %s for column index %d",
+				ErrUnsupportedDataType,
+				column.DataType().Name(),
 				idx,
 			)
 		}
