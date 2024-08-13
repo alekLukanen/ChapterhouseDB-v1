@@ -3,9 +3,9 @@ package arrowops
 import (
 	"fmt"
 
-	"github.com/apache/arrow/go/v16/arrow"
-	"github.com/apache/arrow/go/v16/arrow/array"
-	"github.com/apache/arrow/go/v16/arrow/memory"
+	"github.com/apache/arrow/go/v17/arrow"
+	"github.com/apache/arrow/go/v17/arrow/array"
+	"github.com/apache/arrow/go/v17/arrow/memory"
 )
 
 func TakeMultipleRecords(mem *memory.GoAllocator, records []arrow.Record, indices arrow.Record) (arrow.Record, error) {

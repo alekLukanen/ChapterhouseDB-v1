@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/apache/arrow/go/v16/arrow/array"
-	"github.com/apache/arrow/go/v16/arrow/memory"
+	"github.com/apache/arrow/go/v17/arrow/array"
+	"github.com/apache/arrow/go/v17/arrow/memory"
 )
 
 func TestWritingAndReadingParquetFile(t *testing.T) {
@@ -45,11 +45,16 @@ func TestWritingAndReadingParquetFile(t *testing.T) {
 		t.Fatalf("ReadParquetFile failed: expected 10 rows, got %d", readRecords[0].NumRows())
 	}
 
+	if readRecord.NumCols() != 3 {
+		t.Fatalf("ReadParquetFile failed: expected 3 columns, got %d", readRecords[0].NumCols())
+	}
+
 	for i, col := range readRecord.Columns() {
 		t.Logf("readRecord.column[%d] %q: %v\n", i, readRecord.ColumnName(i), col)
 	}
 
 	t.Log("readRecord.Schema", readRecord.Schema().Fields())
+	t.Log("readRecord", readRecord)
 
 	if !array.Equal(readRecord.Column(0), data.Column(0)) {
 		t.Fatalf("ReadParquetFile failed: column 0 not equal")

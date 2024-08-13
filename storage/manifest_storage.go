@@ -7,8 +7,8 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/apache/arrow/go/v16/arrow"
-	"github.com/apache/arrow/go/v16/arrow/memory"
+	"github.com/apache/arrow/go/v17/arrow"
+	"github.com/apache/arrow/go/v17/arrow/memory"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 
 	arrowops "github.com/alekLukanen/ChapterhouseDB/arrowOps"

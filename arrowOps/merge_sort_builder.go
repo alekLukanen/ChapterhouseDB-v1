@@ -7,9 +7,9 @@ import (
 	"log/slog"
 	"path"
 
-	"github.com/apache/arrow/go/v16/arrow"
-	"github.com/apache/arrow/go/v16/arrow/array"
-	"github.com/apache/arrow/go/v16/arrow/memory"
+	"github.com/apache/arrow/go/v17/arrow"
+	"github.com/apache/arrow/go/v17/arrow/array"
+	"github.com/apache/arrow/go/v17/arrow/memory"
 )
 
 type progressRecord struct {
@@ -120,20 +120,16 @@ func (obj *ParquetRecordMergeSortBuilder) BuildNextFiles(ctx context.Context, fi
 		}
 	}()
 
-	obj.recordMergeSortBuilder.AddMainLineRecords(records)
-
-	obj.logger.Info(
-		"next record: ",
-		slog.Any("record", records[0].Schema().String()),
-		slog.Int64("numRows", records[0].NumRows()),
-	)
-
-	obj.recordMergeSortBuilder.Debug()
+	err = obj.recordMergeSortBuilder.AddMainLineRecords(records)
+	if err != nil {
+		return nil, err
+	}
 
 	files := make([]ParquetFile, 0)
 	for {
 		nextRecord, err := obj.recordMergeSortBuilder.BuildNextRecord()
 		if errors.Is(err, ErrRecordNotComplete) {
+			obj.logger.Info("Record not complete")
 			break
 		} else if err != nil {
 			return nil, err
@@ -149,6 +145,7 @@ func (obj *ParquetRecordMergeSortBuilder) BuildNextFiles(ctx context.Context, fi
 		files = append(files, f)
 	}
 
+	obj.logger.Info("BuildNextFiles", slog.Int("fileCount", len(files)))
 	obj.recordMergeSortBuilder.Debug()
 
 	return files, nil
@@ -254,7 +251,7 @@ func (obj *RecordMergeSortBuilder) Release() {
 func (obj *RecordMergeSortBuilder) AddMainLineRecords(records []arrow.Record) error {
 	for _, record := range records {
 		if RecordSchemasEqual(obj.sampleRecord.record, record) {
-			obj.mainLineRecords = append(obj.mainLineRecords, newProgressRecord(record, false))
+			obj.mainLineRecords = append(obj.mainLineRecords, newProgressRecord(record, true))
 		} else {
 			return ErrSchemasNotEqual
 		}
@@ -271,6 +268,8 @@ func (obj *RecordMergeSortBuilder) BuildNextRecord() (arrow.Record, error) {
 		return obj.TakeRecord()
 	}
 
+	obj.logger.Info("mainLineRecord count: ", slog.Int("count", len(obj.mainLineRecords)))
+
 	if len(obj.mainLineRecords) == 0 {
 		return nil, ErrRecordNotComplete
 	}
@@ -284,20 +283,23 @@ func (obj *RecordMergeSortBuilder) BuildNextRecord() (arrow.Record, error) {
 			rowProcessed := false
 			if !obj.processedKeyRecordForMainLine.done {
 				obj.SeekProcessingKeyRecordForMainLine()
-				cmpRowProcessed, err := CompareRecordRows(
-					obj.processedKeyRecordForMainLine.record,
-					pRecord.record,
-					int(obj.processedKeyRecordForMainLine.index),
-					int(pRecord.index),
-					obj.primaryColumns...,
-				)
-				if err != nil {
-					return nil, err
-				}
+				if !obj.processedKeyRecordForMainLine.done {
+					cmpRowProcessed, err := CompareRecordRows(
+						obj.processedKeyRecordForMainLine.record,
+						pRecord.record,
+						int(obj.processedKeyRecordForMainLine.index),
+						int(pRecord.index),
+						obj.primaryColumns...,
+					)
+					if err != nil {
+						return nil, err
+					}
 
-				if cmpRowProcessed == 0 {
-					obj.processedKeyRecordForMainLine.increment()
-					rowProcessed = true
+					if cmpRowProcessed == 0 {
+						obj.processedKeyRecordForMainLine.increment()
+						rowProcessed = true
+						obj.logger.Info("processed key record", slog.Any("rowIndex", obj.processedKeyRecordForMainLine.index), slog.Bool("done", obj.processedKeyRecordForMainLine.done))
+					}
 				}
 			} else {
 				rowProcessed = true
@@ -446,7 +448,8 @@ func (obj *RecordMergeSortBuilder) TakeRecord() (arrow.Record, error) {
 			{Name: "recordIdx", Type: arrow.PrimitiveTypes.Uint32},
 		}, nil))
 	defer rb.Release()
-	for _, tf := range obj.takeInfo {
+
+	for _, tf := range obj.takeInfo[:obj.takeIndex] {
 		if tf.isSampleRecord {
 			rb.Field(0).(*array.Uint32Builder).Append(0)
 		} else {

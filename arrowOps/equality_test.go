@@ -6,17 +6,17 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/apache/arrow/go/v16/arrow"
-	"github.com/apache/arrow/go/v16/arrow/array"
-	"github.com/apache/arrow/go/v16/arrow/memory"
+	"github.com/apache/arrow/go/v17/arrow"
+	"github.com/apache/arrow/go/v17/arrow/array"
+	"github.com/apache/arrow/go/v17/arrow/memory"
 )
 
 func mockData(mem *memory.GoAllocator, size int, method string) arrow.Record {
 	rb1 := array.NewRecordBuilder(mem, arrow.NewSchema(
 		[]arrow.Field{
-			{Name: "a", Type: arrow.PrimitiveTypes.Uint32, Metadata: arrow.NewMetadata([]string{"PARQUET:field_id"}, []string{"1"})},
-			{Name: "b", Type: arrow.PrimitiveTypes.Float32, Metadata: arrow.NewMetadata([]string{"PARQUET:field_id"}, []string{"2"})},
-			{Name: "c", Type: arrow.BinaryTypes.String, Metadata: arrow.NewMetadata([]string{"PARQUET:field_id"}, []string{"3"})},
+			{Name: "a", Type: arrow.PrimitiveTypes.Uint32}, // Metadata: arrow.NewMetadata([]string{"PARQUET:field_id"}, []string{"0"})
+			{Name: "b", Type: arrow.PrimitiveTypes.Float32},
+			{Name: "c", Type: arrow.BinaryTypes.String},
 		},
 		nil,
 	))

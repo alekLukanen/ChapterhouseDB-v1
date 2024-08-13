@@ -1,7 +1,7 @@
 package arrowops
 
 import (
-	"github.com/apache/arrow/go/v16/arrow"
+	"github.com/apache/arrow/go/v17/arrow"
 )
 
 func CastArraysToBaseDataType[T arrow.Array](arrays ...arrow.Array) ([]T, error) {

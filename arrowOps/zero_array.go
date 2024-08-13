@@ -1,8 +1,8 @@
 package arrowops
 
 import (
-	"github.com/apache/arrow/go/v16/arrow/array"
-	"github.com/apache/arrow/go/v16/arrow/memory"
+	"github.com/apache/arrow/go/v17/arrow/array"
+	"github.com/apache/arrow/go/v17/arrow/memory"
 )
 
 func ZeroUint32Array(mem *memory.GoAllocator, length int) *array.Uint32 {

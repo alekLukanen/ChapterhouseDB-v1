@@ -5,8 +5,8 @@ import (
 	"cmp"
 	"fmt"
 
-	"github.com/apache/arrow/go/v16/arrow"
-	"github.com/apache/arrow/go/v16/arrow/array"
+	"github.com/apache/arrow/go/v17/arrow"
+	"github.com/apache/arrow/go/v17/arrow/array"
 )
 
 /*
@@ -20,10 +20,10 @@ import (
 func CompareRecordRows(record1, record2 arrow.Record, index1, index2 int, fields ...string) (int, error) {
 
 	if record1.NumRows() <= int64(index1) {
-		return 0, fmt.Errorf("%w| index1 out of bounds", ErrIndexOutOfBounds)
+		return 0, fmt.Errorf("%w| index1 value of %d out of bounds %d", ErrIndexOutOfBounds, index1, record1.NumRows())
 	}
 	if record2.NumRows() <= int64(index2) {
-		return 0, fmt.Errorf("%w| index2 out of bounds", ErrIndexOutOfBounds)
+		return 0, fmt.Errorf("%w| index2 value of %d out of bounds %d", ErrIndexOutOfBounds, index2, record2.NumRows())
 	}
 	if len(fields) == 0 {
 		return compareRecordRowsUsingAllFields(record1, record2, index1, index2)

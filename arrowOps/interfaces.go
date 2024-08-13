@@ -3,7 +3,7 @@ package arrowops
 import (
 	"cmp"
 
-	"github.com/apache/arrow/go/v16/arrow"
+	"github.com/apache/arrow/go/v17/arrow"
 )
 
 type orderableArray[E cmp.Ordered] interface {

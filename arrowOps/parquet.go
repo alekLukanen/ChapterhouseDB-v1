@@ -4,11 +4,11 @@ import (
 	"context"
 	"os"
 
-	"github.com/apache/arrow/go/v16/arrow"
-	"github.com/apache/arrow/go/v16/arrow/memory"
-	"github.com/apache/arrow/go/v16/parquet"
-	parquetFileUtils "github.com/apache/arrow/go/v16/parquet/file"
-	"github.com/apache/arrow/go/v16/parquet/pqarrow"
+	"github.com/apache/arrow/go/v17/arrow"
+	"github.com/apache/arrow/go/v17/arrow/memory"
+	"github.com/apache/arrow/go/v17/parquet"
+	parquetFileUtils "github.com/apache/arrow/go/v17/parquet/file"
+	"github.com/apache/arrow/go/v17/parquet/pqarrow"
 )
 
 type ParquetFile struct {
@@ -27,7 +27,7 @@ func WriteRecordToParquetFile(ctx context.Context, mem *memory.GoAllocator, reco
 	parquetWriteProps := parquet.NewWriterProperties(
 		parquet.WithStats(true),
 	)
-	arrowWriteProps := pqarrow.NewArrowWriterProperties()
+	arrowWriteProps := pqarrow.NewArrowWriterProperties(pqarrow.WithStoreSchema())
 	parquetFileWriter, err := pqarrow.NewFileWriter(
 		record.Schema(),
 		file,
@@ -43,7 +43,7 @@ func WriteRecordToParquetFile(ctx context.Context, mem *memory.GoAllocator, reco
 	if err != nil {
 		return err
 	}
-	return nil
+	return parquetFileWriter.Close()
 }
 
 func ReadParquetFile(ctx context.Context, mem *memory.GoAllocator, filePath string) ([]arrow.Record, error) {
@@ -52,6 +52,7 @@ func ReadParquetFile(ctx context.Context, mem *memory.GoAllocator, filePath stri
 	if err != nil {
 		return nil, err
 	}
+	defer parquetFileReader.Close()
 
 	parquetReadProps := pqarrow.ArrowReadProperties{
 		Parallel:  true,
@@ -66,10 +67,13 @@ func ReadParquetFile(ctx context.Context, mem *memory.GoAllocator, filePath stri
 	if err != nil {
 		return nil, err
 	}
+	defer recordReader.Release()
 
 	records := make([]arrow.Record, 0)
 	for recordReader.Next() {
-		records = append(records, recordReader.Record())
+		rec := recordReader.Record()
+		rec.Retain()
+		records = append(records, rec)
 	}
 
 	return records, nil
