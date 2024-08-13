@@ -51,7 +51,12 @@ func TestParquetRecordMergeSortBuilder(t *testing.T) {
 
 	ctx := context.Background()
 	mem := memory.NewGoAllocator()
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	logger := slog.New(
+		slog.NewJSONHandler(
+			os.Stdout,
+			&slog.HandlerOptions{Level: slog.LevelDebug},
+		),
+	)
 
 	workingDir, err := os.MkdirTemp("", "test-parquet-builder")
 	if err != nil {
@@ -140,7 +145,16 @@ func TestParquetRecordMergeSortBuilder(t *testing.T) {
 	}
 	////////////////////////////////////////////////////////
 
-	builder, err := NewParquetRecordMergeSortBuilder(logger, mem, keyRec, rec2, workingDir, []string{"a"}, []string{}, 2)
+	builder, err := NewParquetRecordMergeSortBuilder(
+		logger,
+		mem,
+		keyRec,
+		rec2,
+		workingDir,
+		[]string{"a"},
+		[]string{"a", "b", "c"},
+		2,
+	)
 	if err != nil {
 		t.Errorf("failed to construct record merge sort builder with error '%s'", err)
 	}

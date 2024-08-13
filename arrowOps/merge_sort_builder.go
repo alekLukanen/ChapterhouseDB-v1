@@ -114,7 +114,21 @@ func (obj *ParquetRecordMergeSortBuilder) BuildNextFiles(ctx context.Context, fi
 	if err != nil {
 		return nil, err
 	}
+	defer func() {
+		for _, record := range records {
+			record.Release()
+		}
+	}()
+
 	obj.recordMergeSortBuilder.AddMainLineRecords(records)
+
+	obj.logger.Info(
+		"next record: ",
+		slog.Any("record", records[0].Schema().String()),
+		slog.Int64("numRows", records[0].NumRows()),
+	)
+
+	obj.recordMergeSortBuilder.Debug()
 
 	files := make([]ParquetFile, 0)
 	for {
@@ -134,6 +148,8 @@ func (obj *ParquetRecordMergeSortBuilder) BuildNextFiles(ctx context.Context, fi
 
 		files = append(files, f)
 	}
+
+	obj.recordMergeSortBuilder.Debug()
 
 	return files, nil
 }

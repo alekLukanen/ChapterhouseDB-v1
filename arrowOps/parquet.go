@@ -24,9 +24,16 @@ func WriteRecordToParquetFile(ctx context.Context, mem *memory.GoAllocator, reco
 	}
 	defer file.Close()
 
-	parquetWriteProps := parquet.NewWriterProperties(parquet.WithStats(true))
+	parquetWriteProps := parquet.NewWriterProperties(
+		parquet.WithStats(true),
+	)
 	arrowWriteProps := pqarrow.NewArrowWriterProperties()
-	parquetFileWriter, err := pqarrow.NewFileWriter(record.Schema(), file, parquetWriteProps, arrowWriteProps)
+	parquetFileWriter, err := pqarrow.NewFileWriter(
+		record.Schema(),
+		file,
+		parquetWriteProps,
+		arrowWriteProps,
+	)
 	if err != nil {
 		return err
 	}
@@ -50,8 +57,6 @@ func ReadParquetFile(ctx context.Context, mem *memory.GoAllocator, filePath stri
 		Parallel:  true,
 		BatchSize: 1 << 20, // 1MB
 	}
-	parquetReadProps.SetReadDict(0, true)
-	parquetReadProps.SetReadDict(1, true)
 	arrowFileReader, err := pqarrow.NewFileReader(parquetFileReader, parquetReadProps, mem)
 	if err != nil {
 		return nil, err
