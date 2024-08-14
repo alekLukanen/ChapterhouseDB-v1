@@ -459,7 +459,7 @@ func TestMergeSortBuilder(t *testing.T) {
 
 	// build last record //////////////////////
 	newRec3, err := builder.BuildLastRecord()
-	if errors.Is(err, ErrNoMoreRecords) {
+	if !errors.Is(err, ErrNoMoreRecords) {
 		t.Fatalf("unexpected error '%s'", err)
 	}
 	if newRec3 != nil {
