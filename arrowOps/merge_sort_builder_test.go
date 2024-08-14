@@ -21,7 +21,7 @@ func BenchmarkValidateSampleRecord(b *testing.B) {
 		b.Run(fmt.Sprintf("size_%d", size), func(b *testing.B) {
 			for idx := 0; idx < b.N; idx++ {
 				b.StopTimer()
-				data := mockData(mem, size, "ascending")
+				data := mockData(mem, size, "ascending", false)
 
 				schema := arrow.NewSchema([]arrow.Field{
 					{Name: "a", Type: arrow.PrimitiveTypes.Uint32},
@@ -47,6 +47,29 @@ func BenchmarkValidateSampleRecord(b *testing.B) {
 
 }
 
+/*
+func TestParquetRecordMergeSortBuilderOnMultipleFiles(t *testing.T) {
+
+	ctx := context.Background()
+	mem := memory.NewGoAllocator()
+	logger := slog.New(
+		slog.NewJSONHandler(
+			os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug},
+		),
+	)
+
+	workingDir, err := os.MkdirTemp("", "test-parquet-builder")
+	if err != nil {
+		t.Errorf("fail to create temp dir with error '%s'", err)
+		return
+	}
+	defer os.RemoveAll(workingDir)
+
+	allData := mockData(mem, 100, "ascending", true)
+
+}
+*/
+
 func TestParquetRecordMergeSortBuilder(t *testing.T) {
 
 	ctx := context.Background()
@@ -61,6 +84,7 @@ func TestParquetRecordMergeSortBuilder(t *testing.T) {
 	workingDir, err := os.MkdirTemp("", "test-parquet-builder")
 	if err != nil {
 		t.Errorf("failed to create temp dir with error '%s'", err)
+		return
 	}
 	defer os.RemoveAll(workingDir)
 

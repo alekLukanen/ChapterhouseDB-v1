@@ -16,8 +16,8 @@ func BenchmarkCompareRecordRowsOnAllColumns(b *testing.B) {
 			for idx := 0; idx < b.N; idx++ {
 				mem := memory.NewGoAllocator()
 				b.StopTimer()
-				record1 := mockData(mem, size, "ascending")
-				record2 := mockData(mem, size, "ascending")
+				record1 := mockData(mem, size, "ascending", false)
+				record2 := mockData(mem, size, "ascending", false)
 				defer record1.Release()
 				defer record2.Release()
 				b.StartTimer()
@@ -46,8 +46,8 @@ func BenchmarkCompareRecordRowsWithColumnSubset(b *testing.B) {
 				for idx := 0; idx < b.N; idx++ {
 					mem := memory.NewGoAllocator()
 					b.StopTimer()
-					record1 := mockData(mem, size, "ascending")
-					record2 := mockData(mem, size, "ascending")
+					record1 := mockData(mem, size, "ascending", false)
+					record2 := mockData(mem, size, "ascending", false)
 					defer record1.Release()
 					defer record2.Release()
 					b.StartTimer()

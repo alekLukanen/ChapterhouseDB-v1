@@ -16,7 +16,7 @@ func BenchmarkSortRecordWithSingleColumnAndDescendingData(b *testing.B) {
 				b.StopTimer()
 				mem := memory.NewGoAllocator()
 				// create large records to compare
-				r1 := mockData(mem, size, "descending")
+				r1 := mockData(mem, size, "descending", false)
 				defer r1.Release()
 				b.StartTimer()
 				if val, ifErr := SortRecord(mem, r1, []string{"a"}); ifErr != nil {
@@ -39,7 +39,7 @@ func BenchmarkSortRecordWithSingleColumnAndRandomData(b *testing.B) {
 				b.StopTimer()
 				mem := memory.NewGoAllocator()
 				// create large records to compare
-				r1 := mockData(mem, size, "random")
+				r1 := mockData(mem, size, "random", false)
 				defer r1.Release()
 				b.StartTimer()
 				if val, ifErr := SortRecord(mem, r1, []string{"a"}); ifErr != nil {
@@ -59,9 +59,9 @@ func TestSortRecordWithSingleColumnAndDescendingData(t *testing.T) {
 	mem := memory.NewGoAllocator()
 	size := 1_000_000
 	// create large records to compare
-	r1 := mockData(mem, size, "descending")
+	r1 := mockData(mem, size, "descending", false)
 	defer r1.Release()
-	r2 := mockData(mem, size, "ascending")
+	r2 := mockData(mem, size, "ascending", false)
 	defer r2.Release()
 
 	sortedRecord, err := SortRecord(mem, r1, []string{"a"})

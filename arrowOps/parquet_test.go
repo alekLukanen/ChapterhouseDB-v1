@@ -14,7 +14,7 @@ func TestWritingAndReadingParquetFile(t *testing.T) {
 	ctx := context.Background()
 	mem := memory.NewGoAllocator()
 
-	data := mockData(mem, 10, "ascending")
+	data := mockData(mem, 10, "ascending", false)
 	workingDir, err := os.MkdirTemp("", "arrowops")
 	if err != nil {
 		t.Fatalf("os.MkdirTemp failed: %v", err)

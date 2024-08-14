@@ -17,10 +17,10 @@ func BenchmarkTakeRecord(b *testing.B) {
 				b.StopTimer()
 				mem := memory.NewGoAllocator()
 				// create large records to compare
-				r1 := mockData(mem, size, "descending")
+				r1 := mockData(mem, size, "descending", false)
 				defer r1.Release()
 
-				r2 := mockData(mem, size, "descending")
+				r2 := mockData(mem, size, "descending", false)
 				defer r2.Release()
 
 				// create indices every 10th row
