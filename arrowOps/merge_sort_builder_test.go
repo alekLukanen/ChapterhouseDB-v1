@@ -174,15 +174,78 @@ func TestParquetRecordMergeSortBuilder(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to read parquet file with error '%s'", err)
 	}
+	if len(par1) != 1 {
+		t.Fatalf("expected 1 record, got %d", len(par1))
+	}
+
 	par2, err := ReadParquetFile(ctx, mem, firstParquetFiles[1].FilePath)
 	if err != nil {
 		t.Fatalf("failed to read parquet file with error '%s'", err)
 	}
+	if len(par2) != 1 {
+		t.Fatalf("expected 1 record, got %d", len(par2))
+	}
 
-	t.Log("par1: ", par1)
-	t.Log("par2: ", par2)
+	par1Rec := par1[0]
+	par2Rec := par2[0]
 
-	return
+	// build expected records for first files ///////////////
+	bldrPar1 := array.NewRecordBuilder(mem, dataSchema)
+	defer bldrPar1.Release()
+	bldrPar1.Field(0).(*array.Uint32Builder).AppendValues([]uint32{0, 1}, nil)
+	bldrPar1.Field(1).(*array.Float32Builder).AppendValues([]float32{0., 1.}, nil)
+	bldrPar1.Field(2).(*array.StringBuilder).AppendValues([]string{"s0", "s1"}, nil)
+	bldrPar1.Field(3).(*array.TimestampBuilder).AppendValues(
+		[]arrow.Timestamp{
+			currentTimestamp, currentTimestamp,
+		},
+		nil)
+	bldrPar1.Field(4).(*array.TimestampBuilder).AppendValues(
+		[]arrow.Timestamp{
+			currentTimestamp, currentTimestamp,
+		}, nil)
+	bldrPar1.Field(5).(*array.TimestampBuilder).AppendValues(
+		[]arrow.Timestamp{
+			currentTimestamp, currentTimestamp,
+		}, nil)
+
+	bldrPar2 := array.NewRecordBuilder(mem, dataSchema)
+	defer bldrPar2.Release()
+	bldrPar2.Field(0).(*array.Uint32Builder).AppendValues([]uint32{3, 4}, nil)
+	bldrPar2.Field(1).(*array.Float32Builder).AppendValues([]float32{3., 4.}, nil)
+	bldrPar2.Field(2).(*array.StringBuilder).AppendValues([]string{"s3-modified", "s4"}, nil)
+	bldrPar2.Field(3).(*array.TimestampBuilder).AppendValues(
+		[]arrow.Timestamp{
+			currentTimestamp, currentTimestamp,
+		},
+		nil)
+	bldrPar2.Field(4).(*array.TimestampBuilder).AppendValues(
+		[]arrow.Timestamp{
+			currentTimestamp, currentTimestamp,
+		}, nil)
+	bldrPar2.Field(5).(*array.TimestampBuilder).AppendValues(
+		[]arrow.Timestamp{
+			currentTimestamp, currentTimestamp,
+		}, nil)
+
+	expectedPar1 := bldrPar1.NewRecord()
+	expectedPar2 := bldrPar2.NewRecord()
+	defer expectedPar1.Release()
+	defer expectedPar2.Release()
+	/////////////////////////////////////////////////////////
+
+	if !RecordsEqual(par1Rec, expectedPar1, "a", "b", "c") {
+		t.Log("par1Rec: ", par1Rec)
+		t.Log("expectedPar1: ", expectedPar1)
+		t.Errorf("expected records to be equal")
+		return
+	}
+	if !RecordsEqual(par2Rec, expectedPar2, "a", "b", "c") {
+		t.Log("par2Rec: ", par2Rec)
+		t.Log("expectedPar2: ", expectedPar2)
+		t.Errorf("expected records to be equal")
+		return
+	}
 
 	// build second record //////////////////////////////////
 	lastParquetFiles, err := builder.BuildLastFiles(ctx)
@@ -193,6 +256,47 @@ func TestParquetRecordMergeSortBuilder(t *testing.T) {
 		t.Fatalf("expected 1 parquet file, got %d", len(lastParquetFiles))
 	}
 	//////////////////////////////////////////////////////////
+
+	par3, err := ReadParquetFile(ctx, mem, lastParquetFiles[0].FilePath)
+	if err != nil {
+		t.Fatalf("failed to read parquet file with error '%s'", err)
+	}
+	if len(par3) != 1 {
+		t.Fatalf("expected 1 record, got %d", len(par3))
+	}
+
+	par3Rec := par3[0]
+
+	// build expected records for first files ///////////////
+	bldrPar3 := array.NewRecordBuilder(mem, dataSchema)
+	defer bldrPar3.Release()
+	bldrPar3.Field(0).(*array.Uint32Builder).AppendValues([]uint32{10}, nil)
+	bldrPar3.Field(1).(*array.Float32Builder).AppendValues([]float32{10.}, nil)
+	bldrPar3.Field(2).(*array.StringBuilder).AppendValues([]string{"s10"}, nil)
+	bldrPar3.Field(3).(*array.TimestampBuilder).AppendValues(
+		[]arrow.Timestamp{
+			currentTimestamp,
+		},
+		nil)
+	bldrPar3.Field(4).(*array.TimestampBuilder).AppendValues(
+		[]arrow.Timestamp{
+			currentTimestamp,
+		}, nil)
+	bldrPar3.Field(5).(*array.TimestampBuilder).AppendValues(
+		[]arrow.Timestamp{
+			currentTimestamp,
+		}, nil)
+
+	expectedPar3 := bldrPar3.NewRecord()
+	defer expectedPar3.Release()
+	/////////////////////////////////////////////////////////
+
+	if !RecordsEqual(par3Rec, expectedPar3, "a", "b", "c") {
+		t.Log("par3Rec: ", par3Rec)
+		t.Log("expectedPar3: ", expectedPar3)
+		t.Errorf("expected records to be equal")
+		return
+	}
 
 }
 

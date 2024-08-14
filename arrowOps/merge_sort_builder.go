@@ -278,7 +278,13 @@ func (obj *RecordMergeSortBuilder) BuildNextRecord() (arrow.Record, error) {
 		obj.logger.Info("Processing progress record", slog.Int("index", idx), slog.Any("rowIndex", pRecord.index), slog.Bool("done", pRecord.done))
 
 		for !pRecord.done {
-			obj.logger.Info("takeInfo", slog.Any("takeInfo", obj.takeInfo), slog.Int("takeIndex", obj.takeIndex))
+
+			// the sample record doesn't have anything left so we can
+			// just pass the rest of the main line file rows
+			if obj.sampleRecord.done {
+				obj.takeRecordRow(idx, pRecord, true)
+				continue
+			}
 
 			rowProcessed := false
 			if !obj.processedKeyRecordForMainLine.done {
@@ -305,57 +311,56 @@ func (obj *RecordMergeSortBuilder) BuildNextRecord() (arrow.Record, error) {
 				rowProcessed = true
 			}
 
-			if !rowProcessed {
-				// ROW NOT PROCESSED ///////////////////
+			cmpRowDirection, err := CompareRecordRows(
+				pRecord.record,
+				obj.sampleRecord.record,
+				int(pRecord.index),
+				int(obj.sampleRecord.index),
+				obj.primaryColumns...,
+			)
+			if err != nil {
+				return nil, err
+			}
+
+			if !rowProcessed && cmpRowDirection < 0 {
+				// ROW NOT PROCESSED AND LESS THAN ///////////////////
 
 				obj.takeRecordRow(idx, pRecord, true)
 
-			} else {
-				// ROW PROCESSED //////////////////////
-
-				cmpRowDirection, err := CompareRecordRows(
+			} else if cmpRowDirection == 0 {
+				// ROWS ARE EQUAL //////////////////////////////
+				// if the records are equal by key then compare them
+				// when equal then take the old row
+				// when not equal then take the new row
+				cmpRowDirection, err = CompareRecordRows(
 					pRecord.record,
 					obj.sampleRecord.record,
 					int(pRecord.index),
 					int(obj.sampleRecord.index),
-					obj.primaryColumns...,
+					obj.compareColumns...,
 				)
 				if err != nil {
 					return nil, err
 				}
-
 				if cmpRowDirection == 0 {
-					// ROWS ARE EQUAL //////////////////////////////
-					// if the records are equal by key then compare them
-					// when equal then take the old row
-					// when not equal then take the new row
-					cmpRowDirection, err = CompareRecordRows(
-						pRecord.record,
-						obj.sampleRecord.record,
-						int(pRecord.index),
-						int(obj.sampleRecord.index),
-						obj.compareColumns...,
-					)
-					if err != nil {
-						return nil, err
-					}
-					if cmpRowDirection == 0 {
-						// ROWS WAS NOT UPDATED ////////////////////////
-						obj.takeRecordRow(idx, pRecord, false)
-					} else {
-						// ROW WAS UPDATED ////////////////////////////
-						obj.takeRecordRow(idx, obj.sampleRecord, true)
-					}
-
-				} else if cmpRowDirection < 0 {
-					// ROW WAS PROCESSED BUT WAS DELETED /////////////////////
-					pRecord.increment()
+					// ROWS WAS NOT UPDATED ////////////////////////
+					obj.takeRecordRow(idx, pRecord, false)
+					obj.sampleRecord.increment()
 				} else {
-					// ROW IS NET NEW ////////////////////////////////////////
-					obj.takeRecordRow(idx, obj.sampleRecord, false)
+					// ROW WAS UPDATED ////////////////////////////
+					obj.takeRecordRow(idx, obj.sampleRecord, true)
+					pRecord.increment()
 				}
 
+			} else if cmpRowDirection < 0 {
+				// ROW WAS PROCESSED BUT WAS DELETED /////////////////////
+				pRecord.increment()
+			} else {
+				// ROW IS NET NEW ////////////////////////////////////////
+				obj.takeRecordRow(idx, obj.sampleRecord, false)
 			}
+
+			obj.logCurrentTakenRecord()
 
 			if obj.takeIndex == obj.maxRowsPerRecord {
 				return obj.TakeRecord()
@@ -386,7 +391,9 @@ func (obj *RecordMergeSortBuilder) BuildLastRecord() (arrow.Record, error) {
 
 func (obj *RecordMergeSortBuilder) buildNextRecordFromSampleRecord(allowPartialFill bool) (arrow.Record, error) {
 	obj.logger.Info("buildNextRecordFromSampleRecord", slog.Bool("allowPartialFill", allowPartialFill))
-	for !obj.processedKeyRecordForMainLine.done {
+	for !obj.sampleRecord.done {
+
+		obj.logger.Debug("buildNextRecordFromSampleRecord", slog.Any("processedKeyRecordForMainLine", obj.processedKeyRecordForMainLine))
 
 		obj.takeRecordRow(0, obj.sampleRecord, true)
 
@@ -431,14 +438,17 @@ func (obj *RecordMergeSortBuilder) SeekProcessingKeyRecordForMainLine() {
 	}
 }
 
-/*
-* Using the current records and the take order, build the record.
-* Once the record has been built then reset the take order
-* and take index. The zeroth record will always be the sample
-* record and the rest will be the progress records.
- */
-func (obj *RecordMergeSortBuilder) TakeRecord() (arrow.Record, error) {
-	if len(obj.takeInfo) == 0 {
+func (obj *RecordMergeSortBuilder) logCurrentTakenRecord() {
+	takenRecord, err := obj.currentTakenRecord()
+	if err != nil {
+		obj.logger.Error("logCurrentTakenRecord", slog.Any("error", err))
+		return
+	}
+	obj.logger.Debug("logCurrentTakenRecord", slog.Any("record", takenRecord))
+}
+
+func (obj *RecordMergeSortBuilder) currentTakenRecord() (arrow.Record, error) {
+	if obj.takeIndex == 0 {
 		return nil, fmt.Errorf("%w| there aren't any record items to take", ErrNoMoreRecords)
 	}
 
@@ -460,7 +470,24 @@ func (obj *RecordMergeSortBuilder) TakeRecord() (arrow.Record, error) {
 	indices := rb.NewRecord()
 	defer indices.Release()
 
-	takenRecord, err := TakeMultipleRecords(obj.mem, obj.ProgressRecordsToRecords(), indices)
+	takeIndices := obj.ProgressRecordsToRecords()
+	takenRecord, err := TakeMultipleRecords(obj.mem, takeIndices, indices)
+	if err != nil {
+		return nil, err
+	}
+
+	return takenRecord, nil
+}
+
+/*
+* Using the current records and the take order, build the record.
+* Once the record has been built then reset the take order
+* and take index. The zeroth record will always be the sample
+* record and the rest will be the progress records.
+ */
+func (obj *RecordMergeSortBuilder) TakeRecord() (arrow.Record, error) {
+
+	takenRecord, err := obj.currentTakenRecord()
 	if err != nil {
 		return nil, err
 	}
