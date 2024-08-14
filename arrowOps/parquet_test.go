@@ -14,7 +14,7 @@ func TestWritingAndReadingParquetFile(t *testing.T) {
 	ctx := context.Background()
 	mem := memory.NewGoAllocator()
 
-	data := mockData(mem, 10, "ascending", false)
+	data := mockData(mem, 10, "ascending", true)
 	workingDir, err := os.MkdirTemp("", "arrowops")
 	if err != nil {
 		t.Fatalf("os.MkdirTemp failed: %v", err)
@@ -26,10 +26,6 @@ func TestWritingAndReadingParquetFile(t *testing.T) {
 	err = WriteRecordToParquetFile(ctx, mem, data, filePath)
 	if err != nil {
 		t.Fatalf("WriteRecordToParquetFile failed: %v", err)
-	}
-
-	for i, col := range data.Columns() {
-		t.Logf("data.column[%d] %q: %v\n", i, data.ColumnName(i), col)
 	}
 
 	readRecords, err := ReadParquetFile(ctx, mem, filePath)
@@ -45,16 +41,9 @@ func TestWritingAndReadingParquetFile(t *testing.T) {
 		t.Fatalf("ReadParquetFile failed: expected 10 rows, got %d", readRecords[0].NumRows())
 	}
 
-	if readRecord.NumCols() != 3 {
-		t.Fatalf("ReadParquetFile failed: expected 3 columns, got %d", readRecords[0].NumCols())
+	if readRecord.NumCols() != 6 {
+		t.Fatalf("ReadParquetFile failed: expected 6 columns, got %d", readRecords[0].NumCols())
 	}
-
-	for i, col := range readRecord.Columns() {
-		t.Logf("readRecord.column[%d] %q: %v\n", i, readRecord.ColumnName(i), col)
-	}
-
-	t.Log("readRecord.Schema", readRecord.Schema().Fields())
-	t.Log("readRecord", readRecord)
 
 	if !array.Equal(readRecord.Column(0), data.Column(0)) {
 		t.Fatalf("ReadParquetFile failed: column 0 not equal")

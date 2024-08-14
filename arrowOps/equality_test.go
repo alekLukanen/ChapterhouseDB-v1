@@ -23,14 +23,7 @@ func mockData(mem *memory.GoAllocator, size int, method string, addProcessingCol
 		fields = append(fields, arrow.Field{Name: "_processed_ts", Type: arrow.FixedWidthTypes.Timestamp_ms})
 	}
 
-	rb1 := array.NewRecordBuilder(mem, arrow.NewSchema(
-		[]arrow.Field{
-			{Name: "a", Type: arrow.PrimitiveTypes.Uint32}, // Metadata: arrow.NewMetadata([]string{"PARQUET:field_id"}, []string{"0"})
-			{Name: "b", Type: arrow.PrimitiveTypes.Float32},
-			{Name: "c", Type: arrow.BinaryTypes.String},
-		},
-		nil,
-	))
+	rb1 := array.NewRecordBuilder(mem, arrow.NewSchema(fields, nil))
 	defer rb1.Release()
 
 	currentTime := time.Now().UTC()
