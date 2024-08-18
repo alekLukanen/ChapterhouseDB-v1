@@ -282,16 +282,18 @@ func TestParquetRecordMergeSortBuilder(t *testing.T) {
 	// build second record //////////////////////////////////
 	lastParquetFiles, err := builder.BuildLastFiles(ctx)
 	if err != nil {
-		t.Fatalf("failed to build last with error '%s'", err)
+		t.Errorf("failed to build last with error\n%s", errs.ErrorWithStack(err))
+		return
 	}
 	if len(lastParquetFiles) != 1 {
-		t.Fatalf("expected 1 parquet file, got %d", len(lastParquetFiles))
+		t.Errorf("expected 1 parquet file, got %d", len(lastParquetFiles))
+		return
 	}
 	//////////////////////////////////////////////////////////
 
 	par3, err := ReadParquetFile(ctx, mem, lastParquetFiles[0].FilePath)
 	if err != nil {
-		t.Errorf("failed to read parquet file with error '%s'", err)
+		t.Errorf("failed to read parquet file with error\n%s", errs.ErrorWithStack(err))
 		return
 	}
 	if len(par3) != 1 {

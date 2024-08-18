@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 
+	"github.com/alekLukanen/errs"
 	"github.com/apache/arrow/go/v17/arrow"
 	"github.com/apache/arrow/go/v17/arrow/memory"
 	"github.com/apache/arrow/go/v17/parquet"
@@ -20,7 +21,7 @@ func WriteRecordToParquetFile(ctx context.Context, mem *memory.GoAllocator, reco
 
 	file, err := os.Create(filePath)
 	if err != nil {
-		return err
+		return errs.NewStackError(err)
 	}
 	defer file.Close()
 
@@ -35,13 +36,13 @@ func WriteRecordToParquetFile(ctx context.Context, mem *memory.GoAllocator, reco
 		arrowWriteProps,
 	)
 	if err != nil {
-		return err
+		return errs.NewStackError(err)
 	}
 	defer parquetFileWriter.Close()
 
 	err = parquetFileWriter.Write(record)
 	if err != nil {
-		return err
+		return errs.NewStackError(err)
 	}
 	return parquetFileWriter.Close()
 }
@@ -50,7 +51,7 @@ func ReadParquetFile(ctx context.Context, mem *memory.GoAllocator, filePath stri
 
 	parquetFileReader, err := parquetFileUtils.OpenParquetFile(filePath, false)
 	if err != nil {
-		return nil, err
+		return nil, errs.NewStackError(err)
 	}
 	defer parquetFileReader.Close()
 
@@ -60,12 +61,12 @@ func ReadParquetFile(ctx context.Context, mem *memory.GoAllocator, filePath stri
 	}
 	arrowFileReader, err := pqarrow.NewFileReader(parquetFileReader, parquetReadProps, mem)
 	if err != nil {
-		return nil, err
+		return nil, errs.NewStackError(err)
 	}
 
 	recordReader, err := arrowFileReader.GetRecordReader(ctx, nil, nil)
 	if err != nil {
-		return nil, err
+		return nil, errs.NewStackError(err)
 	}
 	defer recordReader.Release()
 
