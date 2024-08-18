@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"time"
 
+	arrowops "github.com/alekLukanen/ChapterhouseDB/arrowOps"
 	"github.com/alekLukanen/ChapterhouseDB/elements"
 	"github.com/alekLukanen/ChapterhouseDB/operations"
 	"github.com/alekLukanen/ChapterhouseDB/storage"
@@ -15,10 +16,11 @@ import (
 )
 
 type Warehouse struct {
-	logger        *slog.Logger
-	keyStorage    storage.IKeyStorage
-	objectStorage storage.IObjectStorage
-	allocator     *memory.GoAllocator
+	logger          *slog.Logger
+	keyStorage      storage.IKeyStorage
+	objectStorage   storage.IObjectStorage
+	manifestStorage storage.IManifestStorage
+	allocator       *memory.GoAllocator
 
 	name          string
 	tableRegistry operations.ITableRegistry
@@ -32,6 +34,7 @@ func NewWarehouse(
 	tableRegistry *operations.TableRegistry,
 	keyStorageOptions storage.KeyStorageOptions,
 	objectStorageOptions storage.ObjectStorageOptions,
+	manifestStorageOptions storage.ManifestStorageOptions,
 ) (*Warehouse, error) {
 	keyStorage, err := storage.NewKeyStorage(ctx, logger, keyStorageOptions)
 	if err != nil {
@@ -39,6 +42,9 @@ func NewWarehouse(
 	}
 
 	objectStorage, err := storage.NewObjectStorage(ctx, logger, objectStorageOptions)
+	if err != nil {
+		return nil, err
+	}
 
 	allocator := memory.NewGoAllocator()
 	inserter := operations.NewInserter(
@@ -51,14 +57,19 @@ func NewWarehouse(
 		},
 	)
 
+	manifestStorage := storage.NewManifestStorage(
+		ctx, logger, allocator, objectStorage, manifestStorageOptions,
+	)
+
 	warehouse := &Warehouse{
-		logger:        logger,
-		keyStorage:    keyStorage,
-		objectStorage: objectStorage,
-		allocator:     allocator,
-		name:          name,
-		tableRegistry: tableRegistry,
-		inserter:      inserter,
+		logger:          logger,
+		keyStorage:      keyStorage,
+		objectStorage:   objectStorage,
+		manifestStorage: manifestStorage,
+		allocator:       allocator,
+		name:            name,
+		tableRegistry:   tableRegistry,
+		inserter:        inserter,
 	}
 	return warehouse, nil
 }
@@ -71,7 +82,9 @@ func (obj *Warehouse) Run(ctx context.Context) {
 		default:
 			processedAPartition, err := obj.ProcessNextTablePartition(ctx)
 			if err != nil {
-				obj.logger.Error("unable to process partition", slog.String("error", errs.ErrorWithStack(err)))
+				obj.logger.Error(
+					"failed to process next table partition",
+					slog.String("error", errs.ErrorWithStack(err)))
 			}
 			if !processedAPartition {
 				time.Sleep(5 * time.Second)
@@ -116,12 +129,8 @@ func (obj *Warehouse) Run(ctx context.Context) {
 *    will check that list for any items that have not been removed
 *    and process those again.
 * 6. Delete the old parquet files for the partition.
-* 7. For any row that has changed signal to all subscribed
-*    tables that the row has changed by batching the row
-*    in that dependent tables partition batches with the
-*    requested partition keys.
-* 8. Release the lock on the partition
-* 9. Release the arrow record from the memory allocator
+* 7. Release the lock on the partition
+* 8. Release the arrow record from the memory allocator
  */
 func (obj *Warehouse) ProcessNextTablePartition(ctx context.Context) (bool, error) {
 	var partition elements.Partition
@@ -129,6 +138,7 @@ func (obj *Warehouse) ProcessNextTablePartition(ctx context.Context) (bool, erro
 	var lock storage.ILock
 	var record arrow.Record
 	var table *elements.Table
+	var foundPartition bool
 
 	// 1. Get a partition for a table subscription
 	for idx, tab := range obj.tableRegistry.Tables() {
@@ -140,14 +150,18 @@ func (obj *Warehouse) ProcessNextTablePartition(ctx context.Context) (bool, erro
 			ctx, "table1", tableOptions.BatchProcessingSize, tableOptions.BatchProcessingDelay,
 		)
 		if err != nil {
-			obj.logger.Error("unable to read items", slog.String("error", errs.ErrorWithStack(err)))
-			return false, err
+			return false, errs.Wrap(
+				err,
+				fmt.Errorf("unable to read partition items for table %s", tab.TableName()))
 		}
 
 		table = tab
-
+		foundPartition = true
 		break
 
+	}
+	if !foundPartition {
+		return false, nil
 	}
 
 	obj.logger.Info(
@@ -167,6 +181,7 @@ func (obj *Warehouse) ProcessNextTablePartition(ctx context.Context) (bool, erro
 	if err != nil {
 		return false, errs.Wrap(err, fmt.Errorf("unable to transform data"))
 	}
+	defer transformedData.Release()
 	obj.logger.Debug("transformed data", slog.Int64("numrows", transformedData.NumRows()))
 
 	// 3. Sort the record in ascending order
@@ -174,11 +189,49 @@ func (obj *Warehouse) ProcessNextTablePartition(ctx context.Context) (bool, erro
 	// partition keys for the table:
 	//   ("partition_column1", "partition_column2",...)
 	columnPartitions := table.ColumnPartitions()
-	columnNames := make([]string, len(columnPartitions))
+	partitionColumnNames := make([]string, len(columnPartitions))
 	for i, col := range columnPartitions {
-		columnNames[i] = col.Name()
+		partitionColumnNames[i] = col.Name()
 	}
-	obj.logger.Debug("partition columns", slog.Any("columns", columnNames))
+	obj.logger.Debug(
+		"partition columns used in sorting",
+		slog.String("table", table.TableName()),
+		slog.Any("columns", partitionColumnNames))
+
+	sortedRecord, err := arrowops.SortRecord(obj.allocator, transformedData, partitionColumnNames)
+	if err != nil {
+		return false, errs.Wrap(
+			err,
+			fmt.Errorf("failed to sort transformed data using columns %v", partitionColumnNames))
+	}
+	defer sortedRecord.Release()
+
+	// 4-8. Merge the new record into the existing partition records using
+	// the manifest storage implementation.
+	tableColumns := table.Columns()
+	allColumnNames := make([]string, len(tableColumns))
+	for i, col := range tableColumns {
+		allColumnNames[i] = col.Name
+	}
+	obj.logger.Debug(
+		"all columns used in merging",
+		slog.String("table", table.TableName()),
+		slog.Any("columns", allColumnNames))
+
+	err = obj.manifestStorage.MergePartitionRecordIntoManifest(
+		ctx,
+		partition,
+		processedKeyRecord,
+		sortedRecord,
+		partitionColumnNames,
+		allColumnNames,
+		storage.PartitionManifestOptions{MaxObjectRows: 1_000},
+	)
+	if err != nil {
+		return false, errs.Wrap(
+			err,
+			fmt.Errorf("failed to merge the new record into the manifest"))
+	}
 
 	return true, nil
 }

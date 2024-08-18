@@ -13,7 +13,26 @@ import (
 
 	arrowops "github.com/alekLukanen/ChapterhouseDB/arrowOps"
 	"github.com/alekLukanen/ChapterhouseDB/elements"
+	"github.com/alekLukanen/errs"
 )
+
+type IManifestStorage interface {
+	GetPartitionManifest(context.Context, elements.Partition) (*PartitionManifest, error)
+	GetPartitionManifestFile(context.Context, *PartitionManifest, int, string) error
+	ReplacePartitionManifest(
+		context.Context,
+		elements.Partition,
+		*PartitionManifest,
+		*PartitionManifest, []string) error
+	MergePartitionRecordIntoManifest(
+		context.Context,
+		elements.Partition,
+		arrow.Record,
+		arrow.Record,
+		[]string,
+		[]string,
+		PartitionManifestOptions) error
+}
 
 type ManifestStorageOptions struct {
 	MaxFiles    int
@@ -140,7 +159,7 @@ func (obj *ManifestStorage) ReplacePartitionManifest(
 func (obj *ManifestStorage) MergePartitionRecordIntoManifest(
 	ctx context.Context,
 	partition elements.Partition,
-	processedKeyRecrod arrow.Record,
+	processedKeyRecord arrow.Record,
 	newRecord arrow.Record,
 	primaryColumns []string,
 	compareColumns []string,
@@ -174,7 +193,7 @@ func (obj *ManifestStorage) MergePartitionRecordIntoManifest(
 	parquetMergeSortBuilder, err := arrowops.NewParquetRecordMergeSortBuilder(
 		obj.logger,
 		obj.mem,
-		processedKeyRecrod,
+		processedKeyRecord,
 		newRecord,
 		tmpDir,
 		primaryColumns,
@@ -187,12 +206,12 @@ func (obj *ManifestStorage) MergePartitionRecordIntoManifest(
 		filePath := fmt.Sprintf("%s/%d", tmpDir, idx)
 		err = obj.DownloadFile(ctx, obj.bucketName, fmt.Sprintf("%s/%s", obj.keyPrefix, manifestObj.Key), filePath)
 		if err != nil {
-			return err
+			return errs.Wrap(err, fmt.Errorf("failed downloading manifest object key: %s", manifestObj.Key))
 		}
 		// add the parquet file to the merge sort builder
 		files, err := parquetMergeSortBuilder.BuildNextFiles(ctx, filePath)
 		if err != nil {
-			return err
+			return errs.Wrap(err, fmt.Errorf("failed merging manifest object key: %s", manifestObj.Key))
 		}
 		for _, pqf := range files {
 			manifestBuilder.AddFile(pqf)
@@ -201,7 +220,7 @@ func (obj *ManifestStorage) MergePartitionRecordIntoManifest(
 
 	lastPqfs, err := parquetMergeSortBuilder.BuildLastFiles(ctx)
 	if err != nil {
-		return err
+		return errs.Wrap(err, fmt.Errorf("failed building last file for partition key %s", partition.Key))
 	}
 	for _, pqf := range lastPqfs {
 		manifestBuilder.AddFile(pqf)
@@ -215,7 +234,7 @@ func (obj *ManifestStorage) MergePartitionRecordIntoManifest(
 		manifestBuilder.Files(),
 	)
 	if err != nil {
-		return err
+		return errs.Wrap(err, fmt.Errorf("failed replacing manifest files for partition key %s", partition.Key))
 	}
 
 	return nil

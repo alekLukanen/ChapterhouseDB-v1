@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/alekLukanen/errs"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
@@ -77,7 +78,7 @@ func NewObjectStorage(
 		configFuncs...,
 	)
 	if err != nil {
-		return nil, err
+		return nil, errs.NewStackError(err)
 	}
 
 	newSession := s3.NewFromConfig(s3Config, func(o *s3.Options) {
@@ -92,7 +93,7 @@ func NewObjectStorage(
 }
 
 func (obj *ObjectStorage) Upload(ctx context.Context, bucket, key string, body []byte) error {
-	obj.logger.Info(
+	obj.logger.Debug(
 		"uploading object", slog.String("bucket", bucket), slog.String("key", key), slog.Int("numBytes", len(body)),
 	)
 
@@ -106,7 +107,7 @@ func (obj *ObjectStorage) Upload(ctx context.Context, bucket, key string, body [
 }
 
 func (obj *ObjectStorage) UploadFile(ctx context.Context, bucket, key, filePath string) error {
-	obj.logger.Info("uploading file", slog.String("bucket", bucket), slog.String("key", key), slog.String("filePath", filePath))
+	obj.logger.Debug("uploading file", slog.String("bucket", bucket), slog.String("key", key), slog.String("filePath", filePath))
 	fileReader, err := os.Open(filePath)
 	if err != nil {
 		return err
@@ -119,11 +120,14 @@ func (obj *ObjectStorage) UploadFile(ctx context.Context, bucket, key, filePath 
 		Key:    &key,
 		Body:   fileReader,
 	})
-	return err
+	if err != nil {
+		return errs.NewStackError(err)
+	}
+	return nil
 }
 
 func (obj *ObjectStorage) Download(ctx context.Context, bucket, key string) ([]byte, error) {
-	obj.logger.Info("downloading object", slog.String("bucket", bucket), slog.String("key", key))
+	obj.logger.Debug("downloading object", slog.String("bucket", bucket), slog.String("key", key))
 
 	downloader := manager.NewDownloader(obj.client)
 	buf := manager.NewWriteAtBuffer([]byte{})
@@ -131,36 +135,45 @@ func (obj *ObjectStorage) Download(ctx context.Context, bucket, key string) ([]b
 		Bucket: &bucket,
 		Key:    &key,
 	})
-	return buf.Bytes(), err
+	if err != nil {
+		return nil, errs.NewStackError(err)
+	}
+	return buf.Bytes(), nil
 }
 
 func (obj *ObjectStorage) DownloadFile(ctx context.Context, bucket, key, filePath string) error {
-	obj.logger.Info("downloading file", slog.String("bucket", bucket), slog.String("key", key), slog.String("filePath", filePath))
+	obj.logger.Debug("downloading file", slog.String("bucket", bucket), slog.String("key", key), slog.String("filePath", filePath))
 	downloader := manager.NewDownloader(obj.client)
 	fileWriter, err := os.Create(filePath)
 	if err != nil {
-		return err
+		return errs.NewStackError(err)
 	}
 	defer fileWriter.Close()
 	_, err = downloader.Download(ctx, fileWriter, &s3.GetObjectInput{
 		Bucket: &bucket,
 		Key:    &key,
 	})
-	return err
+	if err != nil {
+		return errs.NewStackError(err)
+	}
+	return nil
 }
 
 func (obj *ObjectStorage) Delete(ctx context.Context, bucket, key string) error {
-	obj.logger.Info("deleting object", slog.String("bucket", bucket), slog.String("key", key))
+	obj.logger.Debug("deleting object", slog.String("bucket", bucket), slog.String("key", key))
 
 	_, err := obj.client.DeleteObject(ctx, &s3.DeleteObjectInput{
 		Bucket: &bucket,
 		Key:    &key,
 	})
-	return err
+	if err != nil {
+		return errs.NewStackError(err)
+	}
+	return nil
 }
 
 func (obj *ObjectStorage) ListObjects(ctx context.Context, bucket string, prefix string) ([]string, error) {
-	obj.logger.Info("listing objects", slog.String("bucket", bucket))
+	obj.logger.Debug("listing objects", slog.String("bucket", bucket))
 
 	maxKeys := int32(10_000)
 	listObjectsOutput, err := obj.client.ListObjectsV2(ctx, &s3.ListObjectsV2Input{
@@ -169,7 +182,7 @@ func (obj *ObjectStorage) ListObjects(ctx context.Context, bucket string, prefix
 		MaxKeys: &maxKeys,
 	})
 	if err != nil {
-		return nil, err
+		return nil, errs.NewStackError(err)
 	}
 
 	keys := make([]string, len(listObjectsOutput.Contents))

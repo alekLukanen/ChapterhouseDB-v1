@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"slices"
+
+	"github.com/alekLukanen/errs"
 )
 
 type PartitionManifestOptions struct {
@@ -43,7 +45,7 @@ func NewManifestFromBytes(data []byte) (*PartitionManifest, error) {
 	manifest := &PartitionManifest{}
 	err := json.Unmarshal(data, manifest)
 	if err != nil {
-		return nil, err
+		return nil, errs.NewStackError(err)
 	}
 
 	manifest.SortObjects()
@@ -55,7 +57,11 @@ func NewManifestFromBytes(data []byte) (*PartitionManifest, error) {
 }
 
 func (obj *PartitionManifest) ToBytes() ([]byte, error) {
-	return json.Marshal(obj)
+	data, err := json.Marshal(obj)
+	if err != nil {
+		return nil, errs.NewStackError(err)
+	}
+	return data, nil
 }
 
 func (obj *PartitionManifest) SortObjects() {
