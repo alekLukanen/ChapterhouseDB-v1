@@ -164,6 +164,15 @@ func (obj *Warehouse) ProcessNextTablePartition(ctx context.Context) (bool, erro
 		return false, nil
 	}
 
+	// TODO: need to deduplicate the record based on the partition key
+	// For records that have an primary key and then a historical timestamp, we need to deduplicate the record
+	// based on the primary key and then the produced timestamp. The user will need to define their table partition
+	// scheme to handle this. If a table just uses the partition key then the first item with the unique key will be
+	// picked, without taking into consideration the timestamp the event was produced on.
+  // The parquet file should contain a new _produced_ts column that contains the events source created timestamp.
+  // Only propogate changes to the main-line files if the event _produced_ts is greater than the existing _produced_ts
+  // in the main-line file.
+
 	obj.logger.Info(
 		"processing partition",
 		slog.String("partition.Key", partition.Key),
