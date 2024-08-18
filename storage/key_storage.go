@@ -19,6 +19,7 @@ import (
 type ILock interface {
 	TryLockContext(context.Context) error
 	UnlockContext(context.Context) (bool, error)
+	Name() string
 }
 
 type IKeyStorage interface {

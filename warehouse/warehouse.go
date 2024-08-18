@@ -152,9 +152,9 @@ func (obj *Warehouse) ProcessNextTablePartition(ctx context.Context) (bool, erro
 
 	obj.logger.Info(
 		"processing partition",
-		slog.Any("partition", partition),
-		slog.Any("lock", lock),
-		slog.Any("record", record),
+		slog.String("partition.Key", partition.Key),
+		slog.Int64("record.NumRows()", record.NumRows()),
+		slog.Any("lock.Name()", lock.Name()),
 	)
 
 	subscription, err := table.GetSubscriptionBySourceName(partition.SubscriptionSourceName)
@@ -167,7 +167,7 @@ func (obj *Warehouse) ProcessNextTablePartition(ctx context.Context) (bool, erro
 	if err != nil {
 		return false, errs.Wrap(err, fmt.Errorf("unable to transform data"))
 	}
-	obj.logger.Info("transformed data", slog.Int64("numrows", transformedData.NumRows()))
+	obj.logger.Debug("transformed data", slog.Int64("numrows", transformedData.NumRows()))
 
 	// 3. Sort the record in ascending order
 	// The order will be based on the combination of the
@@ -178,7 +178,7 @@ func (obj *Warehouse) ProcessNextTablePartition(ctx context.Context) (bool, erro
 	for i, col := range columnPartitions {
 		columnNames[i] = col.Name()
 	}
-	obj.logger.Info("partition columns", slog.Any("columns", columnNames))
+	obj.logger.Debug("partition columns", slog.Any("columns", columnNames))
 
 	return true, nil
 }
