@@ -162,6 +162,7 @@ func (obj *ParquetRecordMergeSortBuilder) BuildLastFiles(ctx context.Context) ([
 
 	files := make([]ParquetFile, 0)
 	for {
+		obj.logger.Debug("len(files): ", slog.Int("len(files)", len(files)))
 		lastRecord, err := obj.recordMergeSortBuilder.BuildLastRecord()
 		if errors.Is(err, ErrNoMoreRecords) {
 			break
