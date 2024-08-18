@@ -1,8 +1,9 @@
 module github.com/alekLukanen/ChapterhouseDB
 
-go 1.22.5
+go 1.23.0
 
 require (
+	github.com/alekLukanen/errs v1.0.2
 	github.com/apache/arrow/go/v17 v17.0.0
 	github.com/aws/aws-sdk-go-v2 v1.30.0
 	github.com/aws/aws-sdk-go-v2/config v1.27.21

@@ -7,6 +7,8 @@ import (
 	"log/slog"
 	"path"
 
+	"github.com/alekLukanen/errs"
+
 	"github.com/apache/arrow/go/v17/arrow"
 	"github.com/apache/arrow/go/v17/arrow/array"
 	"github.com/apache/arrow/go/v17/arrow/memory"
@@ -86,7 +88,9 @@ func NewParquetRecordMergeSortBuilder(
 }
 
 func (obj *ParquetRecordMergeSortBuilder) Release() {
-	obj.recordMergeSortBuilder.Release()
+	if obj.recordMergeSortBuilder != nil {
+		obj.recordMergeSortBuilder.Release()
+	}
 }
 
 func (obj *ParquetRecordMergeSortBuilder) addNewFile(ctx context.Context, record arrow.Record) (ParquetFile, error) {
@@ -271,7 +275,7 @@ func (obj *RecordMergeSortBuilder) BuildNextRecord() (arrow.Record, error) {
 	obj.logger.Info("mainLineRecord count: ", slog.Int("count", len(obj.mainLineRecords)))
 
 	if len(obj.mainLineRecords) == 0 {
-		return nil, ErrRecordNotComplete
+		return nil, errs.NewStackError(ErrRecordNotComplete)
 	}
 
 	for idx, pRecord := range obj.mainLineRecords[obj.mainLineRecordIndex:] {
@@ -441,7 +445,6 @@ func (obj *RecordMergeSortBuilder) SeekProcessingKeyRecordForMainLine() {
 func (obj *RecordMergeSortBuilder) logCurrentTakenRecord() {
 	takenRecord, err := obj.currentTakenRecord()
 	if err != nil {
-		obj.logger.Error("logCurrentTakenRecord", slog.Any("error", err))
 		return
 	}
 	obj.logger.Debug("logCurrentTakenRecord", slog.Any("record", takenRecord))
@@ -449,7 +452,7 @@ func (obj *RecordMergeSortBuilder) logCurrentTakenRecord() {
 
 func (obj *RecordMergeSortBuilder) currentTakenRecord() (arrow.Record, error) {
 	if obj.takeIndex == 0 {
-		return nil, fmt.Errorf("%w| there aren't any record items to take", ErrNoMoreRecords)
+		return nil, errs.NewStackError(fmt.Errorf("%w| there aren't any record items to take", ErrNoMoreRecords))
 	}
 
 	rb := array.NewRecordBuilder(obj.mem, arrow.NewSchema(
@@ -536,7 +539,7 @@ func ValidateSampleRecord(processedKeyRecord arrow.Record, sampleRecord arrow.Re
 			return err
 		}
 		if cmpRowDirection == 0 {
-			return ErrRecordHasDuplicateRows
+			return errs.NewStackError(ErrRecordHasDuplicateRows)
 		}
 	}
 
@@ -544,7 +547,7 @@ func ValidateSampleRecord(processedKeyRecord arrow.Record, sampleRecord arrow.Re
 	pRecord := newProgressRecord(processedKeyRecord, true)
 	for i := int64(0); i < sampleRecord.NumRows(); i++ {
 		if pRecord.done {
-			return ErrRecordContainsRowsNotInProcessedKey
+			return errs.NewStackError(ErrRecordContainsRowsNotInProcessedKey)
 		}
 		for !pRecord.done {
 			cmpRowDirection, err := CompareRecordRows(
@@ -562,7 +565,7 @@ func ValidateSampleRecord(processedKeyRecord arrow.Record, sampleRecord arrow.Re
 				pRecord.increment()
 				break
 			} else if cmpRowDirection > 0 {
-				return ErrRecordContainsRowsNotInProcessedKey
+				return errs.NewStackError(ErrRecordContainsRowsNotInProcessedKey)
 			} else {
 				pRecord.increment()
 			}

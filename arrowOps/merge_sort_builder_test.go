@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/alekLukanen/errs"
 	"github.com/apache/arrow/go/v17/arrow"
 	"github.com/apache/arrow/go/v17/arrow/array"
 	"github.com/apache/arrow/go/v17/arrow/memory"
@@ -181,33 +182,40 @@ func TestParquetRecordMergeSortBuilder(t *testing.T) {
 	)
 	if err != nil {
 		t.Errorf("failed to construct record merge sort builder with error '%s'", err)
+		return
 	}
 	defer builder.Release()
 
 	// build first record //////////////////////////////////
 	firstParquetFiles, err := builder.BuildNextFiles(ctx, file1)
 	if err != nil {
-		t.Fatalf("failed to build next with error '%s'", err)
+		t.Errorf("failed to build next with error '%s'", err)
+		return
 	}
 	if len(firstParquetFiles) != 2 {
-		t.Fatalf("expected 2 parquet file, got %d", len(firstParquetFiles))
+		t.Errorf("expected 2 parquet file, got %d", len(firstParquetFiles))
+		return
 	}
 	/////////////////////////////////////////////////////////
 
 	par1, err := ReadParquetFile(ctx, mem, firstParquetFiles[0].FilePath)
 	if err != nil {
-		t.Fatalf("failed to read parquet file with error '%s'", err)
+		t.Errorf("failed to read parquet file with error '%s'", err)
+		return
 	}
 	if len(par1) != 1 {
-		t.Fatalf("expected 1 record, got %d", len(par1))
+		t.Errorf("expected 1 record, got %d", len(par1))
+		return
 	}
 
 	par2, err := ReadParquetFile(ctx, mem, firstParquetFiles[1].FilePath)
 	if err != nil {
-		t.Fatalf("failed to read parquet file with error '%s'", err)
+		t.Errorf("failed to read parquet file with error '%s'", err)
+		return
 	}
 	if len(par2) != 1 {
-		t.Fatalf("expected 1 record, got %d", len(par2))
+		t.Errorf("expected 1 record, got %d", len(par2))
+		return
 	}
 
 	par1Rec := par1[0]
@@ -283,10 +291,12 @@ func TestParquetRecordMergeSortBuilder(t *testing.T) {
 
 	par3, err := ReadParquetFile(ctx, mem, lastParquetFiles[0].FilePath)
 	if err != nil {
-		t.Fatalf("failed to read parquet file with error '%s'", err)
+		t.Errorf("failed to read parquet file with error '%s'", err)
+		return
 	}
 	if len(par3) != 1 {
-		t.Fatalf("expected 1 record, got %d", len(par3))
+		t.Errorf("expected 1 record, got %d", len(par3))
+		return
 	}
 
 	par3Rec := par3[0]
@@ -344,6 +354,7 @@ func TestMergeSortBuilder(t *testing.T) {
 	currentTimestamp, err := arrow.TimestampFromTime(time.Now().UTC(), arrow.Millisecond)
 	if err != nil {
 		t.Errorf("failed to create timestamp: %s", err)
+		return
 	}
 
 	// build data records /////////////////////////////
@@ -449,12 +460,14 @@ func TestMergeSortBuilder(t *testing.T) {
 	builder, err := NewRecordMergeSortBuilder(logger, mem, keyRec, rec2, []string{"a"}, []string{"a", "b", "c"}, 2)
 	if err != nil {
 		t.Errorf("failed to construct record merge sort builder")
+		return
 	}
 	defer builder.Release()
 
 	err = builder.AddMainLineRecords([]arrow.Record{rec1})
 	if err != nil {
 		t.Errorf("failed to add main line records: %s", err)
+		return
 	}
 
 	// build first record //////////////////////////////////
@@ -466,18 +479,21 @@ func TestMergeSortBuilder(t *testing.T) {
 		t.Log("newRecord: ", newRec1)
 		t.Log("expectedRec1: ", expectedRec1)
 		t.Errorf("expected records to be equal")
+		return
 	}
 	///////////////////////////////////////////////////////
 
 	// build second record ////////////////////////////////
 	newRec2, err := builder.BuildNextRecord()
 	if err != nil {
-		t.Fatalf("unexpected error '%s'", err)
+		t.Errorf("unexpected error '%s'", err)
+		return
 	}
 	if !RecordsEqual(newRec2, expectedRec2, "a", "b", "c") {
 		t.Log("newRecord: ", newRec2)
 		t.Log("expectedRec2: ", expectedRec2)
 		t.Errorf("expected records to be equal")
+		return
 	}
 	///////////////////////////////////////////////////////
 
@@ -646,8 +662,8 @@ func TestValidateSampleRecord(t *testing.T) {
 	for idx, tc := range testCases {
 		t.Run(fmt.Sprintf("%d_%s", idx, tc.name), func(t *testing.T) {
 			err := ValidateSampleRecord(tc.processingKeyFunc(), tc.recordFunc(), tc.primaryColumns)
-			if err != tc.expectedErr {
-				t.Errorf("expected error: %s, got: %s", tc.expectedErr, err)
+			if !errors.Is(err, tc.expectedErr) {
+				t.Errorf("expected error: %s, got:\n%s", tc.expectedErr, errs.ErrorWithStack(err))
 			}
 		})
 	}
