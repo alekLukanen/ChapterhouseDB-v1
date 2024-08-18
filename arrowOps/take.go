@@ -3,6 +3,7 @@ package arrowops
 import (
 	"fmt"
 
+	"github.com/alekLukanen/errs"
 	"github.com/apache/arrow/go/v17/arrow"
 	"github.com/apache/arrow/go/v17/arrow/array"
 	"github.com/apache/arrow/go/v17/arrow/float16"
@@ -14,7 +15,7 @@ func TakeRecord(mem *memory.GoAllocator, record arrow.Record, indices *array.Uin
 	defer record.Release()
 
 	if indices.NullN() > 0 {
-		return nil, fmt.Errorf("%w| null values are not allowed in the indices array", ErrNullValuesNotAllowed)
+		return nil, errs.NewStackError(fmt.Errorf("%w| null values are not allowed in the indices array", ErrNullValuesNotAllowed))
 	}
 
 	fields := make([]arrow.Array, record.NumCols())
@@ -83,7 +84,7 @@ func TakeArray(mem *memory.GoAllocator, arr arrow.Array, indices *array.Uint32) 
 			array.NewDurationBuilder(mem, arr.DataType().(*arrow.DurationType)), arr.(*array.Duration), indices,
 		)
 	default:
-		return nil, ErrUnsupportedDataType
+		return nil, errs.NewStackError(ErrUnsupportedDataType)
 	}
 }
 

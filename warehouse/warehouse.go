@@ -2,12 +2,14 @@ package warehouse
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"time"
 
 	"github.com/alekLukanen/ChapterhouseDB/elements"
 	"github.com/alekLukanen/ChapterhouseDB/operations"
 	"github.com/alekLukanen/ChapterhouseDB/storage"
+	"github.com/alekLukanen/errs"
 	"github.com/apache/arrow/go/v17/arrow"
 	"github.com/apache/arrow/go/v17/arrow/memory"
 )
@@ -69,7 +71,7 @@ func (obj *Warehouse) Run(ctx context.Context) {
 		default:
 			processedAPartition, err := obj.ProcessNextTablePartition(ctx)
 			if err != nil {
-				obj.logger.Error("unable to process partition", slog.Any("error", err))
+				obj.logger.Error("unable to process partition", slog.String("error", errs.ErrorWithStack(err)))
 			}
 			if !processedAPartition {
 				time.Sleep(5 * time.Second)
@@ -138,7 +140,7 @@ func (obj *Warehouse) ProcessNextTablePartition(ctx context.Context) (bool, erro
 			ctx, "table1", tableOptions.BatchProcessingSize, tableOptions.BatchProcessingDelay,
 		)
 		if err != nil {
-			obj.logger.Error("unable to read items", slog.Any("error", err))
+			obj.logger.Error("unable to read items", slog.String("error", errs.ErrorWithStack(err)))
 			return false, err
 		}
 
@@ -151,22 +153,21 @@ func (obj *Warehouse) ProcessNextTablePartition(ctx context.Context) (bool, erro
 	obj.logger.Info(
 		"processing partition",
 		slog.Any("partition", partition),
-		slog.Any("error", err),
 		slog.Any("lock", lock),
 		slog.Any("record", record),
 	)
 
 	subscription, err := table.GetSubscriptionBySourceName(partition.SubscriptionSourceName)
 	if err != nil {
-		return false, err
+		return false, errs.Wrap(err, fmt.Errorf("unabled to get subscription for partition source name"))
 	}
 
 	// 2. Transform the partition data basec on the subscription
 	transformedData, err := subscription.Transformer()(ctx, obj.allocator, record)
 	if err != nil {
-		return false, err
+		return false, errs.Wrap(err, fmt.Errorf("unable to transform data"))
 	}
-	obj.logger.Info("transformed data", slog.Any("numrows", transformedData.NumRows()))
+	obj.logger.Info("transformed data", slog.Int64("numrows", transformedData.NumRows()))
 
 	// 3. Sort the record in ascending order
 	// The order will be based on the combination of the

@@ -3,6 +3,7 @@ package arrowops
 import (
 	"fmt"
 
+	"github.com/alekLukanen/errs"
 	"github.com/apache/arrow/go/v17/arrow"
 	"github.com/apache/arrow/go/v17/arrow/array"
 	"github.com/apache/arrow/go/v17/arrow/memory"
@@ -19,37 +20,37 @@ func TakeMultipleRecords(mem *memory.GoAllocator, records []arrow.Record, indice
 	}()
 
 	if len(records) == 0 {
-		return nil, fmt.Errorf("%w| empty records slice", ErrNoDataSupplied)
+		return nil, errs.NewStackError(fmt.Errorf("%w| empty records slice", ErrNoDataSupplied))
 	}
 
 	// validate the indices record
 	if indices.NumCols() != 2 {
-		return nil, fmt.Errorf(
+		return nil, errs.NewStackError(fmt.Errorf(
 			"%w| indices must have 2 columns, got %d",
 			ErrColumnNotFound,
 			indices.NumCols(),
-		)
+		))
 	}
 	for idx := int64(0); idx < indices.NumCols(); idx++ {
 		column := indices.Column(int(idx))
 		if column.DataType().ID() != arrow.UINT32 {
-			return nil, fmt.Errorf(
+			return nil, errs.NewStackError(fmt.Errorf(
 				"%w| expected UINT32 column, got %s for column index %d",
 				ErrUnsupportedDataType,
 				column.DataType().Name(),
 				idx,
-			)
+			))
 		}
 	}
 	recordSliceIndices := indices.Column(0).(*array.Uint32)
 	recordIndices := indices.Column(1).(*array.Uint32)
 	for idx := range indices.NumRows() {
 		if int(recordSliceIndices.Value(int(idx))) >= len(records) {
-			return nil, fmt.Errorf("%w| record slice index out of bounds", ErrIndexOutOfBounds)
+			return nil, errs.NewStackError(fmt.Errorf("%w| record slice index out of bounds", ErrIndexOutOfBounds))
 		}
 	}
 	if recordSliceIndices.NullN() > 0 || recordIndices.NullN() > 0 {
-		return nil, fmt.Errorf("%w| null values are not allowed in the indices record", ErrNullValuesNotAllowed)
+		return nil, errs.NewStackError(fmt.Errorf("%w| null values are not allowed in the indices record", ErrNullValuesNotAllowed))
 	}
 
 	takenRecords := make([]arrow.Record, len(records))
@@ -72,7 +73,7 @@ func TakeMultipleRecords(mem *memory.GoAllocator, records []arrow.Record, indice
 
 	resultRecord, err := ConcatenateRecords(mem, takenRecords...)
 	if err != nil {
-		return nil, fmt.Errorf("%w| failed to concatenate taken records", err)
+		return nil, errs.NewStackError(fmt.Errorf("%w| failed to concatenate taken records", err))
 	}
 	return resultRecord, nil
 }

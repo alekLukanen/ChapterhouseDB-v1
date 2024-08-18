@@ -9,6 +9,7 @@ import (
 
 	"github.com/alekLukanen/ChapterhouseDB/elements"
 	"github.com/alekLukanen/ChapterhouseDB/storage"
+	"github.com/alekLukanen/errs"
 	"github.com/apache/arrow/go/v17/arrow"
 	"github.com/apache/arrow/go/v17/arrow/memory"
 )
@@ -138,32 +139,33 @@ func (obj *Inserter) InsertTuples(ctx context.Context, tableName, sourceName str
 
 	table, err := obj.tableRegistry.GetTable(tableName)
 	if err != nil {
-		return err
+		return errs.Wrap(err, fmt.Errorf("unable to get table %s from the table registry", tableName))
 	}
 
 	subscription, err := table.GetSubscriptionBySourceName(sourceName)
 	if err != nil {
-		return err
+		return errs.Wrap(err, fmt.Errorf("unable to get subscription %s for table %s", sourceName, tableName))
 	}
 
 	// validate that the tuples are the correct format
 	columns := subscription.Columns()
 	if len(columns) != int(tuples.NumCols()) {
-		obj.logger.Info(
-			"record has incorrect number of columns",
-			slog.Int("subscription.columns", len(columns)),
-			slog.Int("tuples", int(tuples.NumCols())),
-		)
-		return ErrTupleColumnsDifferentThanSubscription
+		return errs.NewStackError(
+			fmt.Errorf(
+				"%w| record has %d columns while subscription has %d columns",
+				ErrTupleColumnsDifferentThanSubscription,
+				int(tuples.NumCols()),
+				len(columns),
+			))
 	}
 	for _, column := range columns {
 		if !tuples.Schema().HasField(column.Name) {
-			obj.logger.Info(
-				"column not present in record",
-				slog.String("subscription.column.Name", column.Name),
-				slog.String("tuples schema", tuples.Schema().String()),
-			)
-			return ErrTupleColumnsDifferentThanSubscription
+			return errs.NewStackError(
+				fmt.Errorf(
+					"%w| column %s missing from record",
+					ErrTupleColumnsDifferentThanSubscription,
+					column.Name,
+				))
 		}
 	}
 

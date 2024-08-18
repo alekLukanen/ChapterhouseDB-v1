@@ -14,6 +14,7 @@ import (
 	"github.com/alekLukanen/ChapterhouseDB/operations"
 	"github.com/alekLukanen/ChapterhouseDB/partitionFuncs"
 	"github.com/alekLukanen/ChapterhouseDB/storage"
+	"github.com/alekLukanen/errs"
 )
 
 func main() {
@@ -60,7 +61,7 @@ func BuildSampleRecord() {
 
 	err := tableRegistery.AddTables(table1)
 	if err != nil {
-		logger.Error("failed to add table to registery", slog.String("error", err.Error()))
+		logger.Error("failed to add table to registery", slog.String("error", errs.ErrorWithStack(err)))
 	}
 
 	pool := memory.NewGoAllocator()
@@ -100,7 +101,7 @@ func InsertTuplesIntoKeyStorage() {
 		KeyPrefix: "chapterhouseDB",
 	})
 	if err != nil {
-		logger.Error("unable to start storage", err)
+		logger.Error("unable to start storage", slog.String("error", errs.ErrorWithStack(err)))
 		return
 	}
 
@@ -170,7 +171,7 @@ func InsertTuplesIntoKeyStorage() {
 
 	err = inserter.InsertTuples(ctx, table1.TableName(), "external.externalTable1", rec)
 	if err != nil {
-		logger.Error("unable to insert tuples", slog.Any("err", err))
+		logger.Error("unable to insert tuples", slog.String("error", errs.ErrorWithStack(err)))
 		return
 	}
 
@@ -208,19 +209,19 @@ func InsertTuplesIntoKeyStorage() {
 
 		part, lock, record, err := inserter.GetPartition(ctx, "table1", 100, 5*time.Second)
 		if err != nil {
-			logger.Error("unable to read additional items", slog.Any("error", err))
+			logger.Error("unable to read additional items", slog.String("error", errs.ErrorWithStack(err)))
 			break
 		}
 
 		_, err = keyStorage.DeleteTablePartitionTimestamp(ctx, part)
 		if err != nil {
-			logger.Error("unable to delete partition timestamp", slog.Any("error", err))
+			logger.Error("unable to delete partition timestamp", slog.String("error", errs.ErrorWithStack(err)))
 			break
 		}
 
 		_, err = lock.UnlockContext(ctx)
 		if err != nil {
-			logger.Error("unable to unlock partition", slog.Any("error", err))
+			logger.Error("unable to unlock partition", slog.String("error", errs.ErrorWithStack(err)))
 		}
 
 		logger.Info("partition", slog.String("key", part.Key), slog.String("subscription", part.SubscriptionSourceName))

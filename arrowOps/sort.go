@@ -3,8 +3,10 @@ package arrowops
 import (
 	"bytes"
 	"cmp"
+	"fmt"
 	"slices"
 
+	"github.com/alekLukanen/errs"
 	"github.com/apache/arrow/go/v17/arrow"
 	"github.com/apache/arrow/go/v17/arrow/array"
 	"github.com/apache/arrow/go/v17/arrow/float16"
@@ -30,7 +32,7 @@ func SortRecord(mem *memory.GoAllocator, record arrow.Record, columns []string) 
 		columnIndexes := record.Schema().FieldIndices(column)
 		if len(columnIndexes) == 0 {
 			freeMemory()
-			return nil, ErrColumnNotFound
+			return nil, errs.NewStackError(ErrColumnNotFound)
 		}
 		columnIndex := columnIndexes[0]
 
@@ -49,14 +51,14 @@ func SortRecord(mem *memory.GoAllocator, record arrow.Record, columns []string) 
 		sortedIndices, err := RankedSort(mem, previousArray, currentRecord.Column(columnIndex))
 		if err != nil {
 			freeMemory()
-			return nil, err
+			return nil, errs.Wrap(err, fmt.Errorf("failed to sort column %s", column))
 		}
 		defer sortedIndices.Release()
 
 		proposedRecord, err := TakeRecord(mem, currentRecord, sortedIndices)
 		if err != nil {
 			freeMemory()
-			return nil, err
+			return nil, errs.Wrap(err, fmt.Errorf("failed to take record for column %s", column))
 		}
 		scratchRecord = proposedRecord
 
@@ -200,7 +202,7 @@ func RankArray(mem *memory.GoAllocator, arr arrow.Array) (*array.Uint32, error) 
 	case arrow.DURATION:
 		return nativeRankArray[arrow.Duration, *array.Duration](mem, arr.(*array.Duration))
 	default:
-		return nil, ErrUnsupportedDataType
+		return nil, errs.NewStackError(ErrUnsupportedDataType)
 	}
 }
 

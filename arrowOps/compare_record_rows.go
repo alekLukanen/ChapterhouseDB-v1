@@ -5,6 +5,7 @@ import (
 	"cmp"
 	"fmt"
 
+	"github.com/alekLukanen/errs"
 	"github.com/apache/arrow/go/v17/arrow"
 	"github.com/apache/arrow/go/v17/arrow/array"
 )
@@ -20,10 +21,10 @@ import (
 func CompareRecordRows(record1, record2 arrow.Record, index1, index2 int, fields ...string) (int, error) {
 
 	if record1.NumRows() <= int64(index1) {
-		return 0, fmt.Errorf("%w| index1 value of %d out of bounds %d", ErrIndexOutOfBounds, index1, record1.NumRows())
+		return 0, errs.NewStackError(fmt.Errorf("%w| index1 value of %d out of bounds %d", ErrIndexOutOfBounds, index1, record1.NumRows()))
 	}
 	if record2.NumRows() <= int64(index2) {
-		return 0, fmt.Errorf("%w| index2 value of %d out of bounds %d", ErrIndexOutOfBounds, index2, record2.NumRows())
+		return 0, errs.NewStackError(fmt.Errorf("%w| index2 value of %d out of bounds %d", ErrIndexOutOfBounds, index2, record2.NumRows()))
 	}
 	if len(fields) == 0 {
 		return compareRecordRowsUsingAllFields(record1, record2, index1, index2)
@@ -35,7 +36,7 @@ func CompareRecordRows(record1, record2 arrow.Record, index1, index2 int, fields
 
 func compareRecordRowsUsingSubset(record1, record2 arrow.Record, index1, index2 int, fields ...string) (int, error) {
 	if !RecordSchemasEqual(record1, record2, fields...) {
-		return 0, FErrSchemasNotEqual(record1, record2, fields...)
+		return 0, errs.NewStackError(FErrSchemasNotEqual(record1, record2, fields...))
 	}
 	for _, field := range fields {
 		column1Idxs := record1.Schema().FieldIndices(field)
@@ -64,7 +65,7 @@ func compareRecordRowsUsingSubset(record1, record2 arrow.Record, index1, index2 
  */
 func compareRecordRowsUsingAllFields(record1, record2 arrow.Record, index1, index2 int) (int, error) {
 	if !RecordSchemasEqual(record1, record2) {
-		return 0, fmt.Errorf("%w| records have different number of columns", ErrSchemasNotEqual)
+		return 0, errs.NewStackError(fmt.Errorf("%w| records have different number of columns", ErrSchemasNotEqual))
 	}
 	for i := 0; i < int(record1.NumCols()); i++ {
 		column1 := record1.Column(i)
@@ -138,7 +139,7 @@ func compareArrayValues(a1, a2 arrow.Array, i1, i2 int) (int, error) {
 	case arrow.DURATION:
 		return nativeArrayValuesEqual[arrow.Duration, *array.Duration](a1.(*array.Duration), a2.(*array.Duration), i1, i2), nil
 	default:
-		return 0, ErrUnsupportedDataType
+		return 0, errs.NewStackError(ErrUnsupportedDataType)
 	}
 }
 

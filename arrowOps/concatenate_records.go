@@ -3,6 +3,7 @@ package arrowops
 import (
 	"fmt"
 
+	"github.com/alekLukanen/errs"
 	"github.com/apache/arrow/go/v17/arrow"
 	"github.com/apache/arrow/go/v17/arrow/array"
 	"github.com/apache/arrow/go/v17/arrow/memory"
@@ -20,12 +21,12 @@ func ConcatenateRecords(mem *memory.GoAllocator, records ...arrow.Record) (arrow
 
 	// validate the records
 	if len(records) == 0 {
-		return nil, fmt.Errorf("%w| records not provided", ErrNoDataSupplied)
+		return nil, errs.NewStackError(fmt.Errorf("%w| records not provided", ErrNoDataSupplied))
 	}
 	schema := records[0].Schema()
 	for _, record := range records {
 		if !schema.Equal(record.Schema()) {
-			return nil, fmt.Errorf("%w| records schemas not all equal", ErrSchemasNotEqual)
+			return nil, errs.NewStackError(fmt.Errorf("%w| records schemas not all equal", ErrSchemasNotEqual))
 		}
 	}
 
@@ -46,7 +47,7 @@ func ConcatenateRecords(mem *memory.GoAllocator, records ...arrow.Record) (arrow
 	for i := 0; i < schema.NumFields(); i++ {
 		concatenatedField, err := array.Concatenate(fields[i], mem)
 		if err != nil {
-			return nil, fmt.Errorf("%w| concatenation failed", err)
+			return nil, errs.NewStackError(fmt.Errorf("%w| concatenation failed", err))
 		}
 		concatenatedFields[i] = concatenatedField
 	}
