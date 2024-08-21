@@ -20,6 +20,7 @@ var (
 	ErrRecordHasDuplicateRows              = errors.New("record has duplicate rows")
 	ErrRecordContainsRowsNotInProcessedKey = errors.New("record contains rows not in processed key")
 	ErrNoMoreRecords                       = errors.New("no more records")
+  ErrColumnNamesRequired                 = errors.New("column names required")
 )
 
 func FErrSchemasNotEqual(record1, record2 arrow.Record, fields ...string) error {
