@@ -10,6 +10,32 @@ import (
 	"github.com/apache/arrow/go/v17/arrow/memory"
 )
 
+func BenchmarkDeduplicateRecordUsingSingleColumnRandomData(b *testing.B) {
+	for _, size := range TEST_SIZES {
+		b.Run(fmt.Sprintf("size=%d", size), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				b.StopTimer()
+				mem := memory.NewGoAllocator()
+				// create large records to compare
+				r1 := mockData(mem, size, "random", false)
+				defer r1.Release()
+				b.StartTimer()
+				if val, ifErr := DeduplicateRecord(mem, r1, []string{"a"}, false); ifErr != nil {
+					b.Fatalf("received error while sorting record '%s'", ifErr)
+				} else if val == nil || val.NumRows() > int64(size) {
+					b.Fatalf(
+            "expected sorted record to have less than %d rows but had %d rows instead", 
+            size, 
+            val.NumRows(),
+          )
+				} else {
+					val.Release()
+					r1.Release()
+				}
+			}
+		})
+	}
+}
 
 func TestDeduplicateRecord(t *testing.T) {
 

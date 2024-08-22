@@ -219,6 +219,7 @@ func (obj *Warehouse) ProcessNextTablePartition(ctx context.Context) (bool, erro
 		slog.String("table", table.TableName()),
 		slog.Any("columns", allColumnNames))
 
+  /* 
 	err = obj.manifestStorage.MergePartitionRecordIntoManifest(
 		ctx,
 		partition,
@@ -233,6 +234,7 @@ func (obj *Warehouse) ProcessNextTablePartition(ctx context.Context) (bool, erro
 			err,
 			fmt.Errorf("failed to merge the new record into the manifest"))
 	}
+  */
 
 	return true, nil
 }
