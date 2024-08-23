@@ -219,7 +219,16 @@ func (obj *Warehouse) ProcessNextTablePartition(ctx context.Context) (bool, erro
 		slog.String("table", table.TableName()),
 		slog.Any("columns", allColumnNames))
 
-  /* 
+  processedKeyRecord, err := arrowops.TakeRecordColumns(sortedRecord, partitionColumnNames)
+  if err != nil {
+    return false, errs.Wrap(err, fmt.Errorf("failed to take record columns"))
+  }
+
+  processedKeyRecord, err = arrowops.DeduplicateRecord(obj.allocator, processedKeyRecord, partitionColumnNames, true)
+  if err != nil {
+    return false, errs.Wrap(err, fmt.Errorf("failed to deduplicate record"))
+  }
+
 	err = obj.manifestStorage.MergePartitionRecordIntoManifest(
 		ctx,
 		partition,
@@ -234,7 +243,6 @@ func (obj *Warehouse) ProcessNextTablePartition(ctx context.Context) (bool, erro
 			err,
 			fmt.Errorf("failed to merge the new record into the manifest"))
 	}
-  */
 
 	return true, nil
 }

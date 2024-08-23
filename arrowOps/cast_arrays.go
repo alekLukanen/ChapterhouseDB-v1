@@ -6,13 +6,13 @@ import (
 )
 
 func CastArraysToBaseDataType[T arrow.Array](arrays ...arrow.Array) ([]T, error) {
-	boolArrays := make([]T, len(arrays))
+	TArrays := make([]T, len(arrays))
 	for i, arr := range arrays {
-		boolArr, ok := arr.(T)
+		TArr, ok := arr.(T)
 		if !ok {
 			return nil, errs.NewStackError(ErrUnsupportedDataType)
 		}
-		boolArrays[i] = boolArr
+		TArrays[i] = TArr
 	}
-	return boolArrays, nil
+	return TArrays, nil
 }

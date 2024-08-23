@@ -10,6 +10,10 @@ import (
 	"github.com/apache/arrow/go/v17/arrow/memory"
 )
 
+/*
+* Take all rows from the input record based on the input indices array. 
+* The resulting record contains data copied from the original record.
+*/
 func TakeRecord(mem *memory.GoAllocator, record arrow.Record, indices *array.Uint32) (arrow.Record, error) {
 	record.Retain()
 	defer record.Release()

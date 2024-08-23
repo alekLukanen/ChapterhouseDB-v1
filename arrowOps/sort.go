@@ -111,21 +111,21 @@ func RankedSort(mem *memory.GoAllocator, previousArray, currentArray arrow.Array
 	case arrow.STRING:
 		sortItems[string, *array.String](indicesBuilder, ranks, currentArray.(*array.String))
 	case arrow.BINARY:
-		return nil, ErrUnsupportedDataType
+    return nil, ErrUnsupportedDataType
 	case arrow.BOOL:
 		return nil, ErrUnsupportedDataType
 	case arrow.DATE32:
-		return nil, ErrUnsupportedDataType
+		sortItems[arrow.Date32, *array.Date32](indicesBuilder, ranks, currentArray.(*array.Date32))
 	case arrow.DATE64:
-		return nil, ErrUnsupportedDataType
-	case arrow.TIMESTAMP:
-		return nil, ErrUnsupportedDataType
+		sortItems[arrow.Date64, *array.Date64](indicesBuilder, ranks, currentArray.(*array.Date64))
+  case arrow.TIMESTAMP:
+		sortItems[arrow.Timestamp, *array.Timestamp](indicesBuilder, ranks, currentArray.(*array.Timestamp))
 	case arrow.TIME32:
-		return nil, ErrUnsupportedDataType
+		sortItems[arrow.Time32, *array.Time32](indicesBuilder, ranks, currentArray.(*array.Time32))
 	case arrow.TIME64:
-		return nil, ErrUnsupportedDataType
+		sortItems[arrow.Time64, *array.Time64](indicesBuilder, ranks, currentArray.(*array.Time64))
 	case arrow.DURATION:
-		return nil, ErrUnsupportedDataType
+		sortItems[arrow.Duration, *array.Duration](indicesBuilder, ranks, currentArray.(*array.Duration))
 	default:
 		return nil, ErrUnsupportedDataType
 	}
