@@ -3,7 +3,7 @@ package storage
 import (
 	"fmt"
 
-	arrowops "github.com/alekLukanen/ChapterhouseDB/arrowOps"
+	"github.com/alekLukanen/arrow-ops"
 )
 
 type PartitionManifestBuilder struct {

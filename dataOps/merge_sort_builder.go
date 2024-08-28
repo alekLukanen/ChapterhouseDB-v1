@@ -1,4 +1,4 @@
-package arrowops
+package dataops
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"path"
 
 	"github.com/alekLukanen/errs"
+  "github.com/alekLukanen/arrow-ops"
 
 	"github.com/apache/arrow/go/v17/arrow"
 	"github.com/apache/arrow/go/v17/arrow/array"
@@ -63,11 +64,11 @@ func NewParquetRecordMergeSortBuilder(
 	newRecord.Retain()
 	defer newRecord.Release()
 
-	sortedProcssedKeyRecord, err := SortRecord(mem, processedKeyRecord, primaryColumns)
+	sortedProcssedKeyRecord, err := arrowops.SortRecord(mem, processedKeyRecord, primaryColumns)
 	if err != nil {
 		return nil, fmt.Errorf("%w| failed to sort procssed key record", err)
 	}
-	sortedNewRecord, err := SortRecord(mem, newRecord, primaryColumns)
+	sortedNewRecord, err := arrowops.SortRecord(mem, newRecord, primaryColumns)
 	if err != nil {
 		return nil, fmt.Errorf("%w| failed to sort the new record", err)
 	}
@@ -93,28 +94,28 @@ func (obj *ParquetRecordMergeSortBuilder) Release() {
 	}
 }
 
-func (obj *ParquetRecordMergeSortBuilder) addNewFile(ctx context.Context, record arrow.Record) (ParquetFile, error) {
+func (obj *ParquetRecordMergeSortBuilder) addNewFile(ctx context.Context, record arrow.Record) (arrowops.ParquetFile, error) {
 	record.Retain()
 	defer record.Release()
 	filePath := path.Join(obj.workingDir, fmt.Sprintf("file_%d.parquet", obj.fileIndexId))
-	err := WriteRecordToParquetFile(ctx, obj.mem, record, filePath)
+	err := arrowops.WriteRecordToParquetFile(ctx, obj.mem, record, filePath)
 	if err != nil {
-		return ParquetFile{}, err
+		return arrowops.ParquetFile{}, err
 	}
 	obj.fileIndexId++
-	return ParquetFile{
+	return arrowops.ParquetFile{
 		FilePath: filePath,
 		NumRows:  record.NumRows(),
 	}, nil
 }
 
-func (obj *ParquetRecordMergeSortBuilder) BuildNextFiles(ctx context.Context, filePath string) ([]ParquetFile, error) {
+func (obj *ParquetRecordMergeSortBuilder) BuildNextFiles(ctx context.Context, filePath string) ([]arrowops.ParquetFile, error) {
 
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
 
-	records, err := ReadParquetFile(ctx, obj.mem, filePath)
+	records, err := arrowops.ReadParquetFile(ctx, obj.mem, filePath)
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +130,7 @@ func (obj *ParquetRecordMergeSortBuilder) BuildNextFiles(ctx context.Context, fi
 		return nil, err
 	}
 
-	files := make([]ParquetFile, 0)
+	files := make([]arrowops.ParquetFile, 0)
 	for {
 		nextRecord, err := obj.recordMergeSortBuilder.BuildNextRecord()
 		if errors.Is(err, ErrRecordNotComplete) {
@@ -155,12 +156,12 @@ func (obj *ParquetRecordMergeSortBuilder) BuildNextFiles(ctx context.Context, fi
 	return files, nil
 }
 
-func (obj *ParquetRecordMergeSortBuilder) BuildLastFiles(ctx context.Context) ([]ParquetFile, error) {
+func (obj *ParquetRecordMergeSortBuilder) BuildLastFiles(ctx context.Context) ([]arrowops.ParquetFile, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
 
-	files := make([]ParquetFile, 0)
+	files := make([]arrowops.ParquetFile, 0)
 	for {
 		obj.logger.Debug("len(files): ", slog.Int("len(files)", len(files)))
 		lastRecord, err := obj.recordMergeSortBuilder.BuildLastRecord()
@@ -255,7 +256,7 @@ func (obj *RecordMergeSortBuilder) Release() {
 
 func (obj *RecordMergeSortBuilder) AddMainLineRecords(records []arrow.Record) error {
 	for _, record := range records {
-		if RecordSchemasEqual(obj.sampleRecord.record, record) {
+		if arrowops.RecordSchemasEqual(obj.sampleRecord.record, record) {
 			obj.mainLineRecords = append(obj.mainLineRecords, newProgressRecord(record, true))
 		} else {
 			return ErrSchemasNotEqual
@@ -295,7 +296,7 @@ func (obj *RecordMergeSortBuilder) BuildNextRecord() (arrow.Record, error) {
 			if !obj.processedKeyRecordForMainLine.done {
 				obj.SeekProcessingKeyRecordForMainLine()
 				if !obj.processedKeyRecordForMainLine.done {
-					cmpRowProcessed, err := CompareRecordRows(
+					cmpRowProcessed, err := arrowops.CompareRecordRows(
 						obj.processedKeyRecordForMainLine.record,
 						pRecord.record,
 						int(obj.processedKeyRecordForMainLine.index),
@@ -316,7 +317,7 @@ func (obj *RecordMergeSortBuilder) BuildNextRecord() (arrow.Record, error) {
 				rowProcessed = true
 			}
 
-			cmpRowDirection, err := CompareRecordRows(
+			cmpRowDirection, err := arrowops.CompareRecordRows(
 				pRecord.record,
 				obj.sampleRecord.record,
 				int(pRecord.index),
@@ -337,7 +338,7 @@ func (obj *RecordMergeSortBuilder) BuildNextRecord() (arrow.Record, error) {
 				// if the records are equal by key then compare them
 				// when equal then take the old row
 				// when not equal then take the new row
-				cmpRowDirection, err = CompareRecordRows(
+				cmpRowDirection, err = arrowops.CompareRecordRows(
 					pRecord.record,
 					obj.sampleRecord.record,
 					int(pRecord.index),
@@ -426,7 +427,7 @@ func (obj *RecordMergeSortBuilder) SeekProcessingKeyRecordForMainLine() {
 
 	progressRecord := obj.mainLineRecords[0]
 	for int64(obj.processedKeyRecordForMainLine.index) < obj.processedKeyRecordForMainLine.record.NumRows() {
-		cmpRowDirection, err := CompareRecordRows(
+		cmpRowDirection, err := arrowops.CompareRecordRows(
 			obj.processedKeyRecordForMainLine.record,
 			progressRecord.record,
 			int(obj.processedKeyRecordForMainLine.index),
@@ -475,7 +476,7 @@ func (obj *RecordMergeSortBuilder) currentTakenRecord() (arrow.Record, error) {
 	defer indices.Release()
 
 	takeIndices := obj.ProgressRecordsToRecords()
-	takenRecord, err := TakeMultipleRecords(obj.mem, takeIndices, indices)
+	takenRecord, err := arrowops.TakeMultipleRecords(obj.mem, takeIndices, indices)
 	if err != nil {
 		return nil, err
 	}
@@ -529,7 +530,7 @@ func ValidateSampleRecord(processedKeyRecord arrow.Record, sampleRecord arrow.Re
 
 	// check if the sample record has any duplicate rows
 	for i := int64(0); i < sampleRecord.NumRows()-1; i++ {
-		cmpRowDirection, err := CompareRecordRows(
+		cmpRowDirection, err := arrowops.CompareRecordRows(
 			sampleRecord,
 			sampleRecord,
 			int(i),
@@ -551,7 +552,7 @@ func ValidateSampleRecord(processedKeyRecord arrow.Record, sampleRecord arrow.Re
 			return errs.NewStackError(ErrRecordContainsRowsNotInProcessedKey)
 		}
 		for !pRecord.done {
-			cmpRowDirection, err := CompareRecordRows(
+			cmpRowDirection, err := arrowops.CompareRecordRows(
 				pRecord.record,
 				sampleRecord,
 				int(pRecord.index),

@@ -6,8 +6,8 @@ import (
 	"log/slog"
 	"time"
 
-	arrowops "github.com/alekLukanen/ChapterhouseDB/arrowOps"
-	"github.com/alekLukanen/ChapterhouseDB/elements"
+	"github.com/alekLukanen/arrow-ops"	
+  "github.com/alekLukanen/ChapterhouseDB/elements"
 	"github.com/alekLukanen/ChapterhouseDB/operations"
 	"github.com/alekLukanen/ChapterhouseDB/storage"
 	"github.com/alekLukanen/errs"

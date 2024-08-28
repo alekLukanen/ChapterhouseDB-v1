@@ -1,4 +1,4 @@
-package arrowops
+package dataops
 
 import (
 	"context"
@@ -10,6 +10,8 @@ import (
 	"time"
 
 	"github.com/alekLukanen/errs"
+  "github.com/alekLukanen/arrow-ops"
+
 	"github.com/apache/arrow/go/v17/arrow"
 	"github.com/apache/arrow/go/v17/arrow/array"
 	"github.com/apache/arrow/go/v17/arrow/memory"
@@ -18,11 +20,11 @@ import (
 func BenchmarkValidateSampleRecord(b *testing.B) {
 	mem := memory.NewGoAllocator()
 
-	for _, size := range TEST_SIZES {
+	for _, size := range arrowops.TEST_SIZES {
 		b.Run(fmt.Sprintf("size_%d", size), func(b *testing.B) {
 			for idx := 0; idx < b.N; idx++ {
 				b.StopTimer()
-				data := mockData(mem, size, "ascending", false)
+				data := arrowops.MockData(mem, size, "ascending")
 
 				schema := arrow.NewSchema([]arrow.Field{
 					{Name: "a", Type: arrow.PrimitiveTypes.Uint32},
@@ -164,7 +166,7 @@ func TestParquetRecordMergeSortBuilder(t *testing.T) {
 
 	// write rec1 to a parquet file ////////////////////////
 	file1 := fmt.Sprintf("%s/parquet1.parquet", workingDir)
-	err = WriteRecordToParquetFile(ctx, mem, rec1, file1)
+	err = arrowops.WriteRecordToParquetFile(ctx, mem, rec1, file1)
 	if err != nil {
 		t.Errorf("failed to write record to parquet file: %s", err)
 	}
@@ -198,7 +200,7 @@ func TestParquetRecordMergeSortBuilder(t *testing.T) {
 	}
 	/////////////////////////////////////////////////////////
 
-	par1, err := ReadParquetFile(ctx, mem, firstParquetFiles[0].FilePath)
+	par1, err := arrowops.ReadParquetFile(ctx, mem, firstParquetFiles[0].FilePath)
 	if err != nil {
 		t.Errorf("failed to read parquet file with error '%s'", err)
 		return
@@ -208,7 +210,7 @@ func TestParquetRecordMergeSortBuilder(t *testing.T) {
 		return
 	}
 
-	par2, err := ReadParquetFile(ctx, mem, firstParquetFiles[1].FilePath)
+	par2, err := arrowops.ReadParquetFile(ctx, mem, firstParquetFiles[1].FilePath)
 	if err != nil {
 		t.Errorf("failed to read parquet file with error '%s'", err)
 		return
@@ -266,13 +268,13 @@ func TestParquetRecordMergeSortBuilder(t *testing.T) {
 	defer expectedPar2.Release()
 	/////////////////////////////////////////////////////////
 
-	if !RecordsEqual(par1Rec, expectedPar1, "a", "b", "c") {
+	if !arrowops.RecordsEqual(par1Rec, expectedPar1, "a", "b", "c") {
 		t.Log("par1Rec: ", par1Rec)
 		t.Log("expectedPar1: ", expectedPar1)
 		t.Errorf("expected records to be equal")
 		return
 	}
-	if !RecordsEqual(par2Rec, expectedPar2, "a", "b", "c") {
+	if !arrowops.RecordsEqual(par2Rec, expectedPar2, "a", "b", "c") {
 		t.Log("par2Rec: ", par2Rec)
 		t.Log("expectedPar2: ", expectedPar2)
 		t.Errorf("expected records to be equal")
@@ -291,7 +293,7 @@ func TestParquetRecordMergeSortBuilder(t *testing.T) {
 	}
 	//////////////////////////////////////////////////////////
 
-	par3, err := ReadParquetFile(ctx, mem, lastParquetFiles[0].FilePath)
+	par3, err := arrowops.ReadParquetFile(ctx, mem, lastParquetFiles[0].FilePath)
 	if err != nil {
 		t.Errorf("failed to read parquet file with error\n%s", errs.ErrorWithStack(err))
 		return
@@ -327,7 +329,7 @@ func TestParquetRecordMergeSortBuilder(t *testing.T) {
 	defer expectedPar3.Release()
 	/////////////////////////////////////////////////////////
 
-	if !RecordsEqual(par3Rec, expectedPar3, "a", "b", "c") {
+	if !arrowops.RecordsEqual(par3Rec, expectedPar3, "a", "b", "c") {
 		t.Log("par3Rec: ", par3Rec)
 		t.Log("expectedPar3: ", expectedPar3)
 		t.Errorf("expected records to be equal")
@@ -477,7 +479,7 @@ func TestMergeSortBuilder(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to build next record: %s", err)
 	}
-	if !RecordsEqual(newRec1, expectedRec1, "a", "b", "c") {
+	if !arrowops.RecordsEqual(newRec1, expectedRec1, "a", "b", "c") {
 		t.Log("newRecord: ", newRec1)
 		t.Log("expectedRec1: ", expectedRec1)
 		t.Errorf("expected records to be equal")
@@ -491,7 +493,7 @@ func TestMergeSortBuilder(t *testing.T) {
 		t.Errorf("unexpected error '%s'", err)
 		return
 	}
-	if !RecordsEqual(newRec2, expectedRec2, "a", "b", "c") {
+	if !arrowops.RecordsEqual(newRec2, expectedRec2, "a", "b", "c") {
 		t.Log("newRecord: ", newRec2)
 		t.Log("expectedRec2: ", expectedRec2)
 		t.Errorf("expected records to be equal")

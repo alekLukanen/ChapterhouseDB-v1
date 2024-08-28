@@ -1,4 +1,4 @@
-package arrowops
+package dataops
 
 import (
 	"errors"

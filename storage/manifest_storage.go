@@ -11,7 +11,7 @@ import (
 	"github.com/apache/arrow/go/v17/arrow/memory"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 
-	arrowops "github.com/alekLukanen/ChapterhouseDB/arrowOps"
+	"github.com/alekLukanen/ChapterhouseDB/dataOps"
 	"github.com/alekLukanen/ChapterhouseDB/elements"
 	"github.com/alekLukanen/errs"
 )
@@ -190,7 +190,7 @@ func (obj *ManifestStorage) MergePartitionRecordIntoManifest(
 	if err != nil {
 		return err
 	}
-	parquetMergeSortBuilder, err := arrowops.NewParquetRecordMergeSortBuilder(
+	parquetMergeSortBuilder, err := dataops.NewParquetRecordMergeSortBuilder(
 		obj.logger,
 		obj.mem,
 		processedKeyRecord,
