@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/alekLukanen/arrow-ops"
 	"github.com/alekLukanen/errs"
-  "github.com/alekLukanen/arrow-ops"
 
 	"github.com/apache/arrow/go/v17/arrow"
 	"github.com/apache/arrow/go/v17/arrow/array"

@@ -51,7 +51,7 @@ func IntegerRangePartition(allocator *memory.GoAllocator, record arrow.Record, c
 
 	schema := record.Schema()
 	columnIdxs := schema.FieldIndices(column)
-	if columnIdxs == nil || len(columnIdxs) == 0 {
+	if len(columnIdxs) == 0 {
 		return nil, ErrColumnNotFound
 	} else if len(columnIdxs) > 1 {
 		return nil, ErrMultipleColumnsFound

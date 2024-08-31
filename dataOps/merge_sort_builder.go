@@ -7,8 +7,8 @@ import (
 	"log/slog"
 	"path"
 
+	"github.com/alekLukanen/arrow-ops"
 	"github.com/alekLukanen/errs"
-  "github.com/alekLukanen/arrow-ops"
 
 	"github.com/apache/arrow/go/v17/arrow"
 	"github.com/apache/arrow/go/v17/arrow/array"

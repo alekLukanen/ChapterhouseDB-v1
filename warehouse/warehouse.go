@@ -2,17 +2,18 @@ package warehouse
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"time"
 
-	"github.com/alekLukanen/arrow-ops"	
-  "github.com/alekLukanen/ChapterhouseDB/elements"
+	"github.com/alekLukanen/ChapterhouseDB/elements"
 	"github.com/alekLukanen/ChapterhouseDB/operations"
 	"github.com/alekLukanen/ChapterhouseDB/storage"
+	"github.com/alekLukanen/arrow-ops"
 	"github.com/alekLukanen/errs"
-	
-  "github.com/apache/arrow/go/v17/arrow"
+
+	"github.com/apache/arrow/go/v17/arrow"
 	"github.com/apache/arrow/go/v17/arrow/memory"
 )
 
@@ -150,15 +151,17 @@ func (obj *Warehouse) ProcessNextTablePartition(ctx context.Context) (bool, erro
 		partition, lock, record, err = obj.inserter.GetPartition(
 			ctx, "table1", tableOptions.BatchProcessingSize, tableOptions.BatchProcessingDelay,
 		)
-		if err != nil {
+    if errors.Is(err, operations.ErrNoPartitionsAvailable) {
+      continue
+    } else if err != nil {
 			return false, errs.Wrap(
 				err,
 				fmt.Errorf("unable to read partition items for table %s", tab.TableName()))
-		}
-
-		table = tab
-		foundPartition = true
-		break
+		} else {
+	    table = tab
+		  foundPartition = true
+		  break
+    }
 
 	}
 	if !foundPartition {
@@ -219,15 +222,15 @@ func (obj *Warehouse) ProcessNextTablePartition(ctx context.Context) (bool, erro
 		slog.String("table", table.TableName()),
 		slog.Any("columns", allColumnNames))
 
-  processedKeyRecord, err := arrowops.TakeRecordColumns(sortedRecord, partitionColumnNames)
-  if err != nil {
-    return false, errs.Wrap(err, fmt.Errorf("failed to take record columns"))
-  }
+	processedKeyRecord, err := arrowops.TakeRecordColumns(sortedRecord, partitionColumnNames)
+	if err != nil {
+		return false, errs.Wrap(err, fmt.Errorf("failed to take record columns"))
+	}
 
-  processedKeyRecord, err = arrowops.DeduplicateRecord(obj.allocator, processedKeyRecord, partitionColumnNames, true)
-  if err != nil {
-    return false, errs.Wrap(err, fmt.Errorf("failed to deduplicate record"))
-  }
+	processedKeyRecord, err = arrowops.DeduplicateRecord(obj.allocator, processedKeyRecord, partitionColumnNames, true)
+	if err != nil {
+		return false, errs.Wrap(err, fmt.Errorf("failed to deduplicate record"))
+	}
 
 	err = obj.manifestStorage.MergePartitionRecordIntoManifest(
 		ctx,

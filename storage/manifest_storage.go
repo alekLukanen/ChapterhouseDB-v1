@@ -37,9 +37,9 @@ type IManifestStorage interface {
 }
 
 type ManifestStorageOptions struct {
-	MaxFiles    int
-	BucketName  string
-	KeyPrefix   string
+	MaxFiles   int
+	BucketName string
+	KeyPrefix  string
 }
 
 type ManifestStorage struct {
@@ -48,9 +48,9 @@ type ManifestStorage struct {
 
 	IObjectStorage
 
-	maxFiles    int
-	bucketName  string
-	keyPrefix   string
+	maxFiles   int
+	bucketName string
+	keyPrefix  string
 }
 
 func NewManifestStorage(
@@ -71,49 +71,49 @@ func NewManifestStorage(
 }
 
 func (obj *ManifestStorage) GetPartitionManifest(
-  ctx context.Context, 
-  partition elements.Partition,
+	ctx context.Context,
+	partition elements.Partition,
 ) (*PartitionManifest, error) {
 
-  manifestPrefix := fmt.Sprintf(
-    "%s/table-state/part-data/%s/%s/manifest_", 
-    obj.keyPrefix, 
-    partition.TableName, 
-    partition.Key)
+	manifestPrefix := fmt.Sprintf(
+		"%s/table-state/part-data/%s/%s/manifest_",
+		obj.keyPrefix,
+		partition.TableName,
+		partition.Key)
 
-  // get all manifests for the partition
-  manifestKeys, err := obj.ListObjects(
-    ctx, obj.bucketName, manifestPrefix,
-  )
-  if err != nil {
-    return nil, errs.Wrap(
-      err, 
-      fmt.Errorf("failed getting manifests for table %s partition %s", partition.TableName, partition.Key),
-    )
-  }
+	// get all manifests for the partition
+	manifestKeys, err := obj.ListObjects(
+		ctx, obj.bucketName, manifestPrefix,
+	)
+	if err != nil {
+		return nil, errs.Wrap(
+			err,
+			fmt.Errorf("failed getting manifests for table %s partition %s", partition.TableName, partition.Key),
+		)
+	}
 
-  // parse the manifest id from the keys
-  var newestManifestVersion int
-  for _, key := range manifestKeys {
-    cleanedKey := strings.TrimPrefix(key, manifestPrefix)
-    cleanedKey = strings.TrimSuffix(cleanedKey, ".json")
-    manifestVersion, err := strconv.Atoi(cleanedKey)
-    if err != nil {
-      continue
-    }
-    if manifestVersion > newestManifestVersion {
-      newestManifestVersion = manifestVersion
-    }
-  }
-    
+	// parse the manifest id from the keys
+	var newestManifestVersion int
+	for _, key := range manifestKeys {
+		cleanedKey := strings.TrimPrefix(key, manifestPrefix)
+		cleanedKey = strings.TrimSuffix(cleanedKey, ".json")
+		manifestVersion, err := strconv.Atoi(cleanedKey)
+		if err != nil {
+			continue
+		}
+		if manifestVersion > newestManifestVersion {
+			newestManifestVersion = manifestVersion
+		}
+	}
+
 	// get the json manifest file
 	manifestData, err := obj.Download(
-    ctx, 
-    obj.bucketName, 
-    fmt.Sprintf(
-      "%s%d.json", manifestPrefix, newestManifestVersion,
-    ),
-  )
+		ctx,
+		obj.bucketName,
+		fmt.Sprintf(
+			"%s%d.json", manifestPrefix, newestManifestVersion,
+		),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -229,7 +229,7 @@ func (obj *ManifestStorage) MergePartitionRecordIntoManifest(
 	if err != nil {
 		return err
 	}
-  defer os.RemoveAll(tmpDir)
+	defer os.RemoveAll(tmpDir)
 
 	parquetMergeSortBuilder, err := dataops.NewParquetRecordMergeSortBuilder(
 		obj.logger,
@@ -241,6 +241,9 @@ func (obj *ManifestStorage) MergePartitionRecordIntoManifest(
 		compareColumns,
 		options.MaxObjectRows,
 	)
+  if err != nil {
+    return errs.Wrap(err, fmt.Errorf("failed to construct the merge sort builder for manifest %s", manifest.Id))
+  }
 	manifestBuilder := NewPartitionManifestBuilder(partition.TableName, partition.Key, manifest.Version+1)
 	for idx, manifestObj := range manifestObjects {
 		// download the file
