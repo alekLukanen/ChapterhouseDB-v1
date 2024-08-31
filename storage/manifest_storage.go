@@ -180,7 +180,11 @@ func (obj *ManifestStorage) ReplacePartitionManifest(
 
 	// delete the previous manifest file objects
 	for _, manifestObj := range previousManifest.Objects {
-		err = obj.Delete(ctx, obj.bucketName, fmt.Sprintf("%s/%s", obj.keyPrefix, manifestObj.Key))
+		err = obj.Delete(
+			ctx,
+			obj.bucketName,
+			fmt.Sprintf("%s/%s", obj.keyPrefix, manifestObj.Key),
+		)
 		if err != nil {
 			return err
 		}

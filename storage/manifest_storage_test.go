@@ -21,68 +21,168 @@ func TestManifestStorage_ReplacePartitionManifest_emptyPreviousManifest(t *testi
 			os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug},
 		),
 	)
-	objectStorage := new(MockObjectStorage)
 	options := ManifestStorageOptions{
 		MaxFiles:   5,
 		BucketName: "bucket",
 		KeyPrefix:  "prefix",
 	}
 
-	manifestStorage := NewManifestStorage(ctx, logger, mem, objectStorage, options)
+	testCases := []struct {
+		caseName           string
+		partition          elements.Partition
+		previousManifest   PartitionManifest
+		manifest           PartitionManifest
+		filePaths          []string
+		buildObjectStorage func(manifest PartitionManifest) (*MockObjectStorage, error)
+	}{
+		{
+			caseName: "empty-previous-manifest-and-non-empty-new-manifest",
+			partition: elements.Partition{
+				TableName: "table-a",
+				Key:       "23",
+			},
+			previousManifest: PartitionManifest{
+				Objects: []ManifestObject{},
+			},
+			manifest: PartitionManifest{
+				Id:           "1",
+				TableName:    "table-a",
+				PartitionKey: "23",
+				Version:      1,
+				Objects: []ManifestObject{
+					{
+						Key:     "table-state/part-data/table-a/23/d_1_0.parquet",
+						Index:   0,
+						NumRows: 100,
+					},
+				},
+			},
+			filePaths: []string{"./example/d_1_0.parquet"},
+			buildObjectStorage: func(manifest PartitionManifest) (*MockObjectStorage, error) {
+				manifestData, err := manifest.ToBytes()
+				if err != nil {
+					return nil, err
+				}
 
-	// partition
-	partition := elements.Partition{
-		TableName: "table-a",
-		Key:       "23",
-	}
+				objectStorage := new(MockObjectStorage)
 
-	// previous empty manifest
-	previousManifest := PartitionManifest{
-		Objects: []ManifestObject{},
-	}
+				objectStorage.On(
+					"UploadFile",
+					mock.Anything,
+					"bucket",
+					"prefix/table-state/part-data/table-a/23/d_1_0.parquet",
+					"./example/d_1_0.parquet",
+				).Return(nil).Once()
 
-	// manifest to upload
-	manifest := PartitionManifest{
-		Id:           "part-1",
-		TableName:    "table-a",
-		PartitionKey: "23",
-		Version:      1,
-		Objects: []ManifestObject{
-			{
-				Key:     "table-state/part-data/table-a/23/d_1_0.parquet",
-				Index:   0,
-				NumRows: 100,
+				objectStorage.On(
+					"Upload",
+					mock.Anything,
+					"bucket",
+					"prefix/table-state/part-data/table-a/23/manifest_1.json",
+					manifestData,
+				).Return(nil).Once()
+
+				return objectStorage, nil
+			},
+		},
+		{
+			caseName: "replace-manifest-with-same-partition-in-previous-and-new-manifests",
+			partition: elements.Partition{
+				TableName: "table-a",
+				Key:       "23",
+			},
+			previousManifest: PartitionManifest{
+				Id:           "0",
+				TableName:    "table-a",
+				PartitionKey: "23",
+				Version:      0,
+				Objects: []ManifestObject{
+					{
+						Key:     "table-state/part-data/table-a/23/d_0_0.parquet",
+						Index:   0,
+						NumRows: 100,
+					},
+				},
+			},
+			manifest: PartitionManifest{
+				Id:           "1",
+				TableName:    "table-a",
+				PartitionKey: "23",
+				Version:      1,
+				Objects: []ManifestObject{
+					{
+						Key:     "table-state/part-data/table-a/23/d_1_0.parquet",
+						Index:   0,
+						NumRows: 100,
+					},
+				},
+			},
+			filePaths: []string{"./example/d_1_0.parquet"},
+			buildObjectStorage: func(manifest PartitionManifest) (*MockObjectStorage, error) {
+				manifestData, err := manifest.ToBytes()
+				if err != nil {
+					return nil, err
+				}
+
+				objectStorage := new(MockObjectStorage)
+
+				// upload new manifest files
+				objectStorage.On(
+					"UploadFile",
+					mock.Anything,
+					"bucket",
+					"prefix/table-state/part-data/table-a/23/d_1_0.parquet",
+					"./example/d_1_0.parquet",
+				).Return(nil).Once()
+				objectStorage.On(
+					"Upload",
+					mock.Anything,
+					"bucket",
+					"prefix/table-state/part-data/table-a/23/manifest_1.json",
+					manifestData,
+				).Return(nil).Once()
+
+				// delete previous manifest files
+				objectStorage.On(
+					"Delete",
+					mock.Anything,
+					"bucket",
+					"prefix/table-state/part-data/table-a/23/d_0_0.parquet",
+				).Return(nil).Once()
+				objectStorage.On(
+					"Delete",
+					mock.Anything,
+					"bucket",
+					"prefix/table-state/part-data/table-a/23/manifest_0.json",
+				).Return(nil).Once()
+
+				return objectStorage, nil
 			},
 		},
 	}
-	filePaths := []string{"./example/d_1_0.parquet"}
-	manifestData, err := manifest.ToBytes()
-	if !assert.Nil(t, err) {
-		return
-	}
 
-	// mock object storage calls
-	objectStorage.On(
-		"UploadFile",
-		mock.Anything,
-		"bucket",
-		"prefix/table-state/part-data/table-a/23/d_1_0.parquet",
-		"./example/d_1_0.parquet",
-	).Return(nil).Once()
+	for _, tc := range testCases {
+		t.Run(tc.caseName, func(t *testing.T) {
 
-	objectStorage.On(
-		"Upload",
-		mock.Anything,
-		"bucket",
-		"prefix/table-state/part-data/table-a/23/manifest_1.json",
-		manifestData,
-	).Return(nil).Once()
+			objectStorage, err := tc.buildObjectStorage(tc.manifest)
+			if !assert.Nil(t, err) {
+				return
+			}
 
-	err = manifestStorage.ReplacePartitionManifest(
-		ctx, partition, &previousManifest, &manifest, filePaths,
-	)
-	if !assert.Nil(t, err, "expected a nil error") {
-		return
+			manifestStorage := NewManifestStorage(ctx, logger, mem, objectStorage, options)
+
+			err = manifestStorage.ReplacePartitionManifest(
+				ctx, tc.partition, &tc.previousManifest, &tc.manifest, tc.filePaths,
+			)
+			if !assert.Nil(t, err, "expected a nil error") {
+				return
+			}
+			if !objectStorage.AssertExpectations(t) {
+				t.Log("mock expectations were not met")
+				return
+			}
+
+		})
 	}
 
 }
