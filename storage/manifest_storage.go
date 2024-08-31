@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"strconv"
+	"strings"
 
 	"github.com/apache/arrow/go/v17/arrow"
 	"github.com/apache/arrow/go/v17/arrow/memory"
@@ -36,7 +38,6 @@ type IManifestStorage interface {
 
 type ManifestStorageOptions struct {
 	MaxFiles    int
-	MaxSizeInMB int
 	BucketName  string
 	KeyPrefix   string
 }
@@ -48,7 +49,6 @@ type ManifestStorage struct {
 	IObjectStorage
 
 	maxFiles    int
-	maxSizeInMB int
 	bucketName  string
 	keyPrefix   string
 }
@@ -65,16 +65,55 @@ func NewManifestStorage(
 		mem:            mem,
 		IObjectStorage: objectStorage,
 		maxFiles:       options.MaxFiles,
-		maxSizeInMB:    options.MaxSizeInMB,
 		bucketName:     options.BucketName,
 		keyPrefix:      options.KeyPrefix,
 	}
 }
 
-func (obj *ManifestStorage) GetPartitionManifest(ctx context.Context, partition elements.Partition) (*PartitionManifest, error) {
+func (obj *ManifestStorage) GetPartitionManifest(
+  ctx context.Context, 
+  partition elements.Partition,
+) (*PartitionManifest, error) {
 
+  manifestPrefix := fmt.Sprintf(
+    "%s/table-state/part-data/%s/%s/manifest_", 
+    obj.keyPrefix, 
+    partition.TableName, 
+    partition.Key)
+
+  // get all manifests for the partition
+  manifestKeys, err := obj.ListObjects(
+    ctx, obj.bucketName, manifestPrefix,
+  )
+  if err != nil {
+    return nil, errs.Wrap(
+      err, 
+      fmt.Errorf("failed getting manifests for table %s partition %s", partition.TableName, partition.Key),
+    )
+  }
+
+  // parse the manifest id from the keys
+  var newestManifestVersion int
+  for _, key := range manifestKeys {
+    cleanedKey := strings.TrimPrefix(key, manifestPrefix)
+    cleanedKey = strings.TrimSuffix(cleanedKey, ".json")
+    manifestVersion, err := strconv.Atoi(cleanedKey)
+    if err != nil {
+      continue
+    }
+    if manifestVersion > newestManifestVersion {
+      newestManifestVersion = manifestVersion
+    }
+  }
+    
 	// get the json manifest file
-	manifestData, err := obj.Download(ctx, obj.bucketName, fmt.Sprintf("%s/table-state/part-data/%s/%s/manifest.json", obj.keyPrefix, partition.TableName, partition.Key))
+	manifestData, err := obj.Download(
+    ctx, 
+    obj.bucketName, 
+    fmt.Sprintf(
+      "%s%d.json", manifestPrefix, newestManifestVersion,
+    ),
+  )
 	if err != nil {
 		return nil, err
 	}
@@ -190,6 +229,8 @@ func (obj *ManifestStorage) MergePartitionRecordIntoManifest(
 	if err != nil {
 		return err
 	}
+  defer os.RemoveAll(tmpDir)
+
 	parquetMergeSortBuilder, err := dataops.NewParquetRecordMergeSortBuilder(
 		obj.logger,
 		obj.mem,
