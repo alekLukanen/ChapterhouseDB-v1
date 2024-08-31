@@ -137,7 +137,11 @@ func InsertTuplesIntoKeyStorage() {
 				),
 		)
 
-	tableRegistery.AddTables(table1)
+	err = tableRegistery.AddTables(table1)
+	if err != nil {
+		logger.Error("failed to add table to registery", slog.String("error", errs.ErrorWithStack(err)))
+		return
+	}
 
 	pool := memory.NewGoAllocator()
 	inserter := operations.NewInserter(

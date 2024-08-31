@@ -151,17 +151,17 @@ func (obj *Warehouse) ProcessNextTablePartition(ctx context.Context) (bool, erro
 		partition, lock, record, err = obj.inserter.GetPartition(
 			ctx, "table1", tableOptions.BatchProcessingSize, tableOptions.BatchProcessingDelay,
 		)
-    if errors.Is(err, operations.ErrNoPartitionsAvailable) {
-      continue
-    } else if err != nil {
+		if errors.Is(err, operations.ErrNoPartitionsAvailable) {
+			continue
+		} else if err != nil {
 			return false, errs.Wrap(
 				err,
 				fmt.Errorf("unable to read partition items for table %s", tab.TableName()))
 		} else {
-	    table = tab
-		  foundPartition = true
-		  break
-    }
+			table = tab
+			foundPartition = true
+			break
+		}
 
 	}
 	if !foundPartition {

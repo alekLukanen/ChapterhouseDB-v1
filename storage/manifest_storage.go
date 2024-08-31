@@ -131,7 +131,7 @@ func (obj *ManifestStorage) GetPartitionManifestFile(ctx context.Context, manife
 	manifestObject := manifest.Objects[index]
 	err := obj.DownloadFile(ctx, obj.bucketName, fmt.Sprintf("%s/%s", obj.keyPrefix, manifestObject.Key), filePath)
 	if err != nil {
-		return err
+		return errs.Wrap(err, fmt.Errorf("manifest object key: %s", manifestObject.Key))
 	}
 
 	return nil
@@ -146,9 +146,14 @@ func (obj *ManifestStorage) ReplacePartitionManifest(
 ) error {
 	// upload the individual files
 	for i, filePath := range filePaths {
-		err := obj.UploadFile(ctx, obj.bucketName, fmt.Sprintf("%s/%s", obj.keyPrefix, manifest.Objects[i].Key), filePath)
+		err := obj.UploadFile(
+			ctx,
+			obj.bucketName,
+			fmt.Sprintf("%s/%s", obj.keyPrefix, manifest.Objects[i].Key),
+			filePath,
+		)
 		if err != nil {
-			return err
+			return errs.Wrap(err, fmt.Errorf("manifest object key: %s", manifest.Objects[i].Key))
 		}
 	}
 
@@ -161,7 +166,12 @@ func (obj *ManifestStorage) ReplacePartitionManifest(
 	err = obj.Upload(
 		ctx,
 		obj.bucketName,
-		fmt.Sprintf("%s/table-state/part-data/%s/%s/manifest_%s.json", obj.keyPrefix, partition.TableName, partition.Key, manifest.Id),
+		fmt.Sprintf(
+			"%s/table-state/part-data/%s/%s/manifest_%d.json",
+			obj.keyPrefix,
+			partition.TableName,
+			partition.Key,
+			manifest.Version),
 		manifestData,
 	)
 	if err != nil {
@@ -177,19 +187,22 @@ func (obj *ManifestStorage) ReplacePartitionManifest(
 	}
 
 	// delete the previous manifest file
-	err = obj.Delete(
-		ctx,
-		obj.bucketName,
-		fmt.Sprintf(
-			"%s/table-state/part-data/%s/%s/manifest_%s.json",
-			obj.keyPrefix,
-			partition.TableName,
-			partition.Key,
-			previousManifest.Id,
-		),
-	)
-	if err != nil {
-		return err
+	if previousManifest.Id != "" {
+
+		err = obj.Delete(
+			ctx,
+			obj.bucketName,
+			fmt.Sprintf(
+				"%s/table-state/part-data/%s/%s/manifest_%s.json",
+				obj.keyPrefix,
+				partition.TableName,
+				partition.Key,
+				previousManifest.Id,
+			),
+		)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -241,9 +254,9 @@ func (obj *ManifestStorage) MergePartitionRecordIntoManifest(
 		compareColumns,
 		options.MaxObjectRows,
 	)
-  if err != nil {
-    return errs.Wrap(err, fmt.Errorf("failed to construct the merge sort builder for manifest %s", manifest.Id))
-  }
+	if err != nil {
+		return errs.Wrap(err, fmt.Errorf("failed to construct the merge sort builder for manifest %s", manifest.Id))
+	}
 	manifestBuilder := NewPartitionManifestBuilder(partition.TableName, partition.Key, manifest.Version+1)
 	for idx, manifestObj := range manifestObjects {
 		// download the file
