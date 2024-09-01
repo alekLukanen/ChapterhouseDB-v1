@@ -7,10 +7,112 @@ import (
 	"testing"
 
 	"github.com/alekLukanen/ChapterhouseDB/elements"
+	arrowops "github.com/alekLukanen/arrow-ops"
+	"github.com/apache/arrow/go/v17/arrow"
 	"github.com/apache/arrow/go/v17/arrow/memory"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
+
+func TestManifestStorage_MergePartitionRecordIntoManifest(t *testing.T) {
+
+	ctx := context.Background()
+	mem := memory.NewGoAllocator()
+	logger := slog.New(
+		slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
+	)
+	options := ManifestStorageOptions{
+		BucketName: "bucket",
+		KeyPrefix:  "prefix",
+	}
+
+	testCases := []struct {
+		caseName       string
+		partition      elements.Partition
+		buildPKRecord  func() (arrow.Record, error)
+		buildNewRecord func() (arrow.Record, error)
+		primaryColumns []string
+		compareColumns []string
+		options        PartitionManifestOptions
+		// mocks
+		buildObjectStorage func() *MockObjectStorage
+		buildExternalFuncs func() *MockManifestStorageExternalFuncs
+	}{
+		{
+			caseName: "merge-records-into-empty-manifest",
+			partition: elements.Partition{
+				TableName: "table-a",
+				Key:       "23",
+			},
+			buildPKRecord: func() (arrow.Record, error) {
+				rec := arrowops.MockData(mem, 100, "ascending")
+				defer rec.Release()
+				takenRec, err := arrowops.TakeRecordColumns(rec, []string{"a"})
+				if err != nil {
+					return nil, err
+				}
+				return takenRec, nil
+			},
+			buildNewRecord: func() (arrow.Record, error) {
+				rec := arrowops.MockData(mem, 10, "ascending")
+				return rec, nil
+			},
+			primaryColumns: []string{"a"},
+			compareColumns: []string{"a", "b", "c"},
+			options: PartitionManifestOptions{
+				MaxObjects:    10,
+				MaxObjectRows: 100,
+			},
+			buildObjectStorage: func() *MockObjectStorage {
+				objectStoage := new(MockObjectStorage)
+				return objectStoage
+			},
+			buildExternalFuncs: func() *MockManifestStorageExternalFuncs {
+				externalFuncs := new(MockManifestStorageExternalFuncs)
+				return externalFuncs
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.caseName, func(t *testing.T) {
+			objectStorage := tc.buildObjectStorage()
+			externalFuncs := tc.buildExternalFuncs()
+
+			manifestStorage := ManifestStorage{
+				logger:                        logger,
+				mem:                           mem,
+				IObjectStorage:                objectStorage,
+				bucketName:                    options.BucketName,
+				keyPrefix:                     options.KeyPrefix,
+				iManifestStorageExternalFuncs: externalFuncs,
+			}
+
+			pkRecord, err := tc.buildPKRecord()
+			if !assert.Nil(t, err) {
+				return
+			}
+			newRecord, err := tc.buildNewRecord()
+			if !assert.Nil(t, err) {
+				return
+			}
+
+			err = manifestStorage.MergePartitionRecordIntoManifest(
+				ctx,
+				tc.partition,
+				pkRecord,
+				newRecord,
+				tc.primaryColumns,
+				tc.compareColumns,
+				tc.options,
+			)
+			if !assert.Nil(t, err, "expected a nil error") {
+				return
+			}
+		})
+	}
+
+}
 
 func TestManifestStorage_ReplacePartitionManifest_emptyPreviousManifest(t *testing.T) {
 
@@ -22,7 +124,6 @@ func TestManifestStorage_ReplacePartitionManifest_emptyPreviousManifest(t *testi
 		),
 	)
 	options := ManifestStorageOptions{
-		MaxFiles:   5,
 		BucketName: "bucket",
 		KeyPrefix:  "prefix",
 	}
@@ -198,7 +299,6 @@ func TestManifestStorage_GetPartitionManifest(t *testing.T) {
 	)
 	objectStorage := new(MockObjectStorage)
 	options := ManifestStorageOptions{
-		MaxFiles:   5,
 		BucketName: "bucket",
 		KeyPrefix:  "prefix",
 	}
