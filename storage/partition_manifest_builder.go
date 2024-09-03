@@ -15,7 +15,7 @@ type PartitionManifestBuilder struct {
 func NewPartitionManifestBuilder(tableName string, partitionKey string, version int) *PartitionManifestBuilder {
 	return &PartitionManifestBuilder{
 		manifest: &PartitionManifest{
-			Id:           fmt.Sprintf("part-%d", version),
+			Id:           fmt.Sprintf("%d", version),
 			TableName:    tableName,
 			PartitionKey: partitionKey,
 			Version:      version,

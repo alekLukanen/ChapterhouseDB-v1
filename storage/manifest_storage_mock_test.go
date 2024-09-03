@@ -1,8 +1,10 @@
 package storage
 
 import (
+	"context"
 	"log/slog"
 
+	arrowops "github.com/alekLukanen/arrow-ops"
 	"github.com/apache/arrow/go/v17/arrow"
 	"github.com/apache/arrow/go/v17/arrow/memory"
 	"github.com/stretchr/testify/mock"
@@ -31,4 +33,18 @@ func (obj *MockManifestStorageExternalFuncs) newParquetRecordMergeSortBuilder(
 		compareColumns,
 		maxObjectRows)
 	return args.Get(0).(iParquetMergeSortBuilder), args.Error(1)
+}
+
+type MockParquetMergeSortBuilder struct {
+  mock.Mock
+}
+
+func (obj *MockParquetMergeSortBuilder) BuildNextFiles(ctx context.Context, tmpDir string) ([]arrowops.ParquetFile, error) {
+  args := obj.Called(ctx, tmpDir)
+  return args.Get(0).([]arrowops.ParquetFile), args.Error(1)
+}
+
+func (obj *MockParquetMergeSortBuilder) BuildLastFiles(ctx context.Context) ([]arrowops.ParquetFile, error) {
+  args := obj.Called(ctx)
+  return args.Get(0).([]arrowops.ParquetFile), args.Error(1)
 }

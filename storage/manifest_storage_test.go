@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/alekLukanen/ChapterhouseDB/elements"
@@ -35,7 +36,7 @@ func TestManifestStorage_MergePartitionRecordIntoManifest(t *testing.T) {
 		compareColumns []string
 		options        PartitionManifestOptions
 		// mocks
-		buildObjectStorage func() *MockObjectStorage
+		buildObjectStorage func() (*MockObjectStorage, error)
 		buildExternalFuncs func() *MockManifestStorageExternalFuncs
 	}{
 		{
@@ -45,16 +46,11 @@ func TestManifestStorage_MergePartitionRecordIntoManifest(t *testing.T) {
 				Key:       "23",
 			},
 			buildPKRecord: func() (arrow.Record, error) {
-				rec := arrowops.MockData(mem, 100, "ascending")
-				defer rec.Release()
-				takenRec, err := arrowops.TakeRecordColumns(rec, []string{"a"})
-				if err != nil {
-					return nil, err
-				}
-				return takenRec, nil
+				rec := arrowops.MockData(mem, 1, "ascending")
+				return rec, nil
 			},
 			buildNewRecord: func() (arrow.Record, error) {
-				rec := arrowops.MockData(mem, 10, "ascending")
+				rec := arrowops.MockData(mem, 1, "ascending")
 				return rec, nil
 			},
 			primaryColumns: []string{"a"},
@@ -63,12 +59,137 @@ func TestManifestStorage_MergePartitionRecordIntoManifest(t *testing.T) {
 				MaxObjects:    10,
 				MaxObjectRows: 100,
 			},
-			buildObjectStorage: func() *MockObjectStorage {
-				objectStoage := new(MockObjectStorage)
-				return objectStoage
+			buildObjectStorage: func() (*MockObjectStorage, error) {
+				objectStorage := new(MockObjectStorage)
+
+        // mocks for getting the manifest file
+				objectStorage.On(
+					"ListObjects",
+					ctx,
+					"bucket",
+					"prefix/table-state/part-data/table-a/23/manifest_",
+				).Return([]string{
+					"prefix/table-state/part-data/table-a/23/manifest_3.json",
+				}, nil).Once()
+
+        manifest := PartitionManifest{
+          Id:           "3",
+          TableName:    "table-a",
+          PartitionKey: "23",
+          Version:      3,
+          Objects: []ManifestObject{
+            {
+              Key:     "table-state/part-data/table-a/23/d_3_0.parquet",
+              Index:   0,
+              NumRows: 100,
+            },
+          },
+        }
+        manifestData, err := manifest.ToBytes()
+        if err != nil {
+          return nil, err
+        }
+        objectStorage.On(
+          "Download",
+          mock.Anything,
+          "bucket",
+          "prefix/table-state/part-data/table-a/23/manifest_3.json",
+        ).Return(manifestData, nil).Once()
+
+        // mocks for downloading the partition data file(s)
+        objectStorage.On(
+          "DownloadFile",
+          mock.Anything,
+          "bucket",
+          "prefix/table-state/part-data/table-a/23/d_3_0.parquet",
+          mock.MatchedBy(func (s string) bool {
+            return strings.HasSuffix(s, "/0")
+          }),
+        ).Return(nil).Once()
+
+        // mocks for replacing the partition manifest and data files
+        objectStorage.On(
+          "UploadFile",
+          mock.Anything,
+          "bucket",
+          "prefix/table-state/part-data/table-a/23/d_4_0.parquet",
+          "./example/d_4_0.parquet",
+        ).Return(nil)
+
+        expectedNewManifest := PartitionManifest{
+          Id:           "4",
+          TableName:    "table-a",
+          PartitionKey: "23",
+          Version:      4,
+          Objects: []ManifestObject{
+            {
+              Key:     "table-state/part-data/table-a/23/d_4_0.parquet",
+              Index:   0,
+              NumRows: 100,
+            },
+          },
+        }
+        newManifestData, err := expectedNewManifest.ToBytes()
+        if err != nil {
+          return nil, err
+        }
+        objectStorage.On(
+          "Upload",
+          mock.Anything,
+          "bucket",
+          "prefix/table-state/part-data/table-a/23/manifest_4.json",
+          newManifestData,
+        ).Return(nil).Once()
+
+        objectStorage.On(
+          "Delete",
+          mock.Anything,
+          "bucket",
+          "prefix/table-state/part-data/table-a/23/d_3_0.parquet",
+        ).Return(nil).Once()
+
+        objectStorage.On(
+          "Delete",
+          mock.Anything,
+          "bucket",
+          "prefix/table-state/part-data/table-a/23/manifest_3.json",
+        ).Return(nil).Once()
+
+				return objectStorage, nil
 			},
 			buildExternalFuncs: func() *MockManifestStorageExternalFuncs {
 				externalFuncs := new(MockManifestStorageExternalFuncs)
+        mockParquetMergeSortBuilder := new(MockParquetMergeSortBuilder)
+
+        // mocks for the partition data file
+        externalFuncs.On(
+          "newParquetRecordMergeSortBuilder",
+          mock.Anything,
+          mock.Anything,
+          mock.Anything,
+          mock.Anything,
+          mock.MatchedBy(func (s string) bool { return len(s) > 0 }),
+          []string{"a"},
+          []string{"a", "b", "c"},
+          100,
+        ).Return(mockParquetMergeSortBuilder, nil)
+
+        mockParquetMergeSortBuilder.On(
+          "BuildNextFiles",
+          mock.Anything,
+          mock.MatchedBy(func (s string) bool { return strings.HasSuffix(s, "/0") }),
+        ).Return([]arrowops.ParquetFile{
+          {
+            FilePath: "./example/d_4_0.parquet",
+            NumRows: 100,
+          },
+        }, nil).Once()
+
+        mockParquetMergeSortBuilder.On(
+          "BuildLastFiles",
+          mock.Anything,
+        ).Return([]arrowops.ParquetFile{}, nil).Once()
+
 				return externalFuncs
 			},
 		},
@@ -76,7 +197,10 @@ func TestManifestStorage_MergePartitionRecordIntoManifest(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.caseName, func(t *testing.T) {
-			objectStorage := tc.buildObjectStorage()
+			objectStorage, err := tc.buildObjectStorage()
+      if !assert.Nil(t, err, "failed to create object storage mocks") {
+        return
+      }
 			externalFuncs := tc.buildExternalFuncs()
 
 			manifestStorage := ManifestStorage{
@@ -96,6 +220,8 @@ func TestManifestStorage_MergePartitionRecordIntoManifest(t *testing.T) {
 			if !assert.Nil(t, err) {
 				return
 			}
+			defer pkRecord.Release()
+			defer newRecord.Release()
 
 			err = manifestStorage.MergePartitionRecordIntoManifest(
 				ctx,
@@ -109,6 +235,15 @@ func TestManifestStorage_MergePartitionRecordIntoManifest(t *testing.T) {
 			if !assert.Nil(t, err, "expected a nil error") {
 				return
 			}
+      if !objectStorage.AssertExpectations(t) {
+        t.Log("mock expectations were not met")
+        return
+      }
+      if !externalFuncs.AssertExpectations(t) {
+        t.Log("mock expectations were not met")
+        return
+      }
+
 		})
 	}
 

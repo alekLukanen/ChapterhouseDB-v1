@@ -310,7 +310,12 @@ func (obj *ManifestStorage) MergePartitionRecordIntoManifest(
 	for idx, manifestObj := range manifestObjects {
 		// download the file
 		filePath := fmt.Sprintf("%s/%d", tmpDir, idx)
-		err = obj.DownloadFile(ctx, obj.bucketName, fmt.Sprintf("%s/%s", obj.keyPrefix, manifestObj.Key), filePath)
+		err = obj.DownloadFile(
+      ctx, 
+      obj.bucketName, 
+      fmt.Sprintf("%s/%s", obj.keyPrefix, manifestObj.Key), 
+      filePath,
+    )
 		if err != nil {
 			return errs.Wrap(
 				err,
