@@ -140,14 +140,15 @@ func (obj *Warehouse) ProcessNextTablePartition(ctx context.Context) (bool, erro
 	var lock storage.ILock
 	var record arrow.Record
 	var table *elements.Table
+  var tableOptions elements.TableOptions
 	var foundPartition bool
 
 	// 1. Get a partition for a table subscription
 	for idx, tab := range obj.tableRegistry.Tables() {
 
-		obj.logger.Info("Processing table", slog.Any("table", tab.TableName()), slog.Int("index", idx))
+		obj.logger.Debug("Processing table", slog.Any("table", tab.TableName()), slog.Int("index", idx))
 
-		tableOptions := table.Options()
+		tableOptions = table.Options()
 		partition, lock, record, err = obj.inserter.GetPartition(
 			ctx, "table1", tableOptions.BatchProcessingSize, tableOptions.BatchProcessingDelay,
 		)
@@ -239,7 +240,9 @@ func (obj *Warehouse) ProcessNextTablePartition(ctx context.Context) (bool, erro
 		sortedRecord,
 		partitionColumnNames,
 		allColumnNames,
-		storage.PartitionManifestOptions{MaxObjectRows: 1_000},
+		storage.PartitionManifestOptions{
+      MaxObjectRows: tableOptions.MaxObjectSize,
+    },
 	)
 	if err != nil {
 		return false, errs.Wrap(

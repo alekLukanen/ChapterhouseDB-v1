@@ -40,7 +40,7 @@ func TestManifestStorage_MergePartitionRecordIntoManifest(t *testing.T) {
 		buildExternalFuncs func() *MockManifestStorageExternalFuncs
 	}{
 		{
-			caseName: "merge-records-into-empty-manifest",
+			caseName: "merge-records-into-existing-manifest",
 			partition: elements.Partition{
 				TableName: "table-a",
 				Key:       "23",

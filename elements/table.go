@@ -10,6 +10,9 @@ import (
 type TableOptions struct {
 	BatchProcessingDelay time.Duration
 	BatchProcessingSize  int
+
+  // partitioning options
+  MaxObjectSize int
 }
 
 type IValidatable interface {
