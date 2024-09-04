@@ -38,7 +38,11 @@ func NewTable(name string) *Table {
 		columns:            []Column{},
 		columnPartitions:   []ColumnPartition{},
 		subscriptionGroups: []SubscriptionGroup{},
-		options:            TableOptions{},
+		options:            TableOptions{
+      BatchProcessingDelay: 10 * time.Second,
+      BatchProcessingSize:  1000,
+      MaxObjectSize:        10_000,
+    },
 	}
 }
 

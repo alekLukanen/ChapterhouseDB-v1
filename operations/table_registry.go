@@ -55,7 +55,7 @@ func (obj *TableRegistry) TableExists(tableName string) bool {
 }
 
 func (obj *TableRegistry) Tables() []*elements.Table {
-	tables := make([]*elements.Table, 0, len(obj.tables))
+	tables := make([]*elements.Table, len(obj.tables))
 
 	var idx int
 	for _, table := range obj.tables {

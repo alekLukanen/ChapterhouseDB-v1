@@ -89,6 +89,7 @@ func (obj *Warehouse) Run(ctx context.Context) {
 					slog.String("error", errs.ErrorWithStack(err)))
 			}
 			if !processedAPartition {
+        obj.logger.Debug("no partitions to process; waiting a few seconds")
 				time.Sleep(5 * time.Second)
 			}
 		}
@@ -148,7 +149,7 @@ func (obj *Warehouse) ProcessNextTablePartition(ctx context.Context) (bool, erro
 
 		obj.logger.Debug("Processing table", slog.Any("table", tab.TableName()), slog.Int("index", idx))
 
-		tableOptions = table.Options()
+		tableOptions = tab.Options()
 		partition, lock, record, err = obj.inserter.GetPartition(
 			ctx, "table1", tableOptions.BatchProcessingSize, tableOptions.BatchProcessingDelay,
 		)
@@ -182,7 +183,7 @@ func (obj *Warehouse) ProcessNextTablePartition(ctx context.Context) (bool, erro
 	}
 
 	// 2. Transform the partition data basec on the subscription
-	transformedData, err := subscription.Transformer()(ctx, obj.allocator, record)
+	transformedData, err := subscription.Transformer()(ctx, obj.allocator, obj.logger, record)
 	if err != nil {
 		return false, errs.Wrap(err, fmt.Errorf("unable to transform data"))
 	}
