@@ -9,4 +9,5 @@ var (
 	ErrLockFailed         = redsync.ErrFailed
 	ErrLockAlreadyExpired = redsync.ErrLockAlreadyExpired
 	ErrManifestInvalid    = errors.New("manifest is invalid")
+	ErrNoManifestFound    = errors.New("no manifest found")
 )

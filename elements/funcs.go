@@ -9,15 +9,15 @@ import (
 )
 
 type PartitionFunc func(
-  *memory.GoAllocator, 
-  arrow.Record, 
-  string, 
-  IPartitionOptions,
+	*memory.GoAllocator,
+	arrow.Record,
+	string,
+	IPartitionOptions,
 ) (arrow.Array, error)
 
 type Transformer func(
-  context.Context, 
-  *memory.GoAllocator,
-  *slog.Logger,
-  arrow.Record,
+	context.Context,
+	*memory.GoAllocator,
+	*slog.Logger,
+	arrow.Record,
 ) (arrow.Record, error)

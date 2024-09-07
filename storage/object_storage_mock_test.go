@@ -39,3 +39,8 @@ func (obj *MockObjectStorage) ListObjects(ctx context.Context, bucket, prefix st
 	ret := obj.Called(ctx, bucket, prefix)
 	return ret.Get(0).([]string), ret.Error(1)
 }
+
+func (obj *MockObjectStorage) CreateBucket(ctx context.Context, bucket string) error {
+	ret := obj.Called(ctx, bucket)
+	return ret.Error(0)
+}

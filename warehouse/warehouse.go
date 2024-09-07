@@ -86,10 +86,11 @@ func (obj *Warehouse) Run(ctx context.Context) {
 			if err != nil {
 				obj.logger.Error(
 					"failed to process next table partition",
-					slog.String("error", errs.ErrorWithStack(err)))
+					slog.String("error", err.Error()),
+				)
 			}
 			if !processedAPartition {
-        obj.logger.Debug("no partitions to process; waiting a few seconds")
+				obj.logger.Debug("no partitions to process; waiting a few seconds")
 				time.Sleep(5 * time.Second)
 			}
 		}
@@ -141,7 +142,7 @@ func (obj *Warehouse) ProcessNextTablePartition(ctx context.Context) (bool, erro
 	var lock storage.ILock
 	var record arrow.Record
 	var table *elements.Table
-  var tableOptions elements.TableOptions
+	var tableOptions elements.TableOptions
 	var foundPartition bool
 
 	// 1. Get a partition for a table subscription
@@ -151,7 +152,7 @@ func (obj *Warehouse) ProcessNextTablePartition(ctx context.Context) (bool, erro
 
 		tableOptions = tab.Options()
 		partition, lock, record, err = obj.inserter.GetPartition(
-			ctx, "table1", tableOptions.BatchProcessingSize, tableOptions.BatchProcessingDelay,
+			ctx, tab.TableName(), tableOptions.BatchProcessingSize, tableOptions.BatchProcessingDelay,
 		)
 		if errors.Is(err, operations.ErrNoPartitionsAvailable) {
 			continue
@@ -169,6 +170,14 @@ func (obj *Warehouse) ProcessNextTablePartition(ctx context.Context) (bool, erro
 	if !foundPartition {
 		return false, nil
 	}
+	defer func() {
+		_, unlockErr := lock.UnlockContext(ctx)
+		if unlockErr != nil && err != nil {
+			err = errs.Wrap(err, fmt.Errorf("%w| while handling previous error another occurred", unlockErr))
+		} else if unlockErr != nil {
+			err = unlockErr
+		}
+	}()
 
 	obj.logger.Info(
 		"processing partition",
@@ -179,13 +188,15 @@ func (obj *Warehouse) ProcessNextTablePartition(ctx context.Context) (bool, erro
 
 	subscription, err := table.GetSubscriptionBySourceName(partition.SubscriptionSourceName)
 	if err != nil {
-		return false, errs.Wrap(err, fmt.Errorf("unabled to get subscription for partition source name"))
+		err = errs.Wrap(err, fmt.Errorf("unabled to get subscription for partition source name"))
+		return false, err
 	}
 
 	// 2. Transform the partition data basec on the subscription
 	transformedData, err := subscription.Transformer()(ctx, obj.allocator, obj.logger, record)
 	if err != nil {
-		return false, errs.Wrap(err, fmt.Errorf("unable to transform data"))
+		err = errs.Wrap(err, fmt.Errorf("unable to transform data"))
+		return false, err
 	}
 	defer transformedData.Release()
 	obj.logger.Debug("transformed data", slog.Int64("numrows", transformedData.NumRows()))
@@ -206,9 +217,8 @@ func (obj *Warehouse) ProcessNextTablePartition(ctx context.Context) (bool, erro
 
 	sortedRecord, err := arrowops.SortRecord(obj.allocator, transformedData, partitionColumnNames)
 	if err != nil {
-		return false, errs.Wrap(
-			err,
-			fmt.Errorf("failed to sort transformed data using columns %v", partitionColumnNames))
+		err = errs.Wrap(err, fmt.Errorf("failed to sort transformed data using columns %v", partitionColumnNames))
+		return false, err
 	}
 	defer sortedRecord.Release()
 
@@ -226,12 +236,14 @@ func (obj *Warehouse) ProcessNextTablePartition(ctx context.Context) (bool, erro
 
 	processedKeyRecord, err := arrowops.TakeRecordColumns(sortedRecord, partitionColumnNames)
 	if err != nil {
-		return false, errs.Wrap(err, fmt.Errorf("failed to take record columns"))
+		err = errs.Wrap(err, fmt.Errorf("failed to take record columns"))
+		return false, err
 	}
 
 	processedKeyRecord, err = arrowops.DeduplicateRecord(obj.allocator, processedKeyRecord, partitionColumnNames, true)
 	if err != nil {
-		return false, errs.Wrap(err, fmt.Errorf("failed to deduplicate record"))
+		err = errs.Wrap(err, fmt.Errorf("failed to deduplicate record"))
+		return false, err
 	}
 
 	err = obj.manifestStorage.MergePartitionRecordIntoManifest(
@@ -242,13 +254,12 @@ func (obj *Warehouse) ProcessNextTablePartition(ctx context.Context) (bool, erro
 		partitionColumnNames,
 		allColumnNames,
 		storage.PartitionManifestOptions{
-      MaxObjectRows: tableOptions.MaxObjectSize,
-    },
+			MaxObjectRows: tableOptions.MaxObjectSize,
+		},
 	)
 	if err != nil {
-		return false, errs.Wrap(
-			err,
-			fmt.Errorf("failed to merge the new record into the manifest"))
+		err = errs.Wrap(err, fmt.Errorf("failed to merge the new record into the manifest"))
+		return false, err
 	}
 
 	return true, nil

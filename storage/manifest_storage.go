@@ -11,7 +11,6 @@ import (
 
 	"github.com/apache/arrow/go/v17/arrow"
 	"github.com/apache/arrow/go/v17/arrow/memory"
-	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 
 	"github.com/alekLukanen/ChapterhouseDB/dataOps"
 	"github.com/alekLukanen/ChapterhouseDB/elements"
@@ -131,6 +130,10 @@ func (obj *ManifestStorage) GetPartitionManifest(
 			err,
 			fmt.Errorf("failed getting manifests for table %s partition %s", partition.TableName, partition.Key),
 		)
+	}
+
+	if len(manifestKeys) == 0 {
+		return nil, ErrNoManifestFound
 	}
 
 	// parse the manifest id from the keys
@@ -263,23 +266,22 @@ func (obj *ManifestStorage) MergePartitionRecordIntoManifest(
 	options PartitionManifestOptions,
 ) error {
 	// get the manifest
-	hasManifest := true
 	manifest, err := obj.GetPartitionManifest(ctx, partition)
 	if err != nil {
-		var notFoundErr *types.NoSuchKey
-		if ok := errors.As(err, &notFoundErr); ok {
-			hasManifest = false
+		if errors.Is(err, ErrNoManifestFound) {
+			manifest = &PartitionManifest{
+				Id:           "0",
+				TableName:    partition.TableName,
+				PartitionKey: partition.Key,
+				Version:      0,
+				Objects:      make([]ManifestObject, 0),
+			}
 		} else {
 			return errs.Wrap(err, fmt.Errorf("failed for partition %s", partition.Key))
 		}
 	}
 
-	var manifestObjects []ManifestObject
-	if hasManifest {
-		manifestObjects = manifest.Objects
-	} else {
-		manifestObjects = make([]ManifestObject, 0)
-	}
+	manifestObjects := manifest.Objects
 
 	// iterate over each manifest object, request the file and
 	// attempt to merge the record into the existing files if any.
@@ -311,11 +313,11 @@ func (obj *ManifestStorage) MergePartitionRecordIntoManifest(
 		// download the file
 		filePath := fmt.Sprintf("%s/%d", tmpDir, idx)
 		err = obj.DownloadFile(
-      ctx, 
-      obj.bucketName, 
-      fmt.Sprintf("%s/%s", obj.keyPrefix, manifestObj.Key), 
-      filePath,
-    )
+			ctx,
+			obj.bucketName,
+			fmt.Sprintf("%s/%s", obj.keyPrefix, manifestObj.Key),
+			filePath,
+		)
 		if err != nil {
 			return errs.Wrap(
 				err,

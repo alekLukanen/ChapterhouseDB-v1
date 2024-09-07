@@ -11,8 +11,8 @@ type TableOptions struct {
 	BatchProcessingDelay time.Duration
 	BatchProcessingSize  int
 
-  // partitioning options
-  MaxObjectSize int
+	// partitioning options
+	MaxObjectSize int
 }
 
 type IValidatable interface {
@@ -38,11 +38,11 @@ func NewTable(name string) *Table {
 		columns:            []Column{},
 		columnPartitions:   []ColumnPartition{},
 		subscriptionGroups: []SubscriptionGroup{},
-		options:            TableOptions{
-      BatchProcessingDelay: 10 * time.Second,
-      BatchProcessingSize:  1000,
-      MaxObjectSize:        10_000,
-    },
+		options: TableOptions{
+			BatchProcessingDelay: 10 * time.Second,
+			BatchProcessingSize:  1000,
+			MaxObjectSize:        10_000,
+		},
 	}
 }
 

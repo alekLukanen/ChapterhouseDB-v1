@@ -14,6 +14,7 @@ import (
 	goredislib "github.com/redis/go-redis/v9"
 
 	"github.com/alekLukanen/ChapterhouseDB/elements"
+	"github.com/alekLukanen/errs"
 )
 
 type ILock interface {
@@ -164,6 +165,9 @@ func (obj *KeyStorage) GetTablePartitions(ctx context.Context, tableName string,
 	ctx, cancelFunc := obj.DerCtx(ctx)
 	defer cancelFunc()
 	keys, err := obj.getKeysByPrefix(ctx, keyPrefix, cursor, count)
+	if err != nil {
+		return nil, err
+	}
 
 	partitions := make([]elements.Partition, len(keys))
 	for idx, key := range keys {
@@ -171,7 +175,7 @@ func (obj *KeyStorage) GetTablePartitions(ctx context.Context, tableName string,
 		partitions[idx] = elements.Partition{TableName: tableName, SubscriptionSourceName: partitionKey[len(partitionKey)-2], Key: partitionKey[len(partitionKey)-1]}
 	}
 
-	return partitions, err
+	return partitions, nil
 }
 
 func (obj *KeyStorage) getKeysByPrefix(ctx context.Context, prefixPattern string, cursor uint64, count int64) ([]string, error) {
@@ -179,7 +183,11 @@ func (obj *KeyStorage) getKeysByPrefix(ctx context.Context, prefixPattern string
 	defer cancelFunc()
 	result := obj.client.Scan(ctx, cursor, obj.Key(prefixPattern), count)
 	keys, _ := result.Val()
-	return keys, result.Err()
+	err := result.Err()
+	if err != nil {
+		return nil, errs.NewStackError(err)
+	}
+	return keys, nil
 }
 
 func (obj *KeyStorage) UpdateKeyTimestampIfOlder(ctx context.Context, key string, ts int64) (bool, error) {

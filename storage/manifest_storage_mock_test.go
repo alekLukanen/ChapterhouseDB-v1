@@ -36,15 +36,15 @@ func (obj *MockManifestStorageExternalFuncs) newParquetRecordMergeSortBuilder(
 }
 
 type MockParquetMergeSortBuilder struct {
-  mock.Mock
+	mock.Mock
 }
 
 func (obj *MockParquetMergeSortBuilder) BuildNextFiles(ctx context.Context, tmpDir string) ([]arrowops.ParquetFile, error) {
-  args := obj.Called(ctx, tmpDir)
-  return args.Get(0).([]arrowops.ParquetFile), args.Error(1)
+	args := obj.Called(ctx, tmpDir)
+	return args.Get(0).([]arrowops.ParquetFile), args.Error(1)
 }
 
 func (obj *MockParquetMergeSortBuilder) BuildLastFiles(ctx context.Context) ([]arrowops.ParquetFile, error) {
-  args := obj.Called(ctx)
-  return args.Get(0).([]arrowops.ParquetFile), args.Error(1)
+	args := obj.Called(ctx)
+	return args.Get(0).([]arrowops.ParquetFile), args.Error(1)
 }

@@ -50,7 +50,6 @@ func NewInserter(
 }
 
 func (obj *Inserter) GetPartition(ctx context.Context, tableName string, batchCount int, batchDelay time.Duration) (elements.Partition, storage.ILock, arrow.Record, error) {
-	obj.logger.Info("getting tuples")
 
 	var pageCursor uint64
 	var pageCount int64 = 25

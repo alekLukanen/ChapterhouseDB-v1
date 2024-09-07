@@ -25,6 +25,7 @@ type IObjectStorage interface {
 	DownloadFile(context.Context, string, string, string) error
 	Delete(context.Context, string, string) error
 	ListObjects(context.Context, string, string) ([]string, error)
+	CreateBucket(context.Context, string) error
 }
 
 type ObjectStorageOptions struct {
@@ -90,6 +91,17 @@ func NewObjectStorage(
 		logger: logger,
 		client: newSession,
 	}, nil
+}
+
+func (obj *ObjectStorage) CreateBucket(ctx context.Context, bucket string) error {
+	obj.logger.Debug("creating bucket", slog.String("bucket", bucket))
+	_, err := obj.client.CreateBucket(ctx, &s3.CreateBucketInput{
+		Bucket: &bucket,
+	})
+	if err != nil {
+		return errs.NewStackError(err)
+	}
+	return nil
 }
 
 func (obj *ObjectStorage) Upload(ctx context.Context, bucket, key string, body []byte) error {
