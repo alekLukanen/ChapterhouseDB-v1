@@ -2,6 +2,21 @@
 A self-managed streaming data warehouse built on Parquet with an interchangeable
 query engine to support single node query engines like DuckDB and DataFusion.
 
+## Querying Local Files With DuckDB
+
+```sql
+create secret locals3mock3 (
+  TYPE S3,
+  KEY_ID "key",
+  SECRET "secret",
+  ENDPOINT "localhost:9090",
+  URL_STYLE "path",
+  USE_SSL false
+);
+
+select * from 's3://default/chdb/table-state/part-data/table1/0/d_2_0.parquet';
+```
+
 ## Benchmarks
 
 Install the `benchstat` tool with the following command
