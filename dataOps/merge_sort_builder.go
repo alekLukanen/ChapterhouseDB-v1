@@ -316,16 +316,12 @@ func (obj *RecordMergeSortBuilder) BuildNextRecord() (arrow.Record, error) {
   for idx := obj.mainLineRecordIndex; idx < len(obj.mainLineRecords); idx++ {
     pRecord := obj.mainLineRecords[idx]
 
-		obj.logger.Info("Processing progress record", slog.Int("index", idx), slog.Any("rowIndex", pRecord.index), slog.Bool("done", pRecord.done))
-
 		for !pRecord.done {
 
 			// the sample record doesn't have anything left so we can
 			// just pass the rest of the main line file rows
 			if obj.sampleRecord.done {
 				obj.takeRecordRow(idx, pRecord, true)
-        obj.logger.Info("[0] taking main line row", slog.Any("rowIndex", pRecord.index))
-        obj.logCurrentTakeRecord()
 				continue
 			}
 
@@ -347,7 +343,6 @@ func (obj *RecordMergeSortBuilder) BuildNextRecord() (arrow.Record, error) {
 					if cmpRowProcessed == 0 {
 						obj.processedKeyRecordForMainLine.increment()
 						rowProcessed = true
-						obj.logger.Info("processed key record", slog.Any("rowIndex", obj.processedKeyRecordForMainLine.index), slog.Bool("done", obj.processedKeyRecordForMainLine.done))
 					}
 				}
 			} else {
@@ -365,15 +360,10 @@ func (obj *RecordMergeSortBuilder) BuildNextRecord() (arrow.Record, error) {
 				return nil, err
 			}
 
-      obj.logger.Info("key compare", slog.Int("direction", cmpRowDirection), slog.Bool("rowProcessed", rowProcessed))
-
 			if !rowProcessed && cmpRowDirection < 0 {
 				// ROW NOT PROCESSED AND LESS THAN ///////////////////
 
-        obj.logger.Info("[1] taking main line row", slog.Any("rowIndex", pRecord.index))
 				obj.takeRecordRow(idx, pRecord, false)
-
-        obj.logCurrentTakeRecord()
 
 			} else if cmpRowDirection == 0 {
 				// ROWS ARE EQUAL //////////////////////////////
@@ -455,8 +445,6 @@ func (obj *RecordMergeSortBuilder) buildNextRecordFromSampleRecord(allowPartialF
 			return obj.TakeRecord()
 		}
 
-    obj.logCurrentTakeRecord()
-
 	}
 
 	if allowPartialFill {
@@ -516,8 +504,6 @@ func (obj *RecordMergeSortBuilder) currentTakenRecord() (arrow.Record, error) {
 	}
 	indices := rb.NewRecord()
 	defer indices.Release()
-
-  fmt.Println(indices)
 
 	records := obj.ProgressRecordsToRecords()
 	takenRecord, err := arrowops.TakeMultipleRecords(obj.mem, records, indices)

@@ -3,7 +3,7 @@ module github.com/alekLukanen/ChapterhouseDB
 go 1.23.0
 
 require (
-	github.com/alekLukanen/arrow-ops v0.1.3
+	github.com/alekLukanen/arrow-ops v0.1.4
 	github.com/alekLukanen/errs v1.0.4
 	github.com/apache/arrow/go/v17 v17.0.0
 	github.com/aws/aws-sdk-go-v2 v1.30.0
