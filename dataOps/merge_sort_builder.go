@@ -114,8 +114,6 @@ func (obj *ParquetRecordMergeSortBuilder) addNewFile(ctx context.Context, record
 	record.Retain()
 	defer record.Release()
 
-	obj.logger.Info("ParquetRecordMergeSortBuilder.record", slog.String("schema", record.Schema().String()))
-
 	filePath := path.Join(obj.workingDir, fmt.Sprintf("file_%d.parquet", obj.fileIndexId))
 	err := arrowops.WriteRecordToParquetFile(ctx, obj.mem, record, filePath)
 	if err != nil {
@@ -303,7 +301,7 @@ func (obj *RecordMergeSortBuilder) AddMainLineRecords(records []arrow.Record) er
  */
 func (obj *RecordMergeSortBuilder) BuildNextRecord() (arrow.Record, error) {
 
-	if obj.takeIndex == obj.maxRowsPerRecord-1 {
+	if obj.takeIndex == obj.maxRowsPerRecord {
 		return obj.TakeRecord()
 	}
 
@@ -317,6 +315,10 @@ func (obj *RecordMergeSortBuilder) BuildNextRecord() (arrow.Record, error) {
     pRecord := obj.mainLineRecords[idx]
 
 		for !pRecord.done {
+
+      if obj.takeIndex == obj.maxRowsPerRecord {
+        return obj.TakeRecord()
+      }
 
 			// the sample record doesn't have anything left so we can
 			// just pass the rest of the main line file rows
