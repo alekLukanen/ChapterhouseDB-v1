@@ -259,7 +259,7 @@ func (obj *Warehouse) ProcessNextTablePartition(ctx context.Context) (processed 
 		return false, err
 	}
 
-  obj.logger.Info("finished processing partition", slog.String("partition.Key", partition.Key))
+	obj.logger.Info("finished processing partition", slog.String("partition.Key", partition.Key))
 
 	return true, nil
 }

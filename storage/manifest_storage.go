@@ -282,7 +282,7 @@ func (obj *ManifestStorage) MergePartitionRecordIntoManifest(
 	}
 
 	manifestObjects := manifest.Objects
-  
+
 	// iterate over each manifest object, request the file and
 	// attempt to merge the record into the existing files if any.
 	tmpDir, err := os.MkdirTemp("", "merge-part-rec")

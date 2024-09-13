@@ -478,8 +478,8 @@ func TestMergeSortBuilder(t *testing.T) {
 	newRec1, err := builder.BuildNextRecord()
 	if err != nil {
 		t.Errorf("failed to build next record: %s", err)
-	  return
-  }
+		return
+	}
 	if !arrowops.RecordsEqual(newRec1, expectedRec1, "a", "b", "c") {
 		t.Log("newRecord: ", newRec1)
 		t.Log("expectedRec1: ", expectedRec1)
@@ -492,18 +492,18 @@ func TestMergeSortBuilder(t *testing.T) {
 	newRec2, err := builder.BuildNextRecord()
 	if !errors.Is(err, ErrRecordNotComplete) {
 		t.Errorf("unexpected error '%s'", err)
-    return
+		return
 	}
 	if newRec2 != nil {
 		t.Log("newRecord: ", newRec2)
 		t.Errorf("expected records to be nil")
-	  return
-  }
+		return
+	}
 	///////////////////////////////////////////////////////
 
 	// build last record //////////////////////
 	newRec3, err := builder.BuildLastRecord()
-  if err != nil {
+	if err != nil {
 		t.Errorf("unexpected error '%s'", err)
 		return
 	}
@@ -514,17 +514,17 @@ func TestMergeSortBuilder(t *testing.T) {
 		return
 	}
 
-  // build another last record /////////////
-  newRec4, err := builder.BuildLastRecord()
-  if !errors.Is(err, ErrNoMoreRecords) {
+	// build another last record /////////////
+	newRec4, err := builder.BuildLastRecord()
+	if !errors.Is(err, ErrNoMoreRecords) {
 		t.Errorf("unexpected error '%s'", err)
 		return
 	}
-  if newRec4 != nil {
-    t.Log("newRecord: ", newRec4)
-    t.Errorf("expected record to be nil")
-    return
-  }
+	if newRec4 != nil {
+		t.Log("newRecord: ", newRec4)
+		t.Errorf("expected record to be nil")
+		return
+	}
 
 }
 

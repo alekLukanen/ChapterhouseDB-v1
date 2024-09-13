@@ -50,10 +50,10 @@ func NewInserter(
 }
 
 func (obj *Inserter) GetPartition(
-  ctx context.Context, 
-  tableName string, 
-  batchCount int, 
-  batchDelay time.Duration,
+	ctx context.Context,
+	tableName string,
+	batchCount int,
+	batchDelay time.Duration,
 ) (_ elements.Partition, _ storage.ILock, _ arrow.Record, err error) {
 
 	var pageCursor uint64

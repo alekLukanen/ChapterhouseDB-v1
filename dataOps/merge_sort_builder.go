@@ -303,14 +303,14 @@ func (obj *RecordMergeSortBuilder) BuildNextRecord() (arrow.Record, error) {
 		return nil, errs.NewStackError(ErrRecordNotComplete)
 	}
 
-  for idx := obj.mainLineRecordIndex; idx < len(obj.mainLineRecords); idx++ {
-    pRecord := obj.mainLineRecords[idx]
+	for idx := obj.mainLineRecordIndex; idx < len(obj.mainLineRecords); idx++ {
+		pRecord := obj.mainLineRecords[idx]
 
 		for !pRecord.done {
 
-      if obj.takeIndex == obj.maxRowsPerRecord {
-        return obj.TakeRecord()
-      }
+			if obj.takeIndex == obj.maxRowsPerRecord {
+				return obj.TakeRecord()
+			}
 
 			// the sample record doesn't have anything left so we can
 			// just pass the rest of the main line file rows
@@ -401,13 +401,12 @@ func (obj *RecordMergeSortBuilder) BuildNextRecord() (arrow.Record, error) {
 		obj.mainLineRecordIndex = idx
 	}
 
-  if obj.takeIndex == obj.maxRowsPerRecord {
+	if obj.takeIndex == obj.maxRowsPerRecord {
 		return obj.TakeRecord()
 	}
 
 	return nil, ErrRecordNotComplete
 }
-
 
 func (obj *RecordMergeSortBuilder) takeRecordRow(idx int, record *progressRecord, updated bool) {
 	obj.takeInfo[obj.takeIndex] = &takeInfo{
