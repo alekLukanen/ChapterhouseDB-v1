@@ -90,7 +90,7 @@ func (obj *Warehouse) Run(ctx context.Context) {
 				)
 			}
 			if !processedAPartition {
-				obj.logger.Debug("no partitions to process; waiting a few seconds")
+				obj.logger.Info("no partitions to process; waiting a few seconds")
 				time.Sleep(5 * time.Second)
 			}
 		}
@@ -136,9 +136,8 @@ func (obj *Warehouse) Run(ctx context.Context) {
 * 7. Release the lock on the partition
 * 8. Release the arrow record from the memory allocator
  */
-func (obj *Warehouse) ProcessNextTablePartition(ctx context.Context) (bool, error) {
+func (obj *Warehouse) ProcessNextTablePartition(ctx context.Context) (processed bool, err error) {
 	var partition elements.Partition
-	var err error
 	var lock storage.ILock
 	var record arrow.Record
 	var table *elements.Table
@@ -146,9 +145,7 @@ func (obj *Warehouse) ProcessNextTablePartition(ctx context.Context) (bool, erro
 	var foundPartition bool
 
 	// 1. Get a partition for a table subscription
-	for idx, tab := range obj.tableRegistry.Tables() {
-
-		obj.logger.Debug("Processing table", slog.Any("table", tab.TableName()), slog.Int("index", idx))
+	for _, tab := range obj.tableRegistry.Tables() {
 
 		tableOptions = tab.Options()
 		partition, lock, record, err = obj.inserter.GetPartition(
@@ -199,7 +196,7 @@ func (obj *Warehouse) ProcessNextTablePartition(ctx context.Context) (bool, erro
 		return false, err
 	}
 	defer transformedData.Release()
-	obj.logger.Debug("transformed data", slog.Int64("numrows", transformedData.NumRows()))
+	obj.logger.Info("transformed data", slog.Int64("numrows", transformedData.NumRows()))
 
 	// 3. Sort the record in ascending order
 	// The order will be based on the combination of the
@@ -261,6 +258,8 @@ func (obj *Warehouse) ProcessNextTablePartition(ctx context.Context) (bool, erro
 		err = errs.Wrap(err, fmt.Errorf("failed to merge the new record into the manifest"))
 		return false, err
 	}
+
+  obj.logger.Info("finished processing partition", slog.String("partition.Key", partition.Key))
 
 	return true, nil
 }

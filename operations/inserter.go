@@ -49,11 +49,15 @@ func NewInserter(
 	}
 }
 
-func (obj *Inserter) GetPartition(ctx context.Context, tableName string, batchCount int, batchDelay time.Duration) (elements.Partition, storage.ILock, arrow.Record, error) {
+func (obj *Inserter) GetPartition(
+  ctx context.Context, 
+  tableName string, 
+  batchCount int, 
+  batchDelay time.Duration,
+) (_ elements.Partition, _ storage.ILock, _ arrow.Record, err error) {
 
 	var pageCursor uint64
 	var pageCount int64 = 25
-	var err error
 	var lock storage.ILock
 	defer func() {
 		if lock != nil && err != nil {

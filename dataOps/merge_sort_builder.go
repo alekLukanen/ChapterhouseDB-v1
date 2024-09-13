@@ -151,7 +151,6 @@ func (obj *ParquetRecordMergeSortBuilder) BuildNextFiles(ctx context.Context, fi
 	for {
 		nextRecord, err := obj.recordMergeSortBuilder.BuildNextRecord()
 		if errors.Is(err, ErrRecordNotComplete) {
-			obj.logger.Info("Record not complete")
 			break
 		} else if err != nil {
 			return nil, err
@@ -167,7 +166,6 @@ func (obj *ParquetRecordMergeSortBuilder) BuildNextFiles(ctx context.Context, fi
 		files = append(files, f)
 	}
 
-	obj.logger.Info("BuildNextFiles", slog.Int("fileCount", len(files)))
 	obj.recordMergeSortBuilder.Debug()
 
 	return files, nil
@@ -180,7 +178,6 @@ func (obj *ParquetRecordMergeSortBuilder) BuildLastFiles(ctx context.Context) ([
 
 	files := make([]arrowops.ParquetFile, 0)
 	for {
-		obj.logger.Debug("len(files): ", slog.Int("len(files)", len(files)))
 		lastRecord, err := obj.recordMergeSortBuilder.BuildLastRecord()
 		if errors.Is(err, ErrNoMoreRecords) {
 			break
@@ -281,11 +278,6 @@ func (obj *RecordMergeSortBuilder) Release() {
 }
 
 func (obj *RecordMergeSortBuilder) AddMainLineRecords(records []arrow.Record) error {
-
-	obj.logger.Info("sample record", slog.String("schema", obj.sampleRecord.record.Schema().String()))
-	obj.logger.Info("record[0]", slog.String("schema", records[0].Schema().String()))
-	obj.logger.Info("schemas equal", slog.Bool("equal", arrowops.RecordSchemasEqual(obj.sampleRecord.record, records[0])))
-
 	for _, record := range records {
 		if arrowops.RecordSchemasEqual(obj.sampleRecord.record, record) {
 			obj.mainLineRecords = append(obj.mainLineRecords, newProgressRecord(record, true))
@@ -409,19 +401,13 @@ func (obj *RecordMergeSortBuilder) BuildNextRecord() (arrow.Record, error) {
 		obj.mainLineRecordIndex = idx
 	}
 
-	return obj.buildNextRecordFromSampleRecord(false)
+  if obj.takeIndex == obj.maxRowsPerRecord {
+		return obj.TakeRecord()
+	}
+
+	return nil, ErrRecordNotComplete
 }
 
-
-func (obj *RecordMergeSortBuilder) logCurrentTakeRecord() {
-  rec, err := obj.currentTakenRecord()
-  if err != nil {
-    obj.logger.Error("failed to get current taken record", slog.String("error", errs.ErrorWithStack(err)))
-    return
-  }
-  defer rec.Release()
-  fmt.Println(rec)
-}
 
 func (obj *RecordMergeSortBuilder) takeRecordRow(idx int, record *progressRecord, updated bool) {
 	obj.takeInfo[obj.takeIndex] = &takeInfo{
