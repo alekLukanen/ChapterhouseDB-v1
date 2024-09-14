@@ -1,29 +1,24 @@
 package tasker
 
-type nameToBldr struct {
-	name string
-	bldr func() ITask
-}
-
 type taskRegistry struct {
-	taskBldrs []nameToBldr
+	tasks []ITask
 }
 
 func newTaskRegistry() *taskRegistry {
 	return &taskRegistry{
-		taskBldrs: make([]nameToBldr, 0),
+		tasks: make([]ITask, 0),
 	}
 }
 
-func (obj *taskRegistry) addTask(name string, bldr func() ITask) {
-	obj.taskBldrs = append(obj.taskBldrs, nameToBldr{name: name, bldr: bldr})
+func (obj *taskRegistry) addTask(task ITask) {
+	obj.tasks = append(obj.tasks, task)
 }
 
-func (obj *taskRegistry) findTaskBldr(name string) (func() ITask, error) {
+func (obj *taskRegistry) findTask(name string) (ITask, error) {
 
-	for _, ntb := range obj.taskBldrs {
-		if ntb.name == name {
-			return ntb.bldr, nil
+	for _, t := range obj.tasks {
+		if t.Name() == name {
+			return t, nil
 		}
 	}
 

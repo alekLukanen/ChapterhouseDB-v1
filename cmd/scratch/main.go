@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"log/slog"
 	"os"
 	"time"
@@ -14,12 +15,74 @@ import (
 	"github.com/alekLukanen/ChapterhouseDB/operations"
 	"github.com/alekLukanen/ChapterhouseDB/partitionFuncs"
 	"github.com/alekLukanen/ChapterhouseDB/storage"
+	"github.com/alekLukanen/ChapterhouseDB/tasker"
 	"github.com/alekLukanen/errs"
 )
 
 func main() {
 
-	BuildSampleRecord()
+	// BuildSampleRecord()
+	Tasker()
+
+}
+
+type Task1Data struct {
+	MyId string `json:"my_id"`
+	Val1 string `json:"val_1"`
+	Val2 int    `json:"val_2"`
+}
+
+func (obj *Task1Data) Id() string {
+	return obj.MyId
+}
+func (obj *Task1Data) TaskName() string         { return "Task1" }
+func (obj *Task1Data) Marshal() ([]byte, error) { return json.Marshal(obj) }
+func (obj *Task1Data) Unmarshal(d []byte) error { return json.Unmarshal(d, obj) }
+
+type Task1 struct {
+	logger *slog.Logger
+}
+
+func (obj *Task1) Name() string              { return "Task1" }
+func (obj *Task1) NewData() tasker.ITaskData { return &Task1Data{} }
+func (obj *Task1) Process(td tasker.ITaskData) error {
+	obj.logger.Info("[Task1] called process()")
+	return nil
+}
+
+func Tasker() {
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	logger.Info("Running ChapterhouseDB Scratch")
+
+	ctx := context.Background()
+	tr, err := tasker.NewTasker(ctx, logger, tasker.Options{
+		KeyDBAddress:  "localhost:6379",
+		KeyDBPassword: "",
+		KeyPrefix:     "chapterhouseDB",
+	})
+	if err != nil {
+		logger.Error("tasker failed to initialize", slog.String("error", err.Error()))
+		return
+	}
+
+	// initialize tasks
+	task1 := Task1{logger: logger}
+
+	tr = tr.RegisterQueue(
+		tasker.Queue{Name: "test-queue", Type: tasker.DelayedQueue},
+	).RegisterTask(
+		&task1,
+	)
+
+	// delay a task
+	added, err := tr.DelayTask(
+		ctx, &Task1Data{MyId: "id1", Val1: "value1", Val2: 5}, "test-queue", time.Minute, false,
+	)
+	if err != nil {
+		logger.Error("unable to add task to queue", slog.String("error", err.Error()))
+		return
+	}
+	logger.Info("added", slog.Bool("value", added))
 
 }
 

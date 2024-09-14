@@ -1,9 +1,15 @@
 package tasker
 
 type ITask interface {
-	Id() string
 	Name() string
-	Bldr() func() ITask
+	NewData() ITaskData
+	Process(ITaskData) error
+}
+
+type ITaskData interface {
+	Id() string
+	TaskName() string
+
 	Marshal() ([]byte, error)
 	Unmarshal([]byte) error
 }
