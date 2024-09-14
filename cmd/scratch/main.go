@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"os"
 	"time"
@@ -45,13 +46,18 @@ type Task1 struct {
 
 func (obj *Task1) Name() string              { return "Task1" }
 func (obj *Task1) NewData() tasker.ITaskData { return &Task1Data{} }
-func (obj *Task1) Process(td tasker.ITaskData) error {
+func (obj *Task1) Process(td tasker.ITaskData) (tasker.Result, error) {
 	obj.logger.Info("[Task1] called process()")
-	return nil
+	time.Sleep(3 * time.Second)
+	obj.logger.Info("[Task1] done...")
+	return tasker.Result{}, nil
 }
 
 func Tasker() {
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	logger := slog.New(slog.NewJSONHandler(
+		os.Stdout,
+		&slog.HandlerOptions{Level: slog.LevelDebug},
+	))
 	logger.Info("Running ChapterhouseDB Scratch")
 
 	ctx := context.Background()
@@ -75,14 +81,25 @@ func Tasker() {
 	)
 
 	// delay a task
-	added, err := tr.DelayTask(
-		ctx, &Task1Data{MyId: "id1", Val1: "value1", Val2: 5}, "test-queue", time.Minute, false,
-	)
+	for i := 0; i < 3; i++ {
+		added, err := tr.DelayTask(
+			ctx, &Task1Data{MyId: fmt.Sprintf("id%d", i), Val1: "value1", Val2: 5}, "test-queue", 15*time.Second, false,
+		)
+		if err != nil {
+			logger.Error("unable to add task to queue", slog.String("error", err.Error()))
+			return
+		}
+		logger.Info("added", slog.Bool("value", added))
+	}
+
+	derCtx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	defer cancel()
+
+	err = tr.DelayedTaskLoop(derCtx)
 	if err != nil {
-		logger.Error("unable to add task to queue", slog.String("error", err.Error()))
+		logger.Error("task loop returned errored", slog.String("error", err.Error()))
 		return
 	}
-	logger.Info("added", slog.Bool("value", added))
 
 }
 
