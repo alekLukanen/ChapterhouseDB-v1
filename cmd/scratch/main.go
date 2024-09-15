@@ -222,7 +222,7 @@ func InsertTuplesIntoKeyStorage() {
 
 	err = tableRegistery.AddTables(table1)
 	if err != nil {
-		logger.Error("failed to add table to registery", slog.String("error", errs.ErrorWithStack(err)))
+		logger.Error("failed to add table to registery", slog.String("error", err.Error()))
 		return
 	}
 
@@ -232,6 +232,10 @@ func InsertTuplesIntoKeyStorage() {
 		KeyPrefix:     "chapterhouseDB",
 		TaskTimeout:   30 * time.Second,
 	})
+	if err != nil {
+		logger.Error("failed to build the tasker", slog.String("error", err.Error()))
+		return
+	}
 
 	pool := memory.NewGoAllocator()
 	inserter := operations.NewInserter(
