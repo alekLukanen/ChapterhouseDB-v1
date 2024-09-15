@@ -172,7 +172,11 @@ func (obj *KeyStorage) GetTablePartitions(ctx context.Context, tableName string,
 	partitions := make([]elements.Partition, len(keys))
 	for idx, key := range keys {
 		partitionKey := strings.Split(key, "/")
-		partitions[idx] = elements.Partition{TableName: tableName, SubscriptionSourceName: partitionKey[len(partitionKey)-2], Key: partitionKey[len(partitionKey)-1]}
+		partitions[idx] = elements.Partition{
+			TableName:              tableName,
+			SubscriptionSourceName: partitionKey[len(partitionKey)-2],
+			Key:                    partitionKey[len(partitionKey)-1],
+		}
 	}
 
 	return partitions, nil

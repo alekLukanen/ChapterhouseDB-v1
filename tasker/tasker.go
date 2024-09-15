@@ -15,6 +15,7 @@ type Options struct {
 	KeyDBAddress  string
 	KeyDBPassword string
 	KeyPrefix     string
+	TaskTimeout   time.Duration
 }
 
 type Tasker struct {
@@ -24,7 +25,8 @@ type Tasker struct {
 	taskRegistry  *taskRegistry
 	queueRegistry *queueRegistry
 
-	keyPrefix string
+	keyPrefix   string
+	taskTimeout time.Duration
 }
 
 func NewTasker(
@@ -45,12 +47,18 @@ func NewTasker(
 		taskRegistry:  newTaskRegistry(),
 		queueRegistry: newQueueRegistry(),
 		keyPrefix:     options.KeyPrefix,
+		taskTimeout:   options.TaskTimeout,
 	}, nil
 
 }
 
 func (obj *Tasker) RegisterTask(task ITask) *Tasker {
 	obj.taskRegistry.addTask(task)
+	return obj
+}
+
+func (obj *Tasker) RegisterTaskPacket(packet ITaskPacket) *Tasker {
+	obj.taskRegistry.addTaskPacket(packet)
 	return obj
 }
 
@@ -63,7 +71,7 @@ func (obj *Tasker) QueueKey(q Queue) string {
 	return fmt.Sprintf("%s-%s", obj.keyPrefix, q.Name)
 }
 
-func (obj *Tasker) TaskKey(q Queue, td ITaskData) string {
+func (obj *Tasker) TaskKey(q Queue, td ITaskPacket) string {
 	return fmt.Sprintf("%s-%s-%s", obj.keyPrefix, q.Name, td.Id())
 }
 
@@ -97,7 +105,7 @@ func (obj *Tasker) DelayedTaskLoop(ctx context.Context) error {
 				continue
 			}
 
-			td, err := obj.claimNextDelayedTask(ctx, q)
+			tp, err := obj.claimNextDelayedTask(ctx, q)
 			if errors.Is(err, ErrTaskNotAvailable) {
 				continue
 			} else if err != nil {
@@ -105,21 +113,24 @@ func (obj *Tasker) DelayedTaskLoop(ctx context.Context) error {
 			}
 			receivedTask = true
 
-			obj.logger.Debug(fmt.Sprintf("processing task: %s", td.TaskName()))
+			obj.logger.Debug(fmt.Sprintf("processing task packet: %s", tp.Name()))
 
-			t, err := obj.taskRegistry.findTask(td.TaskName())
+			t, err := obj.taskRegistry.findTask(tp.TaskName())
 			if err != nil {
 				return errs.Wrap(err)
 			}
 
-			res, tErr := t.Process(td)
+			pCtx, pCtxCancel := context.WithTimeout(ctx, obj.taskTimeout)
+
+			res, tErr := t.Process(pCtx, tp)
+			pCtxCancel()
 			if tErr != nil {
 				// WILL HANDLE RETRIES LATER
 				obj.logger.Error("task failed to process", slog.String("error", tErr.Error()))
 				continue
 			}
 
-			err = obj.handleDelayedTaskResult(ctx, q, td, res)
+			err = obj.handleDelayedTaskResult(ctx, q, tp, res)
 			if err != nil {
 				return errs.Wrap(err)
 			}
@@ -136,11 +147,11 @@ func (obj *Tasker) DelayedTaskLoop(ctx context.Context) error {
 
 }
 
-func (obj *Tasker) handleDelayedTaskResult(ctx context.Context, q Queue, td ITaskData, res Result) error {
+func (obj *Tasker) handleDelayedTaskResult(ctx context.Context, q Queue, tp ITaskPacket, res Result) error {
 
-	if res.requeue {
+	if res.Requeue {
 
-		_, err := obj.DelayTask(ctx, td, q.Name, 0*time.Second, false)
+		_, err := obj.DelayTask(ctx, tp, q.Name, 0*time.Second, false)
 		if err != nil {
 			return errs.Wrap(err)
 		}
@@ -149,7 +160,7 @@ func (obj *Tasker) handleDelayedTaskResult(ctx context.Context, q Queue, td ITas
 
 	} else {
 
-		_, err := obj.removeDelayedTask(ctx, q, td)
+		_, err := obj.removeDelayedTask(ctx, q, tp)
 		if err != nil {
 			return errs.Wrap(err)
 		}
@@ -163,7 +174,7 @@ func (obj *Tasker) handleDelayedTaskResult(ctx context.Context, q Queue, td ITas
 /*
 Remove the delayed task if it hasn't been requeued.
 */
-func (obj *Tasker) removeDelayedTask(ctx context.Context, q Queue, td ITaskData) (bool, error) {
+func (obj *Tasker) removeDelayedTask(ctx context.Context, q Queue, tp ITaskPacket) (bool, error) {
 
 	script := `
   local exists = redis.call('ZSCORE', KEYS[1], ARGV[1])
@@ -177,7 +188,7 @@ func (obj *Tasker) removeDelayedTask(ctx context.Context, q Queue, td ITaskData)
   `
 
 	qKey := obj.QueueKey(q)
-	tKey := obj.TaskKey(q, td)
+	tKey := obj.TaskKey(q, tp)
 	cmd := obj.client.Eval(ctx, script, []string{qKey}, tKey)
 	val, err := cmd.Val(), cmd.Err()
 	if err != nil {
@@ -188,7 +199,7 @@ func (obj *Tasker) removeDelayedTask(ctx context.Context, q Queue, td ITaskData)
 
 }
 
-func (obj *Tasker) claimNextDelayedTask(ctx context.Context, q Queue) (ITaskData, error) {
+func (obj *Tasker) claimNextDelayedTask(ctx context.Context, q Queue) (ITaskPacket, error) {
 
 	// - Arguments:
 	// -- KEYS[1] - Sorted set key
@@ -228,9 +239,9 @@ func (obj *Tasker) claimNextDelayedTask(ctx context.Context, q Queue) (ITaskData
 		return nil, errs.NewStackError(fmt.Errorf("%w| received %d items", ErrKeyDBResponseInvalid, len(result)))
 	}
 
-	taskName, ok := result[0].(string)
+	packetName, ok := result[0].(string)
 	if !ok {
-		return nil, errs.NewStackError(fmt.Errorf("%w| task name was not a string", ErrKeyDBResponseInvalid))
+		return nil, errs.NewStackError(fmt.Errorf("%w| packet name was not a string", ErrKeyDBResponseInvalid))
 	}
 
 	taskData, ok := result[1].(string)
@@ -238,18 +249,18 @@ func (obj *Tasker) claimNextDelayedTask(ctx context.Context, q Queue) (ITaskData
 		return nil, errs.NewStackError(fmt.Errorf("%w| task data was not a []byte", ErrKeyDBResponseInvalid))
 	}
 
-	td, err := obj.taskRegistry.buildTaskData(taskName, []byte(taskData))
+	tp, err := obj.taskRegistry.buildTaskPacket(packetName, []byte(taskData))
 	if err != nil {
 		return nil, errs.Wrap(err, fmt.Errorf("."))
 	}
 
-	return td, nil
+	return tp, nil
 
 }
 
 func (obj *Tasker) delayTask(
 	ctx context.Context,
-	td ITaskData,
+	tp ITaskPacket,
 	q Queue,
 	delay time.Duration,
 	replace bool,
@@ -260,7 +271,7 @@ func (obj *Tasker) delayTask(
 		replaceNum = 1
 	}
 
-	data, err := td.Marshal()
+	data, err := tp.Marshal()
 	if err != nil {
 		return false, errs.Wrap(err)
 	}
@@ -291,7 +302,7 @@ end
 	// add the task to the sorted set
 	// add the task to the hash
 	qKey := obj.QueueKey(q)
-	tKey := obj.TaskKey(q, td)
+	tKey := obj.TaskKey(q, tp)
 	cTs := time.Now().UTC().Add(delay).UnixMilli()
 	cmd := obj.client.Eval(
 		ctx,
@@ -299,8 +310,8 @@ end
 		[]string{qKey, tKey},
 		tKey,
 		cTs,
-		td.Id(),
-		td.TaskName(),
+		tp.Id(),
+		tp.Name(),
 		data,
 		replaceNum,
 	)
@@ -319,7 +330,7 @@ return an error.
 */
 func (obj *Tasker) DelayTask(
 	ctx context.Context,
-	td ITaskData,
+	td ITaskPacket,
 	queue string,
 	delay time.Duration,
 	replace bool,

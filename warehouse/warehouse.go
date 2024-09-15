@@ -10,6 +10,7 @@ import (
 	"github.com/alekLukanen/ChapterhouseDB/elements"
 	"github.com/alekLukanen/ChapterhouseDB/operations"
 	"github.com/alekLukanen/ChapterhouseDB/storage"
+	"github.com/alekLukanen/ChapterhouseDB/tasker"
 	"github.com/alekLukanen/arrow-ops"
 	"github.com/alekLukanen/errs"
 
@@ -27,6 +28,7 @@ type Warehouse struct {
 	name          string
 	tableRegistry operations.ITableRegistry
 	inserter      operations.IInserter
+	tasker        *tasker.Tasker
 }
 
 func NewWarehouse(
@@ -37,6 +39,7 @@ func NewWarehouse(
 	keyStorageOptions storage.KeyStorageOptions,
 	objectStorageOptions storage.ObjectStorageOptions,
 	manifestStorageOptions storage.ManifestStorageOptions,
+	taskerOptions tasker.Options,
 ) (*Warehouse, error) {
 	keyStorage, err := storage.NewKeyStorage(ctx, logger, keyStorageOptions)
 	if err != nil {
@@ -45,7 +48,12 @@ func NewWarehouse(
 
 	objectStorage, err := storage.NewObjectStorage(ctx, logger, objectStorageOptions)
 	if err != nil {
-		return nil, err
+		return nil, errs.Wrap(err)
+	}
+
+	tr, err := operations.BuildTasker(ctx, logger, taskerOptions)
+	if err != nil {
+		return nil, errs.Wrap(err)
 	}
 
 	allocator := memory.NewGoAllocator()
@@ -53,6 +61,7 @@ func NewWarehouse(
 		logger,
 		tableRegistry,
 		keyStorage,
+		tr,
 		allocator,
 		operations.InserterOptions{
 			PartitionLockDuration: 1 * time.Minute,
@@ -72,29 +81,17 @@ func NewWarehouse(
 		name:            name,
 		tableRegistry:   tableRegistry,
 		inserter:        inserter,
+		tasker:          tr,
 	}
 	return warehouse, nil
 }
 
-func (obj *Warehouse) Run(ctx context.Context) {
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		default:
-			processedAPartition, err := obj.ProcessNextTablePartition(ctx)
-			if err != nil {
-				obj.logger.Error(
-					"failed to process next table partition",
-					slog.String("error", err.Error()),
-				)
-			}
-			if !processedAPartition {
-				obj.logger.Info("no partitions to process; waiting a few seconds")
-				time.Sleep(5 * time.Second)
-			}
-		}
+func (obj *Warehouse) Run(ctx context.Context) error {
+	err := obj.tasker.DelayedTaskLoop(ctx)
+	if err != nil {
+		return errs.Wrap(err)
 	}
+	return nil
 }
 
 /*

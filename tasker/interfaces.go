@@ -1,13 +1,16 @@
 package tasker
 
+import "context"
+
 type ITask interface {
 	Name() string
-	NewData() ITaskData
-	Process(ITaskData) (Result, error)
+	Process(context.Context, ITaskPacket) (Result, error)
 }
 
-type ITaskData interface {
+type ITaskPacket interface {
 	Id() string
+	Name() string
+	New() ITaskPacket
 	TaskName() string
 
 	Marshal() ([]byte, error)
@@ -15,5 +18,5 @@ type ITaskData interface {
 }
 
 type Result struct {
-	requeue bool
+	Requeue bool
 }

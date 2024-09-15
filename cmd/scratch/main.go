@@ -27,30 +27,31 @@ func main() {
 
 }
 
-type Task1Data struct {
+type Task1Packet struct {
 	MyId string `json:"my_id"`
 	Val1 string `json:"val_1"`
 	Val2 int    `json:"val_2"`
 }
 
-func (obj *Task1Data) Id() string {
+func (obj *Task1Packet) Id() string {
 	return obj.MyId
 }
-func (obj *Task1Data) TaskName() string         { return "Task1" }
-func (obj *Task1Data) Marshal() ([]byte, error) { return json.Marshal(obj) }
-func (obj *Task1Data) Unmarshal(d []byte) error { return json.Unmarshal(d, obj) }
+func (obj *Task1Packet) Name() string             { return "task1-packet" }
+func (obj *Task1Packet) TaskName() string         { return "Task1" }
+func (obj *Task1Packet) New() tasker.ITaskPacket  { return &Task1Packet{} }
+func (obj *Task1Packet) Marshal() ([]byte, error) { return json.Marshal(obj) }
+func (obj *Task1Packet) Unmarshal(d []byte) error { return json.Unmarshal(d, obj) }
 
 type Task1 struct {
 	logger *slog.Logger
 }
 
-func (obj *Task1) Name() string              { return "Task1" }
-func (obj *Task1) NewData() tasker.ITaskData { return &Task1Data{} }
-func (obj *Task1) Process(td tasker.ITaskData) (tasker.Result, error) {
+func (obj *Task1) Name() string { return "Task1" }
+func (obj *Task1) Process(ctx context.Context, td tasker.ITaskPacket) (tasker.Result, error) {
 	obj.logger.Info("[Task1] called process()")
 	time.Sleep(3 * time.Second)
 	obj.logger.Info("[Task1] done...")
-	return tasker.Result{}, nil
+	return tasker.Result{Requeue: false}, nil
 }
 
 func Tasker() {
@@ -78,12 +79,14 @@ func Tasker() {
 		tasker.Queue{Name: "test-queue", Type: tasker.DelayedQueue},
 	).RegisterTask(
 		&task1,
+	).RegisterTaskPacket(
+		&Task1Packet{},
 	)
 
 	// delay a task
 	for i := 0; i < 3; i++ {
 		added, err := tr.DelayTask(
-			ctx, &Task1Data{MyId: fmt.Sprintf("id%d", i), Val1: "value1", Val2: 5}, "test-queue", 15*time.Second, false,
+			ctx, &Task1Packet{MyId: fmt.Sprintf("id%d", i), Val1: "value1", Val2: 5}, "test-queue", 5*time.Second, false,
 		)
 		if err != nil {
 			logger.Error("unable to add task to queue", slog.String("error", err.Error()))
@@ -223,11 +226,19 @@ func InsertTuplesIntoKeyStorage() {
 		return
 	}
 
+	tr, err := operations.BuildTasker(ctx, logger, tasker.Options{
+		KeyDBAddress:  "localhost:6379",
+		KeyDBPassword: "",
+		KeyPrefix:     "chapterhouseDB",
+		TaskTimeout:   30 * time.Second,
+	})
+
 	pool := memory.NewGoAllocator()
 	inserter := operations.NewInserter(
 		logger,
 		tableRegistery,
 		keyStorage,
+		tr,
 		pool,
 		operations.InserterOptions{PartitionLockDuration: 15 * time.Second},
 	)

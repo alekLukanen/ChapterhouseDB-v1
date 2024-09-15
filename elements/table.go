@@ -289,7 +289,7 @@ func (obj ColumnPartition) Options() IPartitionOptions {
 ////////////////////////////////////////
 
 type Partition struct {
-	TableName              string
-	SubscriptionSourceName string
-	Key                    string
+	TableName              string `json:"table_name"`
+	SubscriptionSourceName string `json:"subscription_source_name"`
+	Key                    string `json:"key"`
 }

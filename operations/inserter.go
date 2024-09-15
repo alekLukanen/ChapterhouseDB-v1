@@ -9,12 +9,15 @@ import (
 
 	"github.com/alekLukanen/ChapterhouseDB/elements"
 	"github.com/alekLukanen/ChapterhouseDB/storage"
+	taskpackets "github.com/alekLukanen/ChapterhouseDB/taskPackets"
+	"github.com/alekLukanen/ChapterhouseDB/tasker"
 	"github.com/alekLukanen/errs"
 	"github.com/apache/arrow/go/v17/arrow"
 	"github.com/apache/arrow/go/v17/arrow/memory"
 )
 
 type IInserter interface {
+	GetPartitionBatch(ctx context.Context, part elements.Partition) (storage.ILock, arrow.Record, error)
 	GetPartition(ctx context.Context, tableName string, batchCount int, batchDelay time.Duration) (elements.Partition, storage.ILock, arrow.Record, error)
 	InsertTuples(ctx context.Context, tableName, sourceName string, tuples arrow.Record) error
 }
@@ -28,6 +31,7 @@ type Inserter struct {
 
 	tableRegistry ITableRegistry
 	keyStorage    IKeyStorage
+	tasker        *tasker.Tasker
 	allocator     *memory.GoAllocator
 
 	options InserterOptions
@@ -37,6 +41,7 @@ func NewInserter(
 	logger *slog.Logger,
 	tableRegistry ITableRegistry,
 	keyStorage IKeyStorage,
+	tasker *tasker.Tasker,
 	allocator *memory.GoAllocator,
 	options InserterOptions,
 ) *Inserter {
@@ -44,9 +49,61 @@ func NewInserter(
 		logger:        logger,
 		tableRegistry: tableRegistry,
 		keyStorage:    keyStorage,
+		tasker:        tasker,
 		allocator:     allocator,
 		options:       options,
 	}
+}
+
+func (obj *Inserter) GetPartitionBatch(
+	ctx context.Context,
+	part elements.Partition,
+) (_ storage.ILock, _ arrow.Record, err error) {
+
+	tbl, err := obj.tableRegistry.GetTable(part.TableName)
+	if err != nil {
+		return nil, nil, errs.Wrap(err)
+	}
+	tblOpts := tbl.Options()
+
+	// check if the set has partition items
+	items, err := obj.keyStorage.GetTablePartitionItems(ctx, part, tblOpts.BatchProcessingSize)
+	if err != nil {
+		return nil, nil, errs.Wrap(err)
+	}
+
+	if len(items) == 0 {
+		return nil, nil, errs.NewStackError(ErrPartitionTuplesEmpty)
+	}
+
+	// if it does then lock the partition set and get the items
+	// if the partition set is already locked then try the next partition set
+	lock, err := obj.keyStorage.ClaimPartition(ctx, part, obj.options.PartitionLockDuration)
+	if err != nil {
+		return nil, nil, errs.Wrap(err)
+	}
+
+	// to convert the items to an arrow record we need to know the schema
+	// of the table partition. Pass the table definition to the avro to arrow
+	// converter function. The converter will return an arrow record with the
+	// correct schema and the items will be converted to the correct format.
+	// The tuples are defined by the partition columns so only those columns
+	// will be present in the record.
+	// convert the items to an arrow record
+	tuples, err := AvroToArrow(obj.allocator, tbl, part.SubscriptionSourceName, items)
+	if err != nil {
+		_, unlockErr := lock.UnlockContext(ctx)
+		if unlockErr != nil {
+			return nil, nil, errs.Wrap(
+				err,
+				fmt.Errorf("%w| received while handling an error from converting the tuples", unlockErr))
+		} else {
+			return nil, nil, errs.Wrap(err)
+		}
+	}
+
+	return lock, tuples, nil
+
 }
 
 func (obj *Inserter) GetPartition(
@@ -213,13 +270,13 @@ func (obj *Inserter) InsertTuples(ctx context.Context, tableName, sourceName str
 			dataItems,
 		)
 		if err != nil {
-			return err
+			return errs.Wrap(err)
 		}
 
-		// set the timestamp for the partition
-		_, err := obj.keyStorage.SetTablePartitionTimestamp(ctx, partition)
+		tptPacket := taskpackets.TablePartitionTaskPacket{Partition: partition}
+		_, err = obj.tasker.DelayTask(ctx, &tptPacket, "tuple-processing", table.Options().BatchProcessingDelay, false)
 		if err != nil {
-			return err
+			return errs.Wrap(err)
 		}
 
 	}

@@ -12,4 +12,5 @@ var (
 	ErrMultipleColumnsFound                  = errors.New("multiple columns found")
 	ErrIntegerRangeTypeNotImplemented        = errors.New("integer range type not implemented")
 	ErrNoPartitionsAvailable                 = errors.New("no partitions available")
+	ErrPartitionTuplesEmpty                  = errors.New("partition tuples empty")
 )
