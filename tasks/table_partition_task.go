@@ -90,7 +90,7 @@ Steps:
  7. Release the lock on the partition
  8. Release the arrow record from the memory allocator
 */
-func (obj *TablePartitionTask) Process(ctx context.Context, packet tasker.ITaskPacket) (tasker.Result, error) {
+func (obj *TablePartitionTask) Process(ctx context.Context, packet tasker.ITaskPacket) (_ tasker.Result, err error) {
 	tptPacket, ok := packet.(*taskpackets.TablePartitionTaskPacket)
 	if !ok {
 		return tasker.Result{}, errs.NewStackError(ErrInvalidPacketType)

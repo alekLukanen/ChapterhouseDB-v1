@@ -243,7 +243,7 @@ func NewRecordMergeSortBuilder(
 
 	err := ValidateSampleRecord(processedKeyRecord, newRecord, primaryColumns)
 	if err != nil {
-		return nil, err
+		return nil, errs.Wrap(err)
 	}
 
 	return &RecordMergeSortBuilder{

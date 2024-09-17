@@ -274,7 +274,7 @@ func (obj *Inserter) InsertTuples(ctx context.Context, tableName, sourceName str
 		}
 
 		tptPacket := taskpackets.TablePartitionTaskPacket{Partition: partition}
-		_, err = obj.tasker.DelayTask(ctx, &tptPacket, "tuple-processing", table.Options().BatchProcessingDelay, false)
+		_, err := obj.tasker.DelayTask(ctx, &tptPacket, "tuple-processing", table.Options().BatchProcessingDelay, false)
 		if err != nil {
 			return errs.Wrap(err)
 		}
