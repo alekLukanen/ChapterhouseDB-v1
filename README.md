@@ -2,6 +2,13 @@
 A self-managed streaming data warehouse built on Parquet with an interchangeable
 query engine to support single node query engines like DuckDB and DataFusion.
 
+## View KeyDB
+
+Use the redis-commander tool
+```
+redis-commander
+```
+
 ## Querying Local Files With DuckDB
 
 ```sql
