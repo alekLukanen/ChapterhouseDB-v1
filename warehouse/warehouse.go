@@ -22,9 +22,9 @@ type Warehouse struct {
 	allocator       *memory.GoAllocator
 
 	name          string
-	tableRegistry operations.ITableRegistry
-	inserter      operations.IInserter
-	tasker        *tasker.Tasker
+	TableRegistry operations.ITableRegistry
+	Inserter      operations.IInserter
+	Tasker        *tasker.Tasker
 }
 
 func NewWarehouse(
@@ -75,30 +75,30 @@ func NewWarehouse(
 		manifestStorage: manifestStorage,
 		allocator:       allocator,
 		name:            name,
-		tableRegistry:   tableRegistry,
-		inserter:        inserter,
-		tasker:          tr,
+		TableRegistry:   tableRegistry,
+		Inserter:        inserter,
+		Tasker:          tr,
 	}
 	warehouse.registerTasks()
 	return warehouse, nil
 }
 
 func (obj *Warehouse) registerTasks() {
-	obj.tasker.RegisterTask(
+	obj.Tasker.RegisterTask(
 		tasks.NewTablePartitionTask(
 			obj.logger,
 			obj.keyStorage,
 			obj.objectStorage,
 			obj.manifestStorage,
 			obj.allocator,
-			obj.tableRegistry,
-			obj.inserter,
+			obj.TableRegistry,
+			obj.Inserter,
 		),
 	)
 }
 
 func (obj *Warehouse) Run(ctx context.Context) error {
-	err := obj.tasker.DelayedTaskLoop(ctx)
+	err := obj.Tasker.DelayedTaskLoop(ctx)
 	if err != nil {
 		return errs.Wrap(err)
 	}

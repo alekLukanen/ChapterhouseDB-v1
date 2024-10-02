@@ -195,7 +195,6 @@ func (obj *Inserter) GetPartition(
 }
 
 func (obj *Inserter) InsertTuples(ctx context.Context, tableName, sourceName string, tuples arrow.Record) error {
-	obj.logger.Info("inserting new tuples")
 
 	table, err := obj.tableRegistry.GetTable(tableName)
 	if err != nil {

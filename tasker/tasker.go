@@ -347,3 +347,45 @@ func (obj *Tasker) DelayTask(
 	return obj.delayTask(ctx, td, q, delay, replace)
 
 }
+
+func (obj *Tasker) queueLength(
+	ctx context.Context,
+	q Queue,
+) (int, error) {
+
+	script := `
+  local size = redis.call('ZCARD', KEYS[1])
+  return size
+  `
+
+	qKey := obj.QueueKey(q)
+	cmd := obj.client.Eval(
+		ctx,
+		script,
+		[]string{qKey},
+	)
+	val, err := cmd.Val(), cmd.Err()
+	if err != nil {
+		return 0, errs.NewStackError(err)
+	}
+
+	return int(val.(int64)), nil
+
+}
+
+func (obj *Tasker) QueueLength(
+	ctx context.Context,
+	queue string,
+) (int, error) {
+
+	q, err := obj.queueRegistry.findQueue(queue)
+	if err != nil {
+		return 0, errs.Wrap(err)
+	}
+	if q.Type != DelayedQueue {
+		return 0, errs.NewStackError(ErrQueueTypeInvalidForOperation)
+	}
+
+	return obj.queueLength(ctx, q)
+
+}

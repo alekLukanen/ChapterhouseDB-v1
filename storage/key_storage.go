@@ -76,6 +76,10 @@ func NewKeyStorage(
 	return &keyStorage, nil
 }
 
+func (obj *KeyStorage) Close() error {
+	return obj.client.Close()
+}
+
 func (obj *KeyStorage) Key(key string) string {
 	return fmt.Sprintf("%s-%s", obj.KeyPrefix, key)
 }
