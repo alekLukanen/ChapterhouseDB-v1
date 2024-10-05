@@ -1,11 +1,14 @@
 package operations
 
 import (
+	"fmt"
+
 	"github.com/apache/arrow/go/v17/arrow"
 	"github.com/apache/arrow/go/v17/arrow/array"
 	"github.com/apache/arrow/go/v17/arrow/memory"
 
 	"github.com/alekLukanen/ChapterhouseDB/elements"
+	"github.com/alekLukanen/errs"
 )
 
 /*
@@ -18,7 +21,7 @@ func PartitionColumns(allocator *memory.GoAllocator, tuples arrow.Record, column
 		partitionFunc := column.Options().PartitionFunc()
 		partitionedColumn, err := partitionFunc(allocator, tuples, column.Name(), column.Options())
 		if err != nil {
-			return nil, err
+			return nil, errs.NewStackError(err)
 		}
 		partitionedColumns[idx] = partitionedColumn
 	}
@@ -29,14 +32,21 @@ func PartitionColumns(allocator *memory.GoAllocator, tuples arrow.Record, column
 func PartitionKeys(allocator *memory.GoAllocator, tuples arrow.Record, columns []elements.ColumnPartition) (*array.String, error) {
 	partitionedColumns, err := PartitionColumns(allocator, tuples, columns)
 	if err != nil {
-		return nil, err
+		return nil, errs.Wrap(err)
+	}
+
+	if len(partitionedColumns) < 1 {
+		return nil, errs.NewStackError(ErrPartitionColumnsEmpty)
 	}
 
 	keys := make([]string, tuples.NumRows())
 	for idx := int64(0); idx < tuples.NumRows(); idx++ {
 		var key string
-		for _, colParts := range partitionedColumns {
-			key += colParts.ValueStr(int(idx))
+		key += partitionedColumns[0].ValueStr(int(idx))
+		if len(partitionedColumns) > 1 {
+			for _, colParts := range partitionedColumns[1:] {
+				key += fmt.Sprintf("-%s", colParts.ValueStr(int(idx)))
+			}
 		}
 		keys[idx] = key
 	}
