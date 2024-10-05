@@ -4,32 +4,24 @@ import (
 	"fmt"
 
 	"github.com/alekLukanen/ChapterhouseDB/elements"
+	"github.com/alekLukanen/errs"
 	"github.com/apache/arrow/go/v17/arrow"
 	"github.com/apache/arrow/go/v17/arrow/array"
 	"github.com/apache/arrow/go/v17/arrow/memory"
 )
 
 type IntegerRangePartitionOptions struct {
-	Width         int
-	MaxPartitions int
+	Width int
 }
 
-func NewIntegerRangePartitionOptions(width, maxPartitions int) *IntegerRangePartitionOptions {
+func NewIntegerRangePartitionOptions(width int) *IntegerRangePartitionOptions {
 	return &IntegerRangePartitionOptions{
-		Width:         width,
-		MaxPartitions: maxPartitions,
+		Width: width,
 	}
 }
 
 func (obj *IntegerRangePartitionOptions) PartitionType() string {
 	return "integer_range"
-}
-
-func (obj *IntegerRangePartitionOptions) PartitionMetaData() map[string]string {
-	return map[string]string{
-		"width":          fmt.Sprint(obj.Width),
-		"max_partitions": fmt.Sprint(obj.MaxPartitions),
-	}
 }
 
 func (obj *IntegerRangePartitionOptions) PartitionFunc() elements.PartitionFunc {
@@ -43,7 +35,7 @@ func (obj *IntegerRangePartitionOptions) PartitionFunc() elements.PartitionFunc 
 func IntegerRangePartition(allocator *memory.GoAllocator, record arrow.Record, column string, options elements.IPartitionOptions) (arrow.Array, error) {
 	intOptions, ok := options.(*IntegerRangePartitionOptions)
 	if !ok {
-		return nil, ErrInvalidPartitionOptions
+		return nil, errs.NewStackError(ErrInvalidPartitionOptions)
 	}
 
 	arrayBuilder := array.NewUint32Builder(allocator)
@@ -52,9 +44,9 @@ func IntegerRangePartition(allocator *memory.GoAllocator, record arrow.Record, c
 	schema := record.Schema()
 	columnIdxs := schema.FieldIndices(column)
 	if len(columnIdxs) == 0 {
-		return nil, ErrColumnNotFound
+		return nil, errs.NewStackError(ErrColumnNotFound)
 	} else if len(columnIdxs) > 1 {
-		return nil, ErrMultipleColumnsFound
+		return nil, errs.NewStackError(ErrMultipleColumnsFound)
 	}
 
 	columnIdx := columnIdxs[0]
@@ -64,7 +56,7 @@ func IntegerRangePartition(allocator *memory.GoAllocator, record arrow.Record, c
 	for i := 0; i < arr.Len(); i++ {
 		partIdx, err := IntegerRangeCastCall(arr, i, intOptions)
 		if err != nil {
-			return nil, err
+			return nil, errs.Wrap(err, fmt.Errorf("column: %s, array index: %d", column, i))
 		}
 		arrData[i] = partIdx
 	}
@@ -119,6 +111,6 @@ func IntegerRangeCastCall(arr arrow.Array, idx int, options *IntegerRangePartiti
 		return uint32(part), nil
 
 	default:
-		return 0, ErrIntegerRangeTypeNotImplemented
+		return 0, errs.NewStackError(ErrIntegerRangeTypeNotImplemented)
 	}
 }

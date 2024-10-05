@@ -264,7 +264,6 @@ func (obj *ExternalSubscription) Transformer() Transformer {
 
 type IPartitionOptions interface {
 	PartitionType() string
-	PartitionMetaData() map[string]string
 	PartitionFunc() PartitionFunc
 }
 type ColumnPartition struct {

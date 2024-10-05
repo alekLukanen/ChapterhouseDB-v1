@@ -121,7 +121,7 @@ func BuildSampleRecord() {
 		AddColumnPartitions(
 			elements.NewColumnPartition(
 				"column1",
-				partitionFuncs.NewIntegerRangePartitionOptions(10, 10),
+				partitionFuncs.NewIntegerRangePartitionOptions(10),
 			),
 		).
 		AddSubscriptionGroups(
@@ -199,7 +199,7 @@ func InsertTuplesIntoKeyStorage() {
 		AddColumnPartitions(
 			elements.NewColumnPartition(
 				"column1",
-				partitionFuncs.NewIntegerRangePartitionOptions(10, 10),
+				partitionFuncs.NewIntegerRangePartitionOptions(10),
 			),
 		).
 		AddSubscriptionGroups(
