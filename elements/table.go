@@ -207,7 +207,11 @@ func (obj SubscriptionGroup) AddSubscriptions(subs ...ISubscription) Subscriptio
 	return obj
 }
 
-func (obj *SubscriptionGroup) IsValid() bool {
+func (obj SubscriptionGroup) Subscriptions() []ISubscription {
+	return obj.subscriptions
+}
+
+func (obj SubscriptionGroup) IsValid() bool {
 	if obj.name == "" {
 		return false
 	}
