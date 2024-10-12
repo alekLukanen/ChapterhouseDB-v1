@@ -166,8 +166,6 @@ func (obj *ParquetRecordMergeSortBuilder) BuildNextFiles(ctx context.Context, fi
 		files = append(files, f)
 	}
 
-	obj.recordMergeSortBuilder.Debug()
-
 	return files, nil
 }
 
@@ -262,16 +260,6 @@ func NewRecordMergeSortBuilder(
 
 }
 
-func (obj *RecordMergeSortBuilder) Debug() {
-	obj.logger.Debug("RecordMergeSortBuilder",
-		slog.Int("maxRowsPerRecord", obj.maxRowsPerRecord),
-		slog.Int("takeIndex", obj.takeIndex),
-		slog.Int("mainLineRecordIndex", obj.mainLineRecordIndex),
-		slog.Any("primaryColumns", obj.primaryColumns),
-		slog.Any("compareColumns", obj.compareColumns),
-	)
-}
-
 func (obj *RecordMergeSortBuilder) Release() {
 	obj.processedKeyRecordForMainLine.release()
 	obj.sampleRecord.release()
@@ -296,8 +284,6 @@ func (obj *RecordMergeSortBuilder) BuildNextRecord() (arrow.Record, error) {
 	if obj.takeIndex == obj.maxRowsPerRecord {
 		return obj.TakeRecord()
 	}
-
-	obj.logger.Info("mainLineRecord count: ", slog.Int("count", len(obj.mainLineRecords)))
 
 	if len(obj.mainLineRecords) == 0 {
 		return nil, errs.NewStackError(ErrRecordNotComplete)

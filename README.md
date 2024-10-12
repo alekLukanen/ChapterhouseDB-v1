@@ -10,8 +10,8 @@ common Redis compatible key-value database and an S3 compatible object storage. 
 processed in parallel across your workers allowing you to scale up workers as needed. 
 Only one worker can process a table partition at any given time, but if you increase
 the number of partitions to a sufficiently large number then it is unlikely you 
-will ever limit your ability to process data in parallel. Tables should be partitioned using
-using a unique identifier since the partition key also ensures uniqueness of rows in the table. 
+will ever limit your ability to process data in parallel. Tables should be partitioned using 
+a unique identifier since the partition key also ensures uniqueness of rows in the table. 
 Currently integer range and string hash partitioning is available. 
 You can have at most 2^32-1 partitions.
 
