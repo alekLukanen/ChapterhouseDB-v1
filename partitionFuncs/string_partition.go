@@ -6,7 +6,7 @@ import (
 	"hash/fnv"
 	"math"
 
-	"github.com/alekLukanen/ChapterhouseDB/elements"
+	"github.com/alekLukanen/ChapterhouseDB-v1/elements"
 	"github.com/alekLukanen/errs"
 	"github.com/apache/arrow/go/v17/arrow"
 	"github.com/apache/arrow/go/v17/arrow/array"

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/alekLukanen/ChapterhouseDB/elements"
+	"github.com/alekLukanen/ChapterhouseDB-v1/elements"
 	arrowops "github.com/alekLukanen/arrow-ops"
 	"github.com/apache/arrow/go/v17/arrow"
 	"github.com/apache/arrow/go/v17/arrow/memory"

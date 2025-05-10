@@ -4,8 +4,8 @@ import (
 	"context"
 	"log/slog"
 
-	taskpackets "github.com/alekLukanen/ChapterhouseDB/taskPackets"
-	"github.com/alekLukanen/ChapterhouseDB/tasker"
+	taskpackets "github.com/alekLukanen/ChapterhouseDB-v1/taskPackets"
+	"github.com/alekLukanen/ChapterhouseDB-v1/tasker"
 	"github.com/alekLukanen/errs"
 )
 

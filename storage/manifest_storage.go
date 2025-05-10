@@ -12,8 +12,8 @@ import (
 	"github.com/apache/arrow/go/v17/arrow"
 	"github.com/apache/arrow/go/v17/arrow/memory"
 
-	"github.com/alekLukanen/ChapterhouseDB/dataOps"
-	"github.com/alekLukanen/ChapterhouseDB/elements"
+	"github.com/alekLukanen/ChapterhouseDB-v1/dataOps"
+	"github.com/alekLukanen/ChapterhouseDB-v1/elements"
 	arrowops "github.com/alekLukanen/arrow-ops"
 	"github.com/alekLukanen/errs"
 )

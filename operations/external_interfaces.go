@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/alekLukanen/ChapterhouseDB/elements"
-	"github.com/alekLukanen/ChapterhouseDB/storage"
+	"github.com/alekLukanen/ChapterhouseDB-v1/elements"
+	"github.com/alekLukanen/ChapterhouseDB-v1/storage"
 )
 
 type IKeyStorage interface {

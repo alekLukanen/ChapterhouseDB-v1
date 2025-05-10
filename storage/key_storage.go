@@ -13,7 +13,7 @@ import (
 	"github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	goredislib "github.com/redis/go-redis/v9"
 
-	"github.com/alekLukanen/ChapterhouseDB/elements"
+	"github.com/alekLukanen/ChapterhouseDB-v1/elements"
 	"github.com/alekLukanen/errs"
 )
 

@@ -5,10 +5,10 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/alekLukanen/ChapterhouseDB/operations"
-	"github.com/alekLukanen/ChapterhouseDB/storage"
-	"github.com/alekLukanen/ChapterhouseDB/tasker"
-	"github.com/alekLukanen/ChapterhouseDB/tasks"
+	"github.com/alekLukanen/ChapterhouseDB-v1/operations"
+	"github.com/alekLukanen/ChapterhouseDB-v1/storage"
+	"github.com/alekLukanen/ChapterhouseDB-v1/tasker"
+	"github.com/alekLukanen/ChapterhouseDB-v1/tasks"
 	"github.com/alekLukanen/errs"
 
 	"github.com/apache/arrow/go/v17/arrow/memory"

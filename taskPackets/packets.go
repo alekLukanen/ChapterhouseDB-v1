@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/alekLukanen/ChapterhouseDB/elements"
-	"github.com/alekLukanen/ChapterhouseDB/tasker"
+	"github.com/alekLukanen/ChapterhouseDB-v1/elements"
+	"github.com/alekLukanen/ChapterhouseDB-v1/tasker"
 )
 
 const (

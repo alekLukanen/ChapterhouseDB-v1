@@ -7,7 +7,7 @@ import (
 	"github.com/linkedin/goavro/v2"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/alekLukanen/ChapterhouseDB/tests/serializers"
+	"github.com/alekLukanen/ChapterhouseDB-v1/tests/serializers"
 )
 
 var TEST_SIZES [1]int = [1]int{1_000_000}
